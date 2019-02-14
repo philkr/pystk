@@ -216,6 +216,7 @@ FileManager::FileManager()
     }
 
     addRootDirs(root_dir);
+    addRootDirs(root_dir + "../stk-assets/");
 
     std::string assets_dir;
 
