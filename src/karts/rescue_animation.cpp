@@ -26,7 +26,13 @@
 #include "modes/follow_the_leader.hpp"
 #include "modes/three_strikes_battle.hpp"
 #include "network/network_string.hpp"
-#include "utils/mini_glm.hpp"
+#include "physics/physics.hpp"
+#include "physics/triangle_mesh.hpp"
+#include "race/race_manager.hpp"
+#include "tracks/drive_graph.hpp"
+#include "tracks/quad.hpp"
+#include "tracks/track.hpp"
+#include "tracks/track_sector.hpp"
 
 #include "ISceneNode.h"
 
@@ -58,8 +64,6 @@ RescueAnimation::RescueAnimation(AbstractKart* kart, bool is_auto_rescue)
     World::getWorld()->moveKartAfterRescue(kart);
 
     btTransform rescue_transform = kart->getTrans();
-    MiniGLM::compressbtTransform(rescue_transform,
-        m_rescue_transform_compressed);
     kart->getBody()->setCenterOfMassTransform(prev_trans);
     kart->setTrans(prev_trans);
 
@@ -80,13 +84,6 @@ RescueAnimation::RescueAnimation(AbstractKart* kart, bool is_auto_rescue)
         !is_auto_rescue)
     {
         World::getWorld()->kartHit(m_kart->getWorldKartId());
-        if (UserConfigParams::m_arena_ai_stats)
-        {
-            ThreeStrikesBattle* tsb = dynamic_cast<ThreeStrikesBattle*>
-                (World::getWorld());
-            if (tsb)
-                tsb->increaseRescueCount();
-        }
     }
 
     // Allow FTL mode to apply special action when the leader is rescued
@@ -103,28 +100,6 @@ RescueAnimation::RescueAnimation(AbstractKart* kart, bool is_auto_rescue)
         RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
         resetPowerUp();
 }   // RescueAnimation
-
-//-----------------------------------------------------------------------------
-RescueAnimation::RescueAnimation(AbstractKart* kart, BareNetworkString* b)
-               : AbstractKartAnimation(kart, "RescueAnimation")
-{
-    m_referee = NULL;
-    restoreBasicState(b);
-    restoreData(b);
-}   // RescueAnimation
-
-//-----------------------------------------------------------------------------
-void RescueAnimation::restoreData(BareNetworkString* b)
-{
-    m_rescue_transform_compressed[0] = b->getInt24();
-    m_rescue_transform_compressed[1] = b->getInt24();
-    m_rescue_transform_compressed[2] = b->getInt24();
-    m_rescue_transform_compressed[3] = b->getUInt32();
-    btTransform rescue_transform =
-        MiniGLM::decompressbtTransform(m_rescue_transform_compressed);
-    float velocity = b->getFloat();
-    init(rescue_transform, velocity);
-}   // restoreData
 
 //-----------------------------------------------------------------------------
 /* When rescue transform and velocity is known, setting up the rest of data.
@@ -198,16 +173,10 @@ void RescueAnimation::updateGraphics(float dt)
 void RescueAnimation::saveState(BareNetworkString* buffer)
 {
     AbstractKartAnimation::saveState(buffer);
-    buffer->addInt24(m_rescue_transform_compressed[0])
-        .addInt24(m_rescue_transform_compressed[1])
-        .addInt24(m_rescue_transform_compressed[2])
-        .addUInt32(m_rescue_transform_compressed[3]);
-    buffer->addFloat(m_velocity);
 }   // saveState
 
 // ----------------------------------------------------------------------------
 void RescueAnimation::restoreState(BareNetworkString* buffer)
 {
     AbstractKartAnimation::restoreState(buffer);
-    restoreData(buffer);
 }   // restoreState

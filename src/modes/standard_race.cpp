@@ -17,12 +17,10 @@
 
 #include "modes/standard_race.hpp"
 
-#include "challenges/unlock_manager.hpp"
 #include "items/powerup_manager.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
 #include "karts/controller/ghost_controller.hpp"
-#include "network/network_config.hpp"
 
 //-----------------------------------------------------------------------------
 StandardRace::StandardRace() : LinearWorld()
@@ -159,11 +157,9 @@ void StandardRace::endRaceEarly()
 
         // In networked races, endRaceEarly will be called if a player
         // takes too much time to finish, so don't mark him as eliminated
-        if (!isNetworkWorld())
-            m_karts[kartid]->eliminate();
+        m_karts[kartid]->eliminate();
     } // Finish the active players
     endSetKartPositions();
     setPhase(RESULT_DISPLAY_PHASE);
-    if (!isNetworkWorld() || NetworkConfig::get()->isServer())
-        terminateRace();
+    terminateRace();
 } // endRaceEarly

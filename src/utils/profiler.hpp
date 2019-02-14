@@ -21,7 +21,6 @@
 #include "utils/synchronised.hpp"
 
 #include <irrlicht.h>
-#include <pthread.h>
 
 #include <assert.h>
 #include <iostream>
@@ -32,6 +31,7 @@
 #include <streambuf>
 #include <string>
 #include <vector>
+#include <thread>
 
 enum QueryPerf
 {
@@ -225,7 +225,7 @@ private:
     std::vector< ThreadData> m_all_threads_data;
 
     /** A mapping of thread_t pointers to a unique integer (starting from 0).*/
-    std::vector<pthread_t> m_thread_mapping;
+    std::vector<std::thread::id> m_thread_mapping;
 
     /** Buffer for the GPU times (in ms). */
     std::vector<int> m_gpu_times;

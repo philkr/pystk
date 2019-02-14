@@ -20,6 +20,7 @@
 #include "graphics/central_settings.hpp"
 #include "graphics/graphics_restrictions.hpp"
 #include "graphics/material.hpp"
+#include "graphics/sp/sp_uniform_assigner.hpp"
 #include "graphics/sp/sp_shader.hpp"
 #include "graphics/sp/sp_shader_manager.hpp"
 #include "graphics/sp/sp_texture_manager.hpp"
@@ -249,16 +250,16 @@ void SPMeshBuffer::recreateVAO(unsigned i)
 #ifndef USE_GLES2
     if (CVS->isARBBufferStorageUsable())
     {
-        glBufferStorage(GL_ARRAY_BUFFER, m_gl_instance_size[i] * 44, NULL,
+        glBufferStorage(GL_ARRAY_BUFFER, m_gl_instance_size[i] * SP_ID_SIZE, NULL,
             GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
         m_ins_dat_mapped_ptr[i] = glMapBufferRange(GL_ARRAY_BUFFER, 0,
-            m_gl_instance_size[i] * 44,
+            m_gl_instance_size[i] * SP_ID_SIZE,
             GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
     }
     else
 #endif
     {
-        glBufferData(GL_ARRAY_BUFFER, m_gl_instance_size[i] * 44, NULL,
+        glBufferData(GL_ARRAY_BUFFER, m_gl_instance_size[i] * SP_ID_SIZE, NULL,
             GL_DYNAMIC_DRAW);
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -348,25 +349,29 @@ void SPMeshBuffer::recreateVAO(unsigned i)
     glBindBuffer(GL_ARRAY_BUFFER, m_ins_array[i]);
     // Origin
     glEnableVertexAttribArray(8);
-    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, 44, (void*)0);
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, SP_ID_SIZE, (void*)0);
     glVertexAttribDivisorARB(8, 1);
     // Rotation (quaternion in 4 32bit floats)
     glEnableVertexAttribArray(9);
-    glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, 44, (void*)12);
+    glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, SP_ID_SIZE, (void*)12);
     glVertexAttribDivisorARB(9, 1);
     // Scale (3 half floats and .w unused)
     glEnableVertexAttribArray(10);
-    glVertexAttribPointer(10, 4, GL_HALF_FLOAT, GL_FALSE, 44, (void*)28);
+    glVertexAttribPointer(10, 4, GL_HALF_FLOAT, GL_FALSE, SP_ID_SIZE, (void*)28);
     glVertexAttribDivisorARB(10, 1);
     // Texture translation
     glEnableVertexAttribArray(11);
-    glVertexAttribPointer(11, 2, GL_SHORT, GL_TRUE, 44, (void*)36);
+    glVertexAttribPointer(11, 2, GL_SHORT, GL_TRUE, SP_ID_SIZE, (void*)36);
     glVertexAttribDivisorARB(11, 1);
     // Misc data (skinning offset and hue change)
     glEnableVertexAttribArray(12);
-    glVertexAttribIPointer(12, 2, GL_SHORT, 44, (void*)40);
+    glVertexAttribIPointer(12, 2, GL_SHORT, SP_ID_SIZE, (void*)40);
     glVertexAttribDivisorARB(12, 1);
 
+    glEnableVertexAttribArray(13);
+    glVertexAttribIPointer(13, 1, GL_INT, SP_ID_SIZE, (void*)44);
+    glVertexAttribDivisorARB(13, 1);
+	
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -399,15 +404,15 @@ void SPMeshBuffer::uploadInstanceData()
         if (CVS->isARBBufferStorageUsable())
         {
             memcpy(m_ins_dat_mapped_ptr[i], m_ins_dat[i].data(),
-                m_ins_dat[i].size() * 44);
+                m_ins_dat[i].size() * SP_ID_SIZE);
         }
         else
         {
             glBindBuffer(GL_ARRAY_BUFFER, m_ins_array[i]);
             void* ptr = glMapBufferRange(GL_ARRAY_BUFFER, 0,
-                m_ins_dat[i].size() * 44, GL_MAP_WRITE_BIT |
+                m_ins_dat[i].size() * SP_ID_SIZE, GL_MAP_WRITE_BIT |
                 GL_MAP_UNSYNCHRONIZED_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-            memcpy(ptr, m_ins_dat[i].data(), m_ins_dat[i].size() * 44);
+            memcpy(ptr, m_ins_dat[i].data(), m_ins_dat[i].size() * SP_ID_SIZE);
             glUnmapBuffer(GL_ARRAY_BUFFER);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
@@ -488,5 +493,13 @@ void SPMeshBuffer::setSTKMaterial(Material* m)
     if (!m_shaders[1])
         m_shaders[1] = SPShaderManager::get()->getSPShader("solid_skinned");
 }   // setSTKMaterial
+
+
+void SPMeshBuffer::setLabel(int label) {
+	static_cast<SP::SPPerObjectUniform*>(this)->
+		addAssignerFunction("label", [label](SP::SPUniformAssigner* ua)->void {
+                ua->setValue(label);
+            });
+}
 
 }

@@ -193,6 +193,9 @@ bool ContextManagerEGL::initDisplay()
     case CEGL_PLATFORM_X11:
         platform = EGL_PLATFORM_X11;
         break;
+    case CEGL_PLATFORM_DEVICE:
+        platform = EGL_PLATFORM_DEVICE;
+        break;
     case CEGL_PLATFORM_DEFAULT:
         break;
     }
@@ -218,6 +221,7 @@ bool ContextManagerEGL::initDisplay()
         return false;
     }
 
+m_egl_display = eglGetPlatformDisplay(platform, EGL_DEFAULT_DISPLAY, NULL);
     int egl_version_major = 0;
     int egl_version_minor = 0;
 
@@ -403,6 +407,10 @@ bool ContextManagerEGL::createContext()
                 std::vector<EGLint> context_attribs;
                 context_attribs.push_back(EGL_CONTEXT_CLIENT_VERSION);
                 context_attribs.push_back(3);
+                if (m_creation_params.debug) {
+                    context_attribs.push_back(0x30FC);
+                    context_attribs.push_back(1);
+                }
                 context_attribs.push_back(EGL_NONE);
                 context_attribs.push_back(0);
 
@@ -420,6 +428,10 @@ bool ContextManagerEGL::createContext()
             std::vector<EGLint> context_attribs;
             context_attribs.push_back(EGL_CONTEXT_CLIENT_VERSION);
             context_attribs.push_back(2);
+            if (m_creation_params.debug) {
+                context_attribs.push_back(0x30FC);
+                context_attribs.push_back(1);
+            }
             context_attribs.push_back(EGL_NONE);
             context_attribs.push_back(0);
 
@@ -440,6 +452,10 @@ bool ContextManagerEGL::createContext()
                 context_attribs.push_back(4);
                 context_attribs.push_back(EGL_CONTEXT_MINOR_VERSION);
                 context_attribs.push_back(3);
+                if (m_creation_params.debug) {
+                    context_attribs.push_back(0x30FC);
+                    context_attribs.push_back(1);
+                }
                 context_attribs.push_back(EGL_NONE);
                 context_attribs.push_back(0);
 
@@ -456,6 +472,10 @@ bool ContextManagerEGL::createContext()
                 context_attribs.push_back(3);
                 context_attribs.push_back(EGL_CONTEXT_MINOR_VERSION);
                 context_attribs.push_back(3);
+                if (m_creation_params.debug) {
+                    context_attribs.push_back(0x30FC);
+                    context_attribs.push_back(1);
+                }
                 context_attribs.push_back(EGL_NONE);
                 context_attribs.push_back(0);
 
@@ -472,6 +492,10 @@ bool ContextManagerEGL::createContext()
                 context_attribs.push_back(3);
                 context_attribs.push_back(EGL_CONTEXT_MINOR_VERSION);
                 context_attribs.push_back(1);
+                if (m_creation_params.debug) {
+                    context_attribs.push_back(0x30FC);
+                    context_attribs.push_back(1);
+                }
                 context_attribs.push_back(EGL_NONE);
                 context_attribs.push_back(0);
 
@@ -491,6 +515,10 @@ bool ContextManagerEGL::createContext()
             context_attribs.push_back(2);
             context_attribs.push_back(EGL_CONTEXT_MINOR_VERSION);
             context_attribs.push_back(1);
+            if (m_creation_params.debug) {
+                context_attribs.push_back(0x30FC);
+                context_attribs.push_back(1);
+            }
             context_attribs.push_back(EGL_NONE);
             context_attribs.push_back(0);
 
@@ -500,7 +528,6 @@ bool ContextManagerEGL::createContext()
                                              &context_attribs[0]);
         }
     }
-
     return m_egl_context != EGL_NO_CONTEXT;
 }
 

@@ -76,6 +76,7 @@ public:
 
     /** Render tex. Used for blit/texture resize */
     void renderPassThrough(unsigned tex, unsigned width, unsigned height) const;
+    void renderPassThroughSRGB(unsigned tex, unsigned width, unsigned height) const;
     void renderTextureLayer(unsigned tex, unsigned layer) const;
     
     void renderDoF(const FrameBuffer &framebuffer, GLuint color_texture, GLuint depth_stencil_texture);

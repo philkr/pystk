@@ -26,10 +26,7 @@
 
 #include "items/swatter.hpp"
 
-#include "achievements/achievements_status.hpp"
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
-#include "config/player_manager.hpp"
+#include "config/stk_config.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/irr_driver.hpp"
 #include "io/file_manager.hpp"
@@ -79,7 +76,6 @@ Swatter::Swatter(AbstractKart *kart, int16_t bomb_ticks, int ticks,
             World::getWorld()->getTicksSinceStart() +
             stk_config->time2Ticks(40.0f / 25.0f);
     }
-    m_swat_sound = NULL;
     m_swatter_animation_ticks = 0;
     m_played_swatter_animation = false;
 }   // Swatter
@@ -94,12 +90,6 @@ Swatter::~Swatter()
         irr_driver->removeNode(m_bomb_scene_node);
         m_bomb_scene_node = NULL;
     }
-#ifndef SERVER_ONLY
-    if (m_swat_sound)
-    {
-        m_swat_sound->deleteSFX();
-    }
-#endif
 }   // ~Swatter
 
 // ----------------------------------------------------------------------------
@@ -182,13 +172,6 @@ void Swatter::updateGraphics(float dt)
             m_scene_node->setLoopMode(false);
             m_scene_node->setAnimationSpeed(0.0f);
         }
-        if (!m_swat_sound)
-        {
-            if (m_kart->getIdent() == "nolok")
-                m_swat_sound = SFXManager::get()->createSoundSource("hammer");
-            else
-                m_swat_sound = SFXManager::get()->createSoundSource("swatter");
-        }
         if (!m_discard_now)
         {
             switch (m_animation_phase)
@@ -209,8 +192,6 @@ void Swatter::updateGraphics(float dt)
                         m_scene_node->setAnimationSpeed(SWATTER_ANIMATION_SPEED);
                         Vec3 swatter_pos =
                             m_kart->getTrans()(Vec3(SWAT_POS_OFFSET));
-                        m_swat_sound->setPosition(swatter_pos);
-                        m_swat_sound->play();
                     }
                     pointToTarget();
                 }
@@ -411,18 +392,6 @@ void Swatter::squashThingsAround()
             int reset_ticks = (ctf->getTicksSinceStart() / 10) * 10 + 80;
             ctf->resetKartForSwatterHit(m_closest_kart->getWorldKartId(),
                 reset_ticks);
-        }
-        // Handle achievement if the swatter is used by the current player
-        if (m_kart->getController()->canGetAchievements())
-        {
-            PlayerManager::addKartHit(m_closest_kart->getWorldKartId());
-            PlayerManager::increaseAchievement(AchievementsStatus::SWATTER_HIT, 1);
-            PlayerManager::increaseAchievement(AchievementsStatus::ALL_HITS, 1);
-            if (race_manager->isLinearRaceMode())
-            {
-                PlayerManager::increaseAchievement(AchievementsStatus::SWATTER_HIT_1RACE, 1);
-                PlayerManager::increaseAchievement(AchievementsStatus::ALL_HITS_1RACE, 1);
-            }
         }
     }
 

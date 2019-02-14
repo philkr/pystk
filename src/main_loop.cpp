@@ -19,30 +19,18 @@
 
 #include "main_loop.hpp"
 
-#include "audio/sfx_manager.hpp"
+#include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_texture_manager.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/message_queue.hpp"
-#include "guiengine/modaldialog.hpp"
-#include "guiengine/screen_keyboard.hpp"
-#include "input/input_manager.hpp"
-#include "modes/profile_world.hpp"
+#include "input/input.hpp"
+#include "modes/linear_world.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
-#include "network/network_timer_synchronizer.hpp"
-#include "network/protocols/game_protocol.hpp"
-#include "network/protocol_manager.hpp"
-#include "network/race_event_manager.hpp"
 #include "network/rewind_manager.hpp"
-#include "network/stk_host.hpp"
-#include "online/request_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
-#include "states_screens/state_manager.hpp"
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/time.hpp"
@@ -112,40 +100,12 @@ float MainLoop::getLimitedDt()
     m_prev_time = m_curr_time;
     float dt = 0;
 
-    // In profile mode without graphics, run with a fixed dt of 1/60
-    if ((ProfileWorld::isProfileMode() && ProfileWorld::isNoGraphics()) ||
-        UserConfigParams::m_arena_ai_stats)
-    {
-        return 1.0f/60.0f;
-    }
-
     while( 1 )
     {
         m_curr_time = StkTime::getMonoTimeMs();
         if (m_prev_time > m_curr_time)
         {
             m_prev_time = m_curr_time;
-            // If system time adjusted backwards, return fixed dt and
-            // resynchronize network timer if exists in client
-            if (STKHost::existHost())
-            {
-#ifndef SERVER_ONLY
-                if (UserConfigParams::m_artist_debug_mode &&
-                    !ProfileWorld::isNoGraphics())
-                {
-                    core::stringw err = L"System clock running backwards in"
-                        " networking game.";
-                    MessageQueue::add(MessageQueue::MT_ERROR, err);
-                }
-#endif
-                Log::error("MainLoop", "System clock running backwards in"
-                    " networking game.");
-                if (STKHost::get()->getNetworkTimerSynchronizer())
-                {
-                    STKHost::get()->getNetworkTimerSynchronizer()
-                        ->resynchroniseTimer();
-                }
-            }
         }
         dt = (float)(m_curr_time - m_prev_time);
         // On a server (i.e. without graphics) the frame rate can be under
@@ -169,51 +129,25 @@ float MainLoop::getLimitedDt()
             dt = (float)(m_curr_time - m_prev_time);
         }
 
-        const World* const world = World::getWorld();
-        if (UserConfigParams::m_fps_debug && world)
-        {
-            const LinearWorld *lw = dynamic_cast<const LinearWorld*>(world);
-            if (lw)
-            {
-                Log::verbose("fps", "time %f distance %f dt %f fps %f",
-                             lw->getTime(),
-                             lw->getDistanceDownTrackForKart(0, true),
-                             dt*0.001f, 1000.0f / dt);
-            }
-            else
-            {
-                Log::verbose("fps", "time %f dt %f fps %f",
-                             world->getTime(), dt*0.001f, 1000.0f / dt);
-            }
-
-        }
-
         // Don't allow the game to run slower than a certain amount.
         // when the computer can't keep it up, slow down the shown time instead
         // But this can not be done in networking, otherwise the game time on
         // client and server will not be in synch anymore
-        if ((!NetworkConfig::get()->isNetworking() || !World::getWorld()) &&
-            !m_allow_large_dt)
+        if (!m_allow_large_dt)
         {
             /* time 3 internal substeps take */
             const float MAX_ELAPSED_TIME = 3.0f*1.0f / 60.0f*1000.0f;
             if (dt > MAX_ELAPSED_TIME) dt = MAX_ELAPSED_TIME;
         }
-        if (!m_throttle_fps || ProfileWorld::isProfileMode()) break;
+        if (!m_throttle_fps) break;
 
         // Throttle fps if more than maximum, which can reduce
         // the noise the fan on a graphics card makes.
         // When in menus, reduce FPS much, it's not necessary to push to the
         // maximum for plain menus
-        const int max_fps = (irr_driver->isRecording() &&
-                             UserConfigParams::m_limit_game_fps )
-                          ? UserConfigParams::m_record_fps 
-                          : ( StateManager::get()->throttleFPS() 
-                              ? 60 
-                              : UserConfigParams::m_max_fps     );
+        const int max_fps = UserConfigParams::m_max_fps;
         const int current_fps = (int)(1000.0f / dt);
-        if (!m_throttle_fps || current_fps <= max_fps ||
-            ProfileWorld::isProfileMode()                )  break;
+        if (!m_throttle_fps || current_fps <= max_fps)  break;
 
         int wait_time = 1000 / max_fps - 1000 / current_fps;
         if (wait_time < 1) wait_time = 1;
@@ -238,11 +172,7 @@ void MainLoop::updateRace(int ticks, bool fast_forward)
     if (!World::getWorld())  return;   // No race on atm - i.e. we are in menu
 
     // The race event manager will update world in case of an online race
-    if ( RaceEventManager::getInstance() && 
-         RaceEventManager::getInstance()->isRunning() )
-        RaceEventManager::getInstance()->update(ticks, fast_forward);
-    else
-        World::getWorld()->updateWorld(ticks);
+    World::getWorld()->updateWorld(ticks);
 }   // updateRace
 
 //-----------------------------------------------------------------------------
@@ -372,29 +302,8 @@ void MainLoop::run()
 
         // Shutdown next frame if shutdown request is sent while loading the
         // world
-        if ((STKHost::existHost() && STKHost::get()->requestedShutdown()) ||
-            m_request_abort)
+        if (m_request_abort)
         {
-            bool exist_host = STKHost::existHost();
-            core::stringw msg = _("Server connection timed out.");
-
-            if (!m_request_abort)
-            {
-                if (!ProfileWorld::isNoGraphics())
-                {
-                    SFXManager::get()->quickSound("anvil");
-                    if (!STKHost::get()->getErrorMessage().empty())
-                    {
-                        msg = STKHost::get()->getErrorMessage();
-                    }
-                }
-            }
-
-            if (exist_host == true)
-            {
-                STKHost::get()->shutdown();
-            }
-
 #ifndef SERVER_ONLY
             if (CVS->isGLSL() && !m_download_assets)
             {
@@ -408,25 +317,9 @@ void MainLoop::run()
 #endif
 
             // In case the user opened a race pause dialog
-            GUIEngine::ModalDialog::dismiss();
-            GUIEngine::ScreenKeyboard::dismiss();
-
             if (World::getWorld())
             {
-                race_manager->clearNetworkGrandPrixResult();
                 race_manager->exitRace();
-            }
-
-            if (exist_host == true)
-            {
-                if (!ProfileWorld::isNoGraphics())
-                {
-                    StateManager::get()->resetAndSetStack(
-                        NetworkConfig::get()->getResetScreens().data());
-                    MessageQueue::add(MessageQueue::MT_ERROR, msg);
-                }
-                
-                NetworkConfig::get()->unsetNetworking();
             }
 
             if (m_request_abort)
@@ -438,7 +331,6 @@ void MainLoop::run()
         if (!m_abort)
         {
             float frame_duration = num_steps * dt;
-            if (!ProfileWorld::isNoGraphics())
             {
                 PROFILER_PUSH_CPU_MARKER("Update race", 0, 255, 255);
                 if (World::getWorld())
@@ -448,24 +340,6 @@ void MainLoop::run()
                 // Render the previous frame, and also handle all user input.
                 PROFILER_PUSH_CPU_MARKER("IrrDriver update", 0x00, 0x00, 0x7F);
                 irr_driver->update(frame_duration);
-                PROFILER_POP_CPU_MARKER();
-
-                PROFILER_PUSH_CPU_MARKER("Input/GUI", 0x7F, 0x00, 0x00);
-                input_manager->update(frame_duration);
-                GUIEngine::update(frame_duration);
-                PROFILER_POP_CPU_MARKER();
-                if (!m_download_assets)
-                {
-                    PROFILER_PUSH_CPU_MARKER("Music", 0x7F, 0x00, 0x00);
-                    SFXManager::get()->update();
-                    PROFILER_POP_CPU_MARKER();
-                }
-            }
-            // Some protocols in network will use RequestManager
-            if (!m_download_assets)
-            {
-                PROFILER_PUSH_CPU_MARKER("Database polling update", 0x00, 0x7F, 0x7F);
-                Online::RequestManager::get()->update(frame_duration);
                 PROFILER_POP_CPU_MARKER();
             }
 
@@ -496,9 +370,7 @@ void MainLoop::run()
 
             // Avoid hang when some function in world takes too long time or
             // when leave / come back from android home button
-            bool fast_forward = NetworkConfig::get()->isNetworking() &&
-                NetworkConfig::get()->isClient() &&
-                num_steps > stk_config->time2Ticks(1.0f);
+            bool fast_forward = false;
             for (int i = 0; i < num_steps; i++)
             {
                 if (World::getWorld() && history->replayHistory())
@@ -506,14 +378,6 @@ void MainLoop::run()
                     history->updateReplay(
                                        World::getWorld()->getTicksSinceStart());
                 }
-
-                PROFILER_PUSH_CPU_MARKER("Protocol manager update",
-                                         0x7F, 0x00, 0x7F);
-                if (auto pm = ProtocolManager::lock())
-                {
-                    pm->update(1);
-                }
-                PROFILER_POP_CPU_MARKER();
 
                 PROFILER_PUSH_CPU_MARKER("Update race", 0, 255, 255);
                 if (World::getWorld())
@@ -553,7 +417,6 @@ void MainLoop::run()
 
             // Handle controller the last to avoid slow PC sending actions too 
             // late
-            if (!ProfileWorld::isNoGraphics())
             {
                 // User aborted (e.g. closed window)
                 bool abort = !irr_driver->getDevice()->run();
@@ -570,11 +433,6 @@ void MainLoop::run()
                 {
                     m_request_abort = true;
                 }
-            }
-
-            if (auto gp = GameProtocol::lock())
-            {
-                gp->sendActions();
             }
         }
         PROFILER_POP_CPU_MARKER();   // MainLoop pop
@@ -604,11 +462,6 @@ void MainLoop::renderGUI(int phase, int loop_index, int loop_size)
 #ifdef SERVER_ONLY
     return;
 #else
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isServer()         )
-    {
-        return;
-    }
     // Rendering past phase 7000 causes the minimap to not work
     // on higher graphical settings
     if (phase > 7000)
@@ -629,7 +482,6 @@ void MainLoop::renderGUI(int phase, int loop_index, int loop_size)
     //             now, dt, phase, loop_index, loop_size);
 
     irr_driver->update(dt, /*is_loading*/true);
-    GUIEngine::update(dt);
     m_request_abort = !irr_driver->getDevice()->run();
     
     //TODO: remove debug output

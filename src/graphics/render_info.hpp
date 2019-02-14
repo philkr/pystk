@@ -31,21 +31,28 @@ private:
 
     bool m_transparent;
 
+    uint32_t m_object_id = -1;
+
 public:
     // ------------------------------------------------------------------------
-    RenderInfo(float hue = 0.0f, bool transparent = false)
+    RenderInfo(float hue = 0.0f, bool transparent = false, uint32_t object_id = -1)
     {
         m_hue = hue;
         m_transparent = transparent;
+        m_object_id = object_id;
     }
     // ------------------------------------------------------------------------
     void setHue(float hue)                                    { m_hue = hue; }
     // ------------------------------------------------------------------------
     void setTransparent(bool transparent)     { m_transparent = transparent; }
     // ------------------------------------------------------------------------
+    void setObjectId(int object_id)               { m_object_id = object_id; }
+    // ------------------------------------------------------------------------
     float getHue() const                                     { return m_hue; }
     // ------------------------------------------------------------------------
     bool isTransparent() const                       { return m_transparent; }
+    // ------------------------------------------------------------------------
+    uint32_t objectId() const                          { return m_object_id; }
 
 };   // RenderInfo
 

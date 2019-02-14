@@ -37,7 +37,6 @@ namespace irr
 using namespace irr;
 
 class XMLNode;
-class SFXBase;
 class ParticleKind;
 
 /**
@@ -71,10 +70,6 @@ private:
     std::string      m_texname;
 
     std::string      m_full_path;
-
-    /** Name of a special sfx to play when a kart is on this terrain, or
-     *  "" if no special sfx exists. */
-    std::string      m_sfx_name;
 
     /** Either ' ' (no mirroring), 'U' or 'V' if a texture needs to be
      *  mirrored when driving in reverse. Typically used for arrows indicating
@@ -167,18 +162,6 @@ private:
      *  guarantee the right jump distance. A negative value indicates no
      *  minimum speed. */
     float            m_zipper_min_speed;
-    /** The minimum speed at which a special sfx is started to be played. */
-    float            m_sfx_min_speed;
-    /** The speed at which the maximum pitch is used. */
-    float            m_sfx_max_speed;
-    /** The minimum pitch to be used (at minimum speed). */
-    float            m_sfx_min_pitch;
-    /** The maximum pitch to be used (at maximum speed). */
-    float            m_sfx_max_pitch;
-    /** (max_pitch-min_pitch) / (max_speed - min_speed). Used to adjust
-     *  the pitch of a sfx depending on speed of the kart.
-     */
-    float            m_sfx_pitch_per_speed;
     /** Additional speed allowed on top of the kart-specific maximum kart speed
      *  if a zipper is used. If this value is <0 the kart specific value will
      *  be used. */
@@ -202,7 +185,6 @@ private:
 
     void  init    ();
     void  install (bool srgb = false, bool premul_alpha = false);
-    void  initCustomSFX(const XMLNode *sfx);
     void  initParticlesEffect(const XMLNode *node);
 
     // SP usage
@@ -224,7 +206,6 @@ public:
 
     void unloadTexture();
 
-    void  setSFXSpeed(SFXBase *sfx, float speed, bool should_be_paused) const;
     void  setMaterialProperties(video::SMaterial *m, scene::IMeshBuffer* mb);
 
     /** Returns the ITexture associated with this material. */
@@ -302,10 +283,6 @@ public:
      *  ignored for the physics, but the information is needed e.g. for
      *  gfx. See m_below_surface for more details. */
     bool isSurface          () const { return m_surface; }
-    // ------------------------------------------------------------------------
-    /** Returns the name of a special sfx to play while a kart is on this
-     *  terrain. The string will be "" if no special sfx exists. */
-    const std::string &getSFXName() const { return m_sfx_name; }
     // ------------------------------------------------------------------------
     /** \brief Get the kind of particles that are to be used on this material,
      *  in the given conditions.

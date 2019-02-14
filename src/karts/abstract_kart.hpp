@@ -47,7 +47,6 @@ class KartProperties;
 class Material;
 class Powerup;
 class RenderInfo;
-class SFXBuffer;
 class Skidding;
 class SlipStream;
 class Stars;
@@ -389,12 +388,7 @@ public:
     // ------------------------------------------------------------------------
     /** Plays a beep sfx. */
     virtual void beep() = 0;
-    // ------------------------------------------------------------------------
-    /** This function will play a particular character voice for this kart.
-     *  It returns whether or not a character voice sample exists for the
-     *  particular event.  If there is no voice sample, a default can be
-     *  played instead. */
-    virtual bool playCustomSFX(unsigned int type) = 0;
+
     // ------------------------------------------------------------------------
     /** Show fire to go with a zipper. */
     virtual void showZipperFire() = 0;
@@ -447,10 +441,7 @@ public:
     // ------------------------------------------------------------------------
     /** Returns true if the kart is 'resting', i.e. (nearly) not moving. */
     virtual bool isInRest() const = 0;
-    // ------------------------------------------------------------------------
-    /** Starts the engine sound effect. Called once the track intro phase is
-     *  over. */
-    virtual void startEngineSFX() = 0;
+
     // ------------------------------------------------------------------------
     /** Multiplies the velocity of the kart by a factor f (both linear
      *  and angular). This is used by anvils, which suddenly slow down the kart
@@ -527,8 +518,6 @@ public:
     // ------------------------------------------------------------------------
     /** Returns whether this kart is jumping. */
     virtual bool isJumping() const = 0;
-    // ------------------------------------------------------------------------
-    virtual void playSound(SFXBuffer* buffer) = 0;
     // ------------------------------------------------------------------------
     virtual bool isVisible() const = 0;
     // ------------------------------------------------------------------------

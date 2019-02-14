@@ -22,12 +22,12 @@
 #define HEADER_LOCAL_PLAYER_CONTROLLER_HPP
 
 #include "karts/controller/player_controller.hpp"
+#include "network/remote_kart_info.hpp"
 #include <memory>
 
 class AbstractKart;
 class ParticleEmitter;
-class SFXBase;
-class SFXBuffer;
+class PlayerProfile;
 
 /** PlayerKart manages control events from the player and moves
   * them to the Kart
@@ -37,13 +37,8 @@ class SFXBuffer;
 class LocalPlayerController : public PlayerController
 {
 private:
-
-    /** Stores the active player data structure. */
-    StateManager::ActivePlayer *m_player;
-
     bool           m_sound_schedule;
     bool           m_has_started;
-    bool           m_is_above_nitro_target;
 
     std::unique_ptr<ParticleEmitter> m_sky_particles_emitter;
 
@@ -52,14 +47,6 @@ private:
     int  m_camera_index;
 
     PerPlayerDifficulty m_difficulty;
-
-    SFXBase     *m_wee_sound;
-    SFXBuffer   *m_bzzt_sound;
-    SFXBuffer   *m_ugh_sound;
-    SFXBuffer   *m_grab_sound;
-    SFXBuffer   *m_full_sound;
-    SFXBuffer   *m_unfull_sound;
-
 
     virtual void steer(int, int) OVERRIDE;
     virtual void displayPenaltyWarning() OVERRIDE;

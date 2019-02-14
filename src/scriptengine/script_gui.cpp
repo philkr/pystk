@@ -19,12 +19,9 @@
 #include "script_track.hpp"
 
 #include "animations/three_d_animation.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_device.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "modes/world.hpp"
 #include "scriptengine/aswrappedcall.hpp"
-#include "states_screens/dialogs/tutorial_message_dialog.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "tracks/track_object_manager.hpp"
@@ -54,40 +51,21 @@ namespace Scripting
         /** Get the key bound to a player action (enum GUI::PlayerAction)*/
         std::string getKeyBinding(int Enum_value)
         {
-            InputDevice* device = input_manager->getDeviceManager()->getLatestUsedDevice();
-            DeviceConfig* config = device->getConfiguration();
-            PlayerAction ScriptAction = (PlayerAction)Enum_value;
-            irr::core::stringw control = config->getBindingAsString(ScriptAction);
-            std::string key = StringUtils::wideToUtf8(control);
-            return key;
+            return "";
         }
 
         /** Show the specified message in a popup */
         void displayModalMessage(std::string* input)
         {
-            irr::core::stringw out = StringUtils::utf8ToWide(*input);
-            new TutorialMessageDialog((out), true);
         }
 
         void clearOverlayMessages()
         {
-            World::getWorld()->getRaceGUI()->clearAllMessages();
         }
 
         /** Display text in the center of the screen for a few seconds */
         void displayOverlayMessage(std::string* input)
         {
-            irr::core::stringw msg = StringUtils::utf8ToWide(*input);
-            std::vector<core::stringw> parts =
-                StringUtils::split(msg, '\n', false);
-                        
-            for (unsigned int n = 0; n < parts.size(); n++)
-            {
-                World::getWorld()->getRaceGUI()
-                                    ->addMessage(parts[n], NULL, 4.0f,
-                                                video::SColor(255, 255,255,255),
-                                                true, true);
-            }   // for n<parts.size()
         }
 
         /** Get translated version of string */

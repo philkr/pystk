@@ -26,9 +26,6 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/spare_tire_ai.hpp"
 #include "modes/easter_egg_hunt.hpp"
-#include "modes/profile_world.hpp"
-#include "network/network_config.hpp"
-#include "network/race_event_manager.hpp"
 #include "physics/triangle_mesh.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/arena_node.hpp"
@@ -143,18 +140,18 @@ void ItemManager::removeTextures()
         return;
     for(unsigned int i=0; i<ItemState::ITEM_LAST-ItemState::ITEM_FIRST+1; i++)
     {
-        if(m_item_mesh[i])
+        if(i<m_item_mesh.size() && m_item_mesh[i])
         {
             m_item_mesh[i]->drop();
             irr_driver->removeMeshFromCache(m_item_mesh[i]);
+            m_item_mesh[i] = NULL;
         }
-        m_item_mesh[i] = NULL;
-        if(m_item_lowres_mesh[i])
+        if(i<m_item_lowres_mesh.size() && m_item_lowres_mesh[i])
         {
             m_item_lowres_mesh[i]->drop();
             irr_driver->removeMeshFromCache(m_item_lowres_mesh[i]);
+            m_item_lowres_mesh[i] = NULL;
         }
-        m_item_lowres_mesh[i] = NULL;
     }
 }   // removeTextures
 
@@ -341,8 +338,7 @@ Item* ItemManager::placeItem(ItemState::ItemType type, const Vec3& xyz,
     // Make sure this subroutine is not used otherwise (since networking
     // needs to be aware of items added to the track, so this would need
     // to be added).
-    assert(World::getWorld()->getPhase() == WorldStatus::SETUP_PHASE ||
-           ProfileWorld::isProfileMode()                               );
+    assert(World::getWorld()->getPhase() == WorldStatus::SETUP_PHASE);
     ItemState::ItemType mesh_type = type;
 
     Item* item = new Item(type, xyz, normal, m_item_mesh[mesh_type],

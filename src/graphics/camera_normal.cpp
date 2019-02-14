@@ -21,9 +21,6 @@
 
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_manager.hpp"
-#include "input/multitouch_device.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/explosion_animation.hpp"
 #include "karts/kart.hpp"
@@ -203,14 +200,6 @@ void CameraNormal::getCameraSettings(float *above_kart, float *cam_angle,
             *sideway             = -m_rotation_range*dampened_steer*0.5f;
             *smoothing           = true;
             *cam_roll_angle      = 0.0f;
-            if (UserConfigParams::m_multitouch_controls == MULTITOUCH_CONTROLS_GYROSCOPE)
-            {
-                MultitouchDevice* device = input_manager->getDeviceManager()->getMultitouchDevice();
-                if (device)
-                {
-                    *cam_roll_angle = -device->getOrientation();
-                }
-            }
             break;
         }   // CM_FALLING
     case CM_REVERSE: // Same as CM_NORMAL except it looks backwards
@@ -221,14 +210,6 @@ void CameraNormal::getCameraSettings(float *above_kart, float *cam_angle,
             *distance   = 2.0f*m_distance;
             *smoothing  = false;
             *cam_roll_angle = 0.0f;
-            if (UserConfigParams::m_multitouch_controls == MULTITOUCH_CONTROLS_GYROSCOPE)
-            {
-                MultitouchDevice* device = input_manager->getDeviceManager()->getMultitouchDevice();
-                if (device)
-                {
-                    *cam_roll_angle = -device->getOrientation();
-                }
-            }
             break;
         }
     case CM_CLOSEUP: // Lower to the ground and closer to the kart
@@ -241,14 +222,6 @@ void CameraNormal::getCameraSettings(float *above_kart, float *cam_angle,
             *distance   = -0.5f*m_distance;
             *smoothing  = false;
             *cam_roll_angle = 0.0f;
-            if (UserConfigParams::m_multitouch_controls == MULTITOUCH_CONTROLS_GYROSCOPE)
-            {
-                MultitouchDevice* device = input_manager->getDeviceManager()->getMultitouchDevice();
-                if (device)
-                {
-                    *cam_roll_angle = -device->getOrientation();
-                }
-            }
             break;
         }
     case CM_LEADER_MODE:
@@ -350,12 +323,6 @@ void CameraNormal::positionCamera(float dt, float above_kart, float cam_angle,
             m_camera->setPosition(wanted_position.toIrrVector());
         m_camera->setTarget(wanted_target.toIrrVector());
 
-        if (race_manager->getNumLocalPlayers() < 2)
-        {
-            SFXManager::get()->positionListener(m_camera->getPosition(),
-                                      wanted_target - m_camera->getPosition(),
-                                      Vec3(0, 1, 0));
-        }
     }
 
     Kart *kart = dynamic_cast<Kart*>(m_kart);

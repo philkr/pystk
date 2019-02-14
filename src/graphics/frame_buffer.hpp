@@ -60,8 +60,11 @@ public:
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,
                 GL_TEXTURE_2D, rtts[i], 0);
         }
-        assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
-            GL_FRAMEBUFFER_COMPLETE_EXT);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+            Log::warn("FrameBuffer", ("Failed to create framebuffer " + std::to_string(status)).c_str());
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     // ------------------------------------------------------------------------
     FrameBuffer(const std::vector<GLuint> &rtts, GLuint depth_stencil,
@@ -81,8 +84,11 @@ public:
         }
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
             GL_TEXTURE_2D, depth_stencil, 0);
-        assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
-            GL_FRAMEBUFFER_COMPLETE_EXT);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+            Log::warn("FrameBuffer", ("Failed to create framebuffer " + std::to_string(status)).c_str());
+        };
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     // ------------------------------------------------------------------------
     ~FrameBuffer()
@@ -98,7 +104,7 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glViewport(0, 0, (int)m_width, (int)m_height);
         GLenum bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-            GL_COLOR_ATTACHMENT2 };
+            GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
         glDrawBuffers((int)m_render_targets.size(), bufs);
     }
     // ------------------------------------------------------------------------
@@ -106,8 +112,7 @@ public:
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glViewport(0, 0, (int)m_width, (int)m_height);
-        GLenum bufs[] = { GL_NONE, GL_NONE, GL_NONE };
-        glDrawBuffers((int)m_render_targets.size(), bufs);
+        glDrawBuffers(0, NULL);
     }
     // ------------------------------------------------------------------------
     const std::vector<GLuint>& getRTT() const      { return m_render_targets; }

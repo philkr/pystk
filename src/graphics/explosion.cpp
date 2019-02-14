@@ -18,8 +18,6 @@
 
 #include "graphics/explosion.hpp"
 
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"

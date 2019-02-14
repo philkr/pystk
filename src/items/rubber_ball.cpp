@@ -18,8 +18,6 @@
 
 #include "items/rubber_ball.hpp"
 
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "io/xml_node.hpp"
@@ -71,7 +69,6 @@ RubberBall::RubberBall(AbstractKart *kart)
     m_id = m_next_id;
 
     m_target = NULL;
-    m_ping_sfx = SFXManager::get()->createSoundSource("ball_bounce");
 }   // RubberBall
 
 // ----------------------------------------------------------------------------
@@ -128,7 +125,6 @@ void RubberBall::onFireFlyable()
  */
 RubberBall::~RubberBall()
 {
-    removePingSFX();
     CheckManager::get()->removeFlyableFromCannons(this);
 }   // ~RubberBall
 
@@ -378,7 +374,6 @@ bool RubberBall::updateAndDelete(int ticks)
 #ifdef PRINT_BALL_REMOVE_INFO
             Log::debug("[RubberBall]", "ball %d deleted.", m_id);
 #endif
-            removePingSFX();
             return true;
         }
     }
@@ -389,15 +384,12 @@ bool RubberBall::updateAndDelete(int ticks)
         // update the ball's position.
         m_previous_xyz = getXYZ();
         bool can_be_deleted = Flyable::updateAndDelete(ticks);
-        if (can_be_deleted)
-            removePingSFX();
         return can_be_deleted;
     }
 
     bool can_be_deleted = Flyable::updateAndDelete(ticks);
     if (can_be_deleted)
     {
-        removePingSFX();
         return true;
     }
 
@@ -485,7 +477,6 @@ bool RubberBall::updateAndDelete(int ticks)
 
     if (checkTunneling())
     {
-        removePingSFX();
         return true;
     }
 
@@ -692,12 +683,6 @@ float RubberBall::updateHeight()
     if(m_height_timer>m_interval)
     {
         m_height_timer -= m_interval;
-        if (m_ping_sfx && m_ping_sfx->getStatus()!=SFXBase::SFX_PLAYING &&
-            !RewindManager::get()->isRewinding())
-        {
-            m_ping_sfx->setPosition(getXYZ());
-            m_ping_sfx->play();
-        }
 
         if(m_fast_ping)
         {
@@ -928,14 +913,3 @@ void RubberBall::restoreState(BareNetworkString *buffer, int count)
     m_aiming_at_target = ((tunnel_and_aiming >> 7) & 1) == 1;
     TrackSector::rewindTo(buffer);
 }   // restoreState
-
-// ----------------------------------------------------------------------------
-void RubberBall::removePingSFX()
-{
-    if (!m_ping_sfx)
-        return;
-    if (m_ping_sfx->getStatus() == SFXBase::SFX_PLAYING)
-        m_ping_sfx->stop();
-    m_ping_sfx->deleteSFX();
-    m_ping_sfx = NULL;
-}   // removePingSFX

@@ -66,15 +66,9 @@ android-*
 *.apk
 *.keystore
 
-lib/curl
-lib/freetype
-lib/ifaddrs
-lib/libogg
-lib/libvorbis
-lib/openal
-lib/openssl
-lib/fribidi
-lib/harfbuzz
-
 .DS_Store
 supertuxkart/
+/.vs
+pystk/*.pyd
+/stk-assets
+/CMakeSettings.json

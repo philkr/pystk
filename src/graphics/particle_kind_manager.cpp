@@ -135,3 +135,8 @@ bool ParticleKindManager::isGlobalParticleMaterial(Material* m) const
     }
     return false;
 }
+
+void ParticleKindManager::destroy() {
+	delete singleton;
+	singleton = nullptr;
+}

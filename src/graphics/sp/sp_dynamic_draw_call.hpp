@@ -88,9 +88,9 @@ public:
         {
             m_update_trans = false;
             SPInstancedData id = SPInstancedData(getAbsoluteTransformation(),
-                m_texture_trans.X, m_texture_trans.Y, 0.0f, 0);
+                m_texture_trans.X, m_texture_trans.Y, 0.0f, 0, 0);
             glBindBuffer(GL_ARRAY_BUFFER, m_ibo);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, 44, id.getData());
+            glBufferSubData(GL_ARRAY_BUFFER, 0, SP_ID_SIZE, id.getData());
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
         if (m_update_offset >= 0 && !m_vertices.empty())

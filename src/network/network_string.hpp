@@ -23,7 +23,6 @@
 #ifndef NETWORK_STRING_HPP
 #define NETWORK_STRING_HPP
 
-#include "network/protocol.hpp"
 #include "utils/leak_check.hpp"
 #include "utils/types.hpp"
 #include "utils/vec3.hpp"
@@ -51,7 +50,6 @@ typedef unsigned char uchar;
 
 class BareNetworkString
 {
-friend class Crypto;
 private:
     LEAK_CHECK();
 
@@ -421,14 +419,14 @@ class NetworkString : public BareNetworkString
 public:
     static void unitTesting();
         
-    /** Constructor for a message to be sent. It sets the 
-     *  protocol type of this message. It adds 1 byte to the capacity:
-     *  1 byte for the protocol type. */
-    NetworkString(ProtocolType type,  int capacity=16)
-        : BareNetworkString(capacity+1)
-    {
-        m_buffer.push_back(type);
-    }   // NetworkString
+//     /** Constructor for a message to be sent. It sets the 
+//      *  protocol type of this message. It adds 1 byte to the capacity:
+//      *  1 byte for the protocol type. */
+//     NetworkString(ProtocolType type,  int capacity=16)
+//         : BareNetworkString(capacity+1)
+//     {
+//         m_buffer.push_back(type);
+//     }   // NetworkString
 
     // ------------------------------------------------------------------------
     /** Constructor for a received message. It automatically ignored the first
@@ -448,27 +446,27 @@ public:
         m_current_offset = 1;
     }   // clear
     // ------------------------------------------------------------------------
-    /** Returns the protocol type of this message. */
-    ProtocolType getProtocolType() const
-    {
-        return (ProtocolType)(m_buffer.at(0) & ~PROTOCOL_SYNCHRONOUS);
-    }   // getProtocolType
-
-    // ------------------------------------------------------------------------
-    /** Sets if this message is to be sent synchronous or asynchronous. */
-    void setSynchronous(bool b)
-    {
-        if(b)
-            m_buffer[0] |= PROTOCOL_SYNCHRONOUS;
-        else
-            m_buffer[0] &= ~PROTOCOL_SYNCHRONOUS;
-    }   // setSynchronous
-    // ------------------------------------------------------------------------
-    /** Returns if this message is synchronous or not. */
-    bool isSynchronous() const
-    {
-        return (m_buffer[0] & PROTOCOL_SYNCHRONOUS) == PROTOCOL_SYNCHRONOUS;
-    }   // isSynchronous
+//     /** Returns the protocol type of this message. */
+//     ProtocolType getProtocolType() const
+//     {
+//         return (ProtocolType)(m_buffer.at(0) & ~PROTOCOL_SYNCHRONOUS);
+//     }   // getProtocolType
+// 
+//     // ------------------------------------------------------------------------
+//     /** Sets if this message is to be sent synchronous or asynchronous. */
+//     void setSynchronous(bool b)
+//     {
+//         if(b)
+//             m_buffer[0] |= PROTOCOL_SYNCHRONOUS;
+//         else
+//             m_buffer[0] &= ~PROTOCOL_SYNCHRONOUS;
+//     }   // setSynchronous
+//     // ------------------------------------------------------------------------
+//     /** Returns if this message is synchronous or not. */
+//     bool isSynchronous() const
+//     {
+//         return (m_buffer[0] & PROTOCOL_SYNCHRONOUS) == PROTOCOL_SYNCHRONOUS;
+//     }   // isSynchronous
 
 };   // class NetworkString
 

@@ -29,15 +29,15 @@
 #include "graphics/sp/sp_mesh_node.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
-#include "input/device_manager.hpp"
+#include "input/input.hpp"
 #include "items/item_manager.hpp"
-#include "network/network_config.hpp"
 #include "physics/physical_object.hpp"
 #include "race/race_manager.hpp"
 #include "scriptengine/script_engine.hpp"
 #include "tracks/track.hpp"
 #include "tracks/model_definition_loader.hpp"
 #include "utils/string_utils.hpp"
+#include "utils/objecttype.h"
 
 #include <IAnimatedMeshSceneNode.h>
 #include <ISceneManager.h>
@@ -55,6 +55,7 @@ TrackObject::TrackObject(const XMLNode &xml_node, scene::ISceneNode* parent,
                          ModelDefinitionLoader& model_def_loader,
                          TrackObject* parent_library)
 {
+    m_render_info     = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_BACKGROUND));
     init(xml_node, parent, model_def_loader, parent_library);
 }   // TrackObject
 
@@ -83,6 +84,7 @@ TrackObject::TrackObject(const core::vector3df& xyz, const core::vector3df& hpr,
     m_soccer_ball     = false;
     m_initially_visible = false;
     m_type            = "";
+    m_render_info     = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_PICKUP));
 
     if (m_interaction != "ghost" && m_interaction != "none" &&
         physics_settings )
@@ -261,7 +263,8 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
                 const float hue = colorized->getRandomHue();
                 if (hue > 0.0f)
                 {
-                    m_render_info = std::make_shared<RenderInfo>(hue);
+                    if (m_render_info) m_render_info->setHue(hue);
+                    else m_render_info = std::make_shared<RenderInfo>(hue, true, newObjectId(OT_BACKGROUND));
                 }
             }
         }
@@ -771,13 +774,6 @@ bool TrackObject::joinToMainTrack()
         m_physical_object->isDynamic() || m_physical_object->isCrashReset() ||
         m_physical_object->isExplodeKartObject() ||
         m_physical_object->isFlattenKartObject())
-        return false;
-
-    // Scripting exploding barrel is assumed to be joinable in networking
-    // as it doesn't support it
-    if (!NetworkConfig::get()->isNetworking() &&
-        (!m_physical_object->getOnKartCollisionFunction().empty() ||
-        !m_physical_object->getOnItemCollisionFunction().empty()))
         return false;
 
     // Skip driveable non-exact shape object

@@ -117,8 +117,9 @@ GL3RenderTarget::GL3RenderTarget(const irr::core::dimension2du &dimension,
 
 GL3RenderTarget::~GL3RenderTarget()
 {
+	if (m_rtts == m_renderer->getRTTs())
+		m_renderer->setRTT(NULL);
     delete m_rtts;
-    m_renderer->setRTT(NULL);
 }   // ~GL3RenderTarget
 
 //-----------------------------------------------------------------------------
@@ -126,9 +127,10 @@ void GL3RenderTarget::renderToTexture(irr::scene::ICameraSceneNode* camera,
                                       float dt)
 {
     m_frame_buffer = NULL;
+	auto old_rtts = m_renderer->getRTTs();
     m_renderer->setRTT(m_rtts);
     m_renderer->renderToTexture(this, camera, dt);
-
+    m_renderer->setRTT(old_rtts);
 }   // renderToTexture
 
 //-----------------------------------------------------------------------------

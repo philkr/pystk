@@ -29,7 +29,6 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
 #include "network/rewind_manager.hpp"
 #include "utils/string_utils.hpp"
@@ -123,10 +122,6 @@ void ProjectileManager::updateServer(int ticks)
                 addHitEffect(he);
 
             p->second->onDeleteFlyable();
-            // Flyables will be deleted by computeError in client
-            if (!NetworkConfig::get()->isNetworking() ||
-                NetworkConfig::get()->isServer())
-                p = m_active_projectiles.erase(p);
         }
         else
             p++;

@@ -19,8 +19,10 @@
 
 #include "items/item.hpp"
 
+#include "config/stk_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/lod_node.hpp"
+#include "graphics/render_info.hpp"
 #include "graphics/sp/sp_mesh.hpp"
 #include "graphics/sp/sp_mesh_node.hpp"
 #include "items/item_manager.hpp"
@@ -34,9 +36,18 @@
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
+#include "utils/objecttype.h"
 
 #include <IMeshSceneNode.h>
 #include <ISceneManager.h>
+
+static ObjectType ot(ItemState::ItemType type) {
+    if (type == ItemState::ITEM_BANANA || type == ItemState::ITEM_BUBBLEGUM || type == ItemState::ITEM_BUBBLEGUM_NOLOK)
+        return OT_BOMB;
+    if (type == ItemState::ITEM_NITRO_BIG || type == ItemState::ITEM_NITRO_SMALL)
+        return OT_NITRO;
+    return OT_PICKUP;
+}
 
 
 // ----------------------------------------------------------------------------
@@ -200,19 +211,20 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
     m_distance_2        = 1.2f;
     initItem(type, xyz, normal);
     m_graphical_type    = getGrahpicalType();
+    ri_ = std::make_shared<RenderInfo>(0.f, false, makeObjectId(ot(getType()), getItemId()+1));
 
     LODNode* lodnode =
         new LODNode("item", irr_driver->getSceneManager()->getRootSceneNode(),
                     irr_driver->getSceneManager());
     scene::ISceneNode* meshnode =
-        irr_driver->addMesh(mesh, StringUtils::insertValues("item_%i", (int)type));
+        irr_driver->addMesh(mesh, StringUtils::insertValues("item_%i", (int)type), NULL, ri_);
 
     if (lowres_mesh != NULL)
     {
         lodnode->add(35, meshnode, true);
         scene::ISceneNode* meshnode =
             irr_driver->addMesh(lowres_mesh,
-                                StringUtils::insertValues("item_lo_%i", (int)type));
+                                StringUtils::insertValues("item_lo_%i", (int)type), NULL, ri_);
         lodnode->add(100, meshnode, true);
     }
     else
@@ -235,6 +247,14 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
     m_node->setRotation(hpr.toIrrHPR());
     m_node->grab();
 }   // Item(type, xyz, normal, mesh, lowres_mesh)
+
+void Item::setItemId(unsigned int n) {
+    ItemState::setItemId(n);
+    ri_->setObjectId(makeObjectId(ot(getType()), ItemState::getItemId()+1));
+}
+uint32_t Item::getObjectId() const {
+    return ri_->objectId();
+}
 
 //-----------------------------------------------------------------------------
 /** Initialises the item. Note that m_distance_2 must be defined before calling
@@ -354,6 +374,7 @@ void Item::handleNewMesh(ItemType type)
     Vec3 hpr;
     hpr.setHPR(getOriginalRotation());
     m_node->setRotation(hpr.toIrrHPR());
+    ri_->setObjectId(makeObjectId(ot(getType()), ItemState::getItemId()+1));
 #endif
 }   // handleNewMesh
 

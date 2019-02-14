@@ -23,7 +23,6 @@
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "io/file_manager.hpp"
-#include "modes/profile_world.hpp"
 
 AttachmentManager *attachment_manager = 0;
 
@@ -67,14 +66,16 @@ AttachmentManager::~AttachmentManager()
     for(int i=0; iat[i].attachment!=Attachment::ATTACH_MAX; i++)
     {
         scene::IMesh *mesh = m_attachments[iat[i].attachment];
-        mesh->drop();
-        // If the count is 1, the only reference is in the
-        // irrlicht mesh cache, so the mesh can be removed
-        // from the cache.
-        // Note that this test is necessary, since some meshes
-        // are also used in powerup_manager!!!
-        if(mesh->getReferenceCount()==1)
-            irr_driver->removeMeshFromCache(mesh);
+        if (mesh) {
+            mesh->drop();
+            // If the count is 1, the only reference is in the
+            // irrlicht mesh cache, so the mesh can be removed
+            // from the cache.
+            // Note that this test is necessary, since some meshes
+            // are also used in powerup_manager!!!
+            if(mesh->getReferenceCount()==1)
+                irr_driver->removeMeshFromCache(mesh);
+        }
     }
 }   // ~AttachmentManager
 
@@ -99,8 +100,6 @@ void AttachmentManager::loadModels()
                                               /* full_path */     true,
                                               /*make_permanent */ true);
         }
-        if (ProfileWorld::isNoGraphics())
-            mesh->freeMeshVertexBuffer();
     }   // for
 }   // reInit
 

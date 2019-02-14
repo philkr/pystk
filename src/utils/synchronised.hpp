@@ -18,8 +18,7 @@
 
 #ifndef HEADER_SYNCHRONISED_HPP
 #define HEADER_SYNCHRONISED_HPP
-
-#include <pthread.h>
+#include <mutex>
 
 class ISynchronised
 {
@@ -36,15 +35,17 @@ class Synchronised : public ISynchronised
 {
 private:
     /** The mutex to protect this variable with. */
-    mutable pthread_mutex_t  m_mutex;
+    mutable std::mutex      m_mutex;
     /** The actual data to be used. */
     TYPE                     m_data;
 public:
+	Synchronised(const Synchronised& o) {
+		m_data = o.m_data;
+	}
     // ------------------------------------------------------------------------
     /** Initialise the data and the mutex with default constructors. */
     Synchronised() : m_data()
     {
-        pthread_mutex_init(&m_mutex, NULL);
     }   // Synchronised()
 
     // ------------------------------------------------------------------------
@@ -52,7 +53,6 @@ public:
     Synchronised(const TYPE &v)
     {
         m_data = v;
-        pthread_mutex_init(&m_mutex, NULL);
     }   // Synchronised
 
     // ------------------------------------------------------------------------
@@ -60,7 +60,6 @@ public:
      */
     ~Synchronised()
     {
-        pthread_mutex_destroy(&m_mutex);
     }   // ~Synchronised
 
     // ------------------------------------------------------------------------
@@ -69,9 +68,8 @@ public:
      */
     void setAtomic(const TYPE &v)
     {
-        pthread_mutex_lock(&m_mutex);
+		std::lock_guard<std::mutex> lock(m_mutex);
         m_data = v;
-        pthread_mutex_unlock(&m_mutex);
     }   // set
 
     // ------------------------------------------------------------------------
@@ -79,11 +77,8 @@ public:
      */
     TYPE getAtomic() const
     {
-        TYPE v;
-        pthread_mutex_lock(&m_mutex);
-        v = m_data;
-        pthread_mutex_unlock(&m_mutex);
-        return v;
+		std::lock_guard<std::mutex> lock(m_mutex);
+        return m_data;
     }   // get
     // ------------------------------------------------------------------------
     /** Returns a reference to the original data file. NOTE: all access to
@@ -104,20 +99,20 @@ public:
     /** Locks the mutex. Note that calls to get() or set() will fail, since
      *  they will try to lock the mutex as well!
      */
-    void lock() const { pthread_mutex_lock(&m_mutex); }
+    void lock() const { m_mutex.lock(); }
     // ------------------------------------------------------------------------
     /** Unlocks the mutex.
      */
-    void unlock() const {pthread_mutex_unlock(&m_mutex); }
+    void unlock() const { m_mutex.unlock(); }
     // ------------------------------------------------------------------------
     /** Gives access to the mutex, which can then be used in other pthread
      *  calls (e.g. pthread_cond_wait).
      */
-    pthread_mutex_t* getMutex() { return &m_mutex; }
+    std::mutex & getMutex() { return m_mutex; }
 private:
     // Make sure that no actual copying is taking place
     // ------------------------------------------------------------------------
-    void operator=(const Synchronised<TYPE>& v) {}
+	Synchronised& operator=(const Synchronised<TYPE>&) = delete;
 };
 
 #define MutexLocker(x) MutexLockerHelper __dummy(x);

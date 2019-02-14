@@ -51,6 +51,8 @@ private:
 
     std::vector<SP::Armature> m_all_armatures;
 
+	int m_label = 0;
+
 public:
     // ------------------------------------------------------------------------
     SPMesh();
@@ -159,7 +161,10 @@ public:
     void addSPMeshBuffer(SPMeshBuffer* spmb)      { m_buffer.push_back(spmb); }
     // ------------------------------------------------------------------------
     SPMeshBuffer* getSPMeshBuffer(u32 nr) const;
-
+    // ------------------------------------------------------------------------
+    virtual void setLabel(int label);
+    virtual int getLabel() const { return m_label; }
+    
 };
 
 }

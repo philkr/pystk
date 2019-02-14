@@ -49,8 +49,6 @@ public:
     virtual void reset(bool restart=false) OVERRIDE;
     virtual const std::string& getIdent() const OVERRIDE;
     virtual const btTransform &getStartTransform(int index) OVERRIDE;
-    virtual void getKartsDisplayInfo(
-                 std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE;
     virtual void init() OVERRIDE;
     virtual void terminateRace() OVERRIDE;
     virtual bool isRaceOver() OVERRIDE;

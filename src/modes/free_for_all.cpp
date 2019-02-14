@@ -18,10 +18,7 @@
 #include "modes/free_for_all.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
-#include "network/protocols/game_events_protocol.hpp"
-#include "network/stk_host.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
 
@@ -96,10 +93,6 @@ void FreeForAll::countdownReachedZero()
  */
 bool FreeForAll::kartHit(int kart_id, int hitter)
 {
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient())
-        return false;
-
     if (isRaceOver())
         return false;
 
@@ -120,18 +113,6 @@ void FreeForAll::handleScoreInServer(int kart_id, int hitter)
     else
         new_score = ++m_scores[hitter];
 
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isServer())
-    {
-        NetworkString p(PROTOCOL_GAME_EVENTS);
-        p.setSynchronous(true);
-        p.addUInt8(GameEventsProtocol::GE_BATTLE_KART_SCORE);
-        if (kart_id == hitter || hitter == -1)
-            p.addUInt8((uint8_t)kart_id).addUInt16((int16_t)new_score);
-        else
-            p.addUInt8((uint8_t)hitter).addUInt16((int16_t)new_score);
-        STKHost::get()->sendPacketToAllPeers(&p, true);
-    }
 }   // handleScoreInServer
 
 // ----------------------------------------------------------------------------
@@ -183,10 +164,6 @@ void FreeForAll::update(int ticks)
  */
 bool FreeForAll::isRaceOver()
 {
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient())
-        return false;
-
     if (!getKartAtPosition(1))
         return false;
 
@@ -196,35 +173,6 @@ bool FreeForAll::isRaceOver()
     return (m_count_down_reached_zero && race_manager->hasTimeTarget()) ||
         (hit_capture_limit != 0 && m_scores[top_id] >= hit_capture_limit);
 }   // isRaceOver
-
-// ----------------------------------------------------------------------------
-/** Returns the data to display in the race gui.
- */
-void FreeForAll::getKartsDisplayInfo(
-                           std::vector<RaceGUIBase::KartIconDisplayInfo> *info)
-{
-    const unsigned int kart_amount = getNumKarts();
-    for (unsigned int i = 0; i < kart_amount ; i++)
-    {
-        RaceGUIBase::KartIconDisplayInfo& rank_info = (*info)[i];
-        rank_info.lap = -1;
-        rank_info.m_outlined_font = true;
-        rank_info.m_color = getColor(i);
-        rank_info.m_text = getKart(i)->getController()->getName();
-        if (race_manager->getKartGlobalPlayerId(i) > -1)
-        {
-            const core::stringw& flag = StringUtils::getCountryFlag(
-                race_manager->getKartInfo(i).getCountryCode());
-            if (!flag.empty())
-            {
-                rank_info.m_text += L" ";
-                rank_info.m_text += flag;
-            }
-        }
-        rank_info.m_text += core::stringw(L" (") +
-            StringUtils::toWString(m_scores[i]) + L")";
-    }
-}   // getKartsDisplayInfo
 
 // ----------------------------------------------------------------------------
 void FreeForAll::terminateRace()
@@ -240,7 +188,7 @@ void FreeForAll::terminateRace()
 // ----------------------------------------------------------------------------
 video::SColor FreeForAll::getColor(unsigned int kart_id) const
 {
-    return GUIEngine::getSkin()->getColor("font::normal");
+    return video::SColor(255,255,128,0);
 }   // getColor
 
 // ----------------------------------------------------------------------------

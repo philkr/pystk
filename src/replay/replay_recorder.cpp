@@ -23,7 +23,6 @@
 #include "items/attachment.hpp"
 #include "items/powerup.hpp"
 #include "items/powerup_manager.hpp"
-#include "guiengine/message_queue.hpp"
 #include "karts/controller/player_controller.hpp"
 #include "karts/ghost_kart.hpp"
 #include "karts/skidding.hpp"
@@ -356,8 +355,6 @@ void ReplayRecorder::save()
 {
     if (m_incorrect_replay || !m_complete_replay)
     {
-        MessageQueue::add(MessageQueue::MT_ERROR,
-            _("Incomplete replay file will not be saved."));
         return;
     }
 
@@ -393,10 +390,6 @@ void ReplayRecorder::save()
         return;
     }
 
-    core::stringw msg = _("Replay saved in \"%s\".",
-        StringUtils::utf8ToWide(file_manager->getReplayDir() + getReplayFilename()));
-    MessageQueue::add(MessageQueue::MT_GENERIC, msg);
-
     fprintf(fd, "version: %d\n", getCurrentReplayVersion());
     fprintf(fd, "stk_version: %s\n", STK_VERSION);
 
@@ -412,7 +405,7 @@ void ReplayRecorder::save()
 
         if (kart->getController()->isPlayerController())
         {
-            fprintf(fd, "kart_color: %f\n", StateManager::get()->getActivePlayer(player_count)->getConstProfile()->getDefaultKartColor());
+            fprintf(fd, "kart_color: 0\n");
             player_count++;
         }
         else

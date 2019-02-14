@@ -19,6 +19,7 @@
 
 #include "karts/controller/ai_base_controller.hpp"
 
+#include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "karts/abstract_kart.hpp"

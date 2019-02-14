@@ -33,7 +33,6 @@ namespace irr
 class AbstractKart;
 class BareNetworkString;
 class ItemState;
-class SFXBase;
 
 /** This objects is permanently available in a kart and stores information
  *  about addons. If a kart has no attachment, this object will have the
@@ -105,13 +104,6 @@ private:
     /** An optional attachment - additional functionality can be implemented
      *  for certain attachments. */
     AttachmentPlugin *m_plugin;
-
-    /** Ticking sound for the bomb */
-    SFXBase          *m_bomb_sound;
-
-    /** Sound for exploding bubble gum shield */
-    SFXBase          *m_bubble_explode_sound;
-
 public:
           Attachment(AbstractKart* kart);
          ~Attachment();

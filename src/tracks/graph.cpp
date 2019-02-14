@@ -25,7 +25,7 @@
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_mesh.hpp"
 #include "graphics/sp/sp_mesh_buffer.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/arena_node_3d.hpp"
 #include "tracks/drive_node_2d.hpp"
@@ -53,9 +53,6 @@ Graph::Graph()
 // -----------------------------------------------------------------------------
 Graph::~Graph()
 {
-    if (UserConfigParams::m_track_debug)
-        cleanupDebugMesh();
-
     for (unsigned int i = 0; i < m_all_nodes.size(); i++)
     {
         delete m_all_nodes[i];
@@ -395,8 +392,6 @@ RenderTarget* Graph::makeMiniMap(const core::dimension2du &dimension,
                                  bool invert_x_z)
 {
     // Skip minimap when profiling
-    if (ProfileWorld::isNoGraphics()) return NULL;
-
     const video::SColor oldClearColor = irr_driver->getClearColor();
     irr_driver->setClearbackBufferColor(video::SColor(0, 255, 255, 255));
     Track::getCurrentTrack()->forceFogDisabled(true);
@@ -504,7 +499,7 @@ RenderTarget* Graph::makeMiniMap(const core::dimension2du &dimension,
     //camera->setAspectRatio(1.0f);
     camera->updateAbsolutePosition();
 
-    m_render_target->renderToTexture(camera, GUIEngine::getLatestDt());
+    m_render_target->renderToTexture(camera, 0.1);
 
     cleanupDebugMesh();
     irr_driver->removeCameraSceneNode(camera);

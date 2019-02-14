@@ -34,8 +34,6 @@
 #include "graphics/weather.hpp"
 #include "modes/world_status.hpp"
 #include "race/highscores.hpp"
-#include "states_screens/race_gui_base.hpp"
-#include "states_screens/state_manager.hpp"
 #include "utils/random_generator.hpp"
 
 #include "LinearMath/btTransform.h"
@@ -134,23 +132,11 @@ protected:
 
     void  updateHighscores  (int* best_highscore_rank);
     void  resetAllKarts     ();
-    Controller*
-          loadAIController  (AbstractKart *kart);
 
     virtual std::shared_ptr<AbstractKart> createKart
         (const std::string &kart_ident, int index, int local_player_id,
         int global_player_id, RaceManager::KartType type,
         PerPlayerDifficulty difficulty);
-
-    /** Pointer to the race GUI. The race GUI is handled by world. */
-    RaceGUIBase *m_race_gui;
-
-    /** The actual race gui needs to be saved when the race result gui is
-        displayed since it is still needed in case of a restart, and it
-        can't simply be created again (since it assumes that it can render
-        to texture without having any scene nodes, but in case of a restart
-        there are scene nodes). */
-    RaceGUIBase *m_saved_race_gui;
 
     /** Pausing/unpausing are not done immediately, but at next udpdate. The
      *  use of this is when switching between screens : if we leave a screen
@@ -184,7 +170,6 @@ protected:
     /** Returns true if the race is over. Must be defined by all modes. */
     virtual bool  isRaceOver() = 0;
     virtual void  update(int ticks) OVERRIDE;
-    virtual void  createRaceGUI();
             void  updateTrack(int ticks);
     // ------------------------------------------------------------------------
     /** Used for AI karts that are still racing when all player kart finished.
@@ -248,11 +233,6 @@ public:
         assert(false); return -1; // remove compiler warning
     }   // getFinishedLapsOfKart
     // ------------------------------------------------------------------------
-    /** Called by the code that draws the list of karts on the race GUI
-      * to know what needs to be drawn in the current mode. */
-    virtual void getKartsDisplayInfo(
-                       std::vector<RaceGUIBase::KartIconDisplayInfo> *info)= 0;
-    // ------------------------------------------------------------------------
 
     // Virtual functions
     // =================
@@ -305,9 +285,6 @@ public:
     AbstractKart*   getLocalPlayerKart(unsigned int n) const;
     virtual const btTransform &getStartTransform(int index);
     void moveKartTo(AbstractKart* kart, const btTransform &t);
-    // ------------------------------------------------------------------------
-    /** Returns a pointer to the race gui. */
-    RaceGUIBase    *getRaceGUI() const { return m_race_gui;}
     // ------------------------------------------------------------------------
     /** Returns the number of karts in the race. */
     unsigned int    getNumKarts() const { return (unsigned int) m_karts.size(); }
@@ -392,6 +369,8 @@ public:
     }
     // ------------------------------------------------------------------------
     virtual bool isGoalPhase() const { return false; }
+    Controller*
+          loadAIController  (AbstractKart *kart);
 };   // World
 
 #endif

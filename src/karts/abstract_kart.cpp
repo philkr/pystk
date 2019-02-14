@@ -21,11 +21,13 @@
 
 #include "items/attachment.hpp"
 #include "items/powerup.hpp"
+#include "graphics/render_info.hpp"
 #include "karts/abstract_kart_animation.hpp"
 #include "karts/kart_model.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "physics/physics.hpp"
+#include "utils/objecttype.h"
 #include "utils/log.hpp"
 
 /** Creates a kart.
@@ -41,6 +43,8 @@ AbstractKart::AbstractKart(const std::string& ident,
                            std::shared_ptr<RenderInfo> ri)
              : Moveable()
 {
+    if (!ri) ri = std::make_shared<RenderInfo>();
+    ri->setObjectId(makeObjectId(OT_KART, world_kart_id));
     m_world_kart_id   = world_kart_id;
     loadKartProperties(ident, difficulty, ri);
 }   // AbstractKart
@@ -114,6 +118,7 @@ void AbstractKart::changeKart(const std::string& new_ident,
     reset();
     // Remove kart body
     Physics::getInstance()->removeKart(this);
+    ri->setObjectId(makeObjectId(OT_KART, getWorldKartId()));
     loadKartProperties(new_ident, difficulty, ri);
 }   // changeKart
 

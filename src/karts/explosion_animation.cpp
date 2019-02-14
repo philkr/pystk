@@ -25,7 +25,7 @@
 #include "karts/kart_properties.hpp"
 #include "modes/follow_the_leader.hpp"
 #include "network/network_string.hpp"
-#include "network/protocols/client_lobby.hpp"
+#include "modes/world.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/track.hpp"
 #include "utils/mini_glm.hpp"
@@ -114,7 +114,6 @@ ExplosionAnimation::ExplosionAnimation(AbstractKart* kart, bool direct_hit)
 
     float t = m_kart->getKartProperties()->getExplosionInvulnerabilityTime();
     m_kart->setInvulnerableTicks(stk_config->time2Ticks(t));
-    m_kart->playCustomSFX(SFXManager::CUSTOM_EXPLODE);
     m_kart->getAttachment()->clear();
     // Clear powerups when direct hit in CTF
     if (reset)
@@ -161,9 +160,6 @@ ExplosionAnimation::~ExplosionAnimation()
     {
         m_kart->getBody()->setLinearVelocity(btVector3(0,0,0));
         m_kart->getBody()->setAngularVelocity(btVector3(0,0,0));
-        // Don't reset spectate camera
-        auto cl = LobbyProtocol::get<ClientLobby>();
-        if (!cl || !cl->isSpectator())
         {
             for (unsigned i = 0; i < Camera::getNumCameras(); i++)
             {

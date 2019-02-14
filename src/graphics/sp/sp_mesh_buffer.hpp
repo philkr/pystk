@@ -64,6 +64,8 @@ protected:
 
     unsigned m_pitch;
 
+	int m_type = 0;
+
 private:
     std::vector<uint16_t> m_indices;
 
@@ -342,6 +344,10 @@ public:
     {
         m_bounding_box = box;
     }
+    // ------------------------------------------------------------------------
+    
+    virtual void setLabel(int label);
+    
     // ------------------------------------------------------------------------
     virtual void recalculateBoundingBox()
     {

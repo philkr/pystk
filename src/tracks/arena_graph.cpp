@@ -75,14 +75,6 @@ void ArenaGraph::differentNodeColor(int n, video::SColor* c) const
         return;
     }
 
-    if (UserConfigParams::m_track_debug)
-    {
-        if (m_all_nodes[n]->is3DQuad())
-            *c = video::SColor(255, 0, 255, 0);
-        else
-            *c = video::SColor(255, 255, 255, 0);
-    }
-
 }   // differentNodeColor
 
 // -----------------------------------------------------------------------------

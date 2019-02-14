@@ -213,22 +213,6 @@ void EasterEggHunt::reset(bool restart)
 }   // reset
 
 //-----------------------------------------------------------------------------
-/** Returns the data to display in the race gui.
- */
-void EasterEggHunt::getKartsDisplayInfo(
-                           std::vector<RaceGUIBase::KartIconDisplayInfo> *info)
-{
-    const unsigned int kart_amount = getNumKarts();
-    for(unsigned int i = 0; i < kart_amount ; i++)
-    {
-        RaceGUIBase::KartIconDisplayInfo& rank_info = (*info)[i];
-        //I18n: number of collected eggs / overall number of eggs
-        rank_info.m_text = _("Eggs: %d / %d", m_eggs_collected[i],
-                                              m_number_of_eggs);
-        rank_info.m_color = video::SColor(255, 255, 255, 255);
-    }
-}   // getKartDisplayInfo
-//-----------------------------------------------------------------------------
 /** Override the base class method to change behavior. We don't want wrong
  *  direction messages in the easter egg mode since there is no direction there.
  *  \param i Kart id.

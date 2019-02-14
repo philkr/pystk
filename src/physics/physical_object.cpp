@@ -30,8 +30,6 @@
 #include "physics/physics.hpp"
 #include "physics/triangle_mesh.hpp"
 #include "network/compress_network_body.hpp"
-#include "network/network_config.hpp"
-#include "network/protocols/lobby_protocol.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "utils/constants.hpp"
@@ -633,10 +631,6 @@ void PhysicalObject::update(float dt)
 {
     if (!m_is_dynamic) return;
 
-    // Round values in network for better synchronization
-    if (NetworkConfig::get()->roundValuesNow())
-        CompressNetworkBody::compress(m_body, m_motion_state);
-
     m_current_transform = m_body->getWorldTransform();
     const Vec3 &xyz = m_current_transform.getOrigin();
     if(m_reset_when_too_low && xyz.getY()<m_reset_height)
@@ -814,16 +808,9 @@ void PhysicalObject::computeError()
 // ----------------------------------------------------------------------------
 BareNetworkString* PhysicalObject::saveState(std::vector<std::string>* ru)
 {
+    assert(!"This is broken");
     bool has_live_join = false;
 
-    if (auto sl = LobbyProtocol::get<LobbyProtocol>())
-        has_live_join = sl->hasLiveJoiningRecently();
-
-    BareNetworkString* buffer = new BareNetworkString();
-    // This will compress and round down values of body, use the rounded
-    // down value to test if sending state is needed
-    // If any client live-joined always send new state for this object
-    CompressNetworkBody::compress(m_body, m_motion_state, buffer);
     btTransform cur_transform = m_body->getWorldTransform();
     Vec3 current_lv = m_body->getLinearVelocity();
     Vec3 current_av = m_body->getAngularVelocity();
@@ -833,7 +820,6 @@ BareNetworkString* PhysicalObject::saveState(std::vector<std::string>* ru)
         (current_lv - m_last_lv).length() < 0.01f &&
         (current_av - m_last_av).length() < 0.01f && !has_live_join)
     {
-        delete buffer;
         return nullptr;
     }
 
@@ -841,14 +827,14 @@ BareNetworkString* PhysicalObject::saveState(std::vector<std::string>* ru)
     m_last_transform = cur_transform;
     m_last_lv = current_lv;
     m_last_av = current_av;
-    return buffer;
+    return nullptr;
 }   // saveState
 
 // ----------------------------------------------------------------------------
 void PhysicalObject::restoreState(BareNetworkString *buffer, int count)
 {
+    assert(!"This is broken");
     m_no_server_state = false;
-    CompressNetworkBody::decompress(buffer, m_body, m_motion_state);
     // Save the newly decompressed value for local state restore
     m_last_transform = m_body->getWorldTransform();
     m_last_lv = m_body->getLinearVelocity();

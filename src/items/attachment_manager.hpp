@@ -34,8 +34,8 @@ class Material;
 class AttachmentManager: public NoCopy
 {
 private:
-    scene::IAnimatedMesh *m_attachments[Attachment::ATTACH_MAX];
-    Material             *m_all_icons [Attachment::ATTACH_MAX];
+    scene::IAnimatedMesh *m_attachments[Attachment::ATTACH_MAX] = {0};
+    Material             *m_all_icons [Attachment::ATTACH_MAX] = {0};
 public:
                AttachmentManager() {};
               ~AttachmentManager();

@@ -31,11 +31,6 @@
 #include <array>
 #include <vector>
 
-namespace HardwareStats
-{
-    class Json;
-}
-
 void initGL();
 
 class GPUTimer;
@@ -154,7 +149,6 @@ void draw3DLine(const core::vector3df& start,
 
 bool hasGLExtension(const char* extension);
 const std::string getGLExtensions();
-void getGLLimits(HardwareStats::Json *json);
 bool checkGLError();
 
 #endif

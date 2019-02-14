@@ -40,6 +40,7 @@ class AbstractKartAnimation;
 class HitEffect;
 class PhysicalObject;
 class XMLNode;
+class RenderInfo;
 
 /**
   * \ingroup items
@@ -74,6 +75,8 @@ private:
     /** If the flyable is in a cannon, this is the pointer to the cannon
      *  animation. NULL otherwise. */
     AbstractKartAnimation *m_animation;
+    
+    std::shared_ptr<RenderInfo> ri_;
 
 protected:
     /** Kart which shot this flyable. */
@@ -272,6 +275,9 @@ public:
     virtual void onDeleteFlyable();
     // ------------------------------------------------------------------------
     void setCreatedTicks(int ticks)                { m_created_ticks = ticks; }
+    
+    void setObjectId(uint32_t id);
+	uint32_t getObjectId() const;
 };   // Flyable
 
 #endif

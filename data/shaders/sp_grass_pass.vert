@@ -14,12 +14,14 @@ layout(location = 8) in vec3 i_origin;
 layout(location = 9) in vec4 i_rotation;
 layout(location = 10) in vec4 i_scale;
 layout(location = 12) in ivec2 i_misc_data;
+layout(location = 13) in uint i_label;
 
 #stk_include "utils/get_world_location.vert"
 
 out vec3 normal;
 out vec2 uv;
 out float hue_change;
+flat out uint label;
 
 void main()
 {
@@ -39,4 +41,5 @@ void main()
     uv = i_uv;
     hue_change = float(i_misc_data.y) * 0.01;
     gl_Position = u_projection_view_matrix * world_position;
+    label = i_label;
 }

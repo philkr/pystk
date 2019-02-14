@@ -49,7 +49,6 @@
 #undef _IRR_COMPILE_WITH_SDL_DEVICE_
 #endif
 
-
 //! WIN32 for Windows32
 //! WIN64 for Windows64
 // The windows platform and API support SDL and WINDOW device
@@ -81,6 +80,8 @@
 #define MACOSX // legacy support
 #endif
 #define _IRR_OSX_PLATFORM_ // we only support OSX on these systems
+#define _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+#define GL_SILENCE_DEPRECATION
 
 #if defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
 #define _IRR_IOS_PLATFORM_
@@ -127,6 +128,12 @@
 #ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
 #define _IRR_COMPILE_WITH_EGL_
 #endif
+
+#ifndef NO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#define _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#define _IRR_COMPILE_WITH_EGL_
+#endif
+
 
 //! Define _IRR_COMPILE_WITH_JOYSTICK_SUPPORT_ if you want joystick events.
 #define _IRR_COMPILE_WITH_JOYSTICK_EVENTS_

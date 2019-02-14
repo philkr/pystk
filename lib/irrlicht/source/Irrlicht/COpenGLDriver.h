@@ -14,8 +14,10 @@ namespace irr
 	class CIrrDeviceWin32;
 	class CIrrDeviceLinux;
 	class CIrrDeviceWayland;
+	class CIrrDeviceOffScreen;
 	class CIrrDeviceSDL;
 	class CIrrDeviceMacOSX;
+	class CIrrDeviceOffScreenMacOSX;
 }
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
@@ -65,6 +67,16 @@ namespace video
 
 		#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
 		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceMacOSX *device);
+		#endif
+
+		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceOffScreen *device);
+		bool changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceOffScreen* device);
+		#endif
+
+		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceOffScreenMacOSX *device);
+		bool changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceOffScreenMacOSX* device);
 		#endif
 
 		//! generic version which overloads the unimplemented versions
@@ -603,6 +615,12 @@ namespace video
 		#endif
 		#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 			CIrrDeviceSDL *SDLDevice;
+		#endif
+		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+			CIrrDeviceOffScreen* OSDevice;
+		#endif
+		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+			CIrrDeviceOffScreenMacOSX* OSDeviceMacOSX;
 		#endif
 
 		E_DEVICE_TYPE DeviceType;

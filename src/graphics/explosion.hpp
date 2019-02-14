@@ -31,7 +31,6 @@ namespace irr
 using namespace irr;
 
 class Vec3;
-class SFXBase;
 class ParticleEmitter;
 
 /**

@@ -24,16 +24,8 @@
 #include "font/digit_face.hpp"
 #include "font/face_ttf.hpp"
 #include "font/regular_face.hpp"
-#include "modes/profile_world.hpp"
-#include "states_screens/state_manager.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
-
-#ifndef SERVER_ONLY
-#include <fribidi/fribidi.h>
-#include <harfbuzz/hb.h>
-#include <raqm.h>
-#endif
 
 FontManager *font_manager = NULL;
 // ----------------------------------------------------------------------------
@@ -46,8 +38,6 @@ FontManager::FontManager()
     m_ft_library = NULL;
     m_digit_face = NULL;
     m_shaping_dpi = 128;
-    if (ProfileWorld::isNoGraphics())
-        return;
 
     checkFTError(FT_Init_FreeType(&m_ft_library), "loading freetype library");
 #endif
@@ -63,9 +53,6 @@ FontManager::~FontManager()
     m_fonts.clear();
 
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     for (unsigned int i = 0; i < m_faces.size(); i++)
         checkFTError(FT_Done_Face(m_faces[i]), "removing faces for shaping");
     if (m_digit_face != NULL)
@@ -83,9 +70,6 @@ std::vector<FT_Face>
                  FontManager::loadTTF(const std::vector<std::string>& ttf_list)
 {
     std::vector <FT_Face> ret;
-    if (ProfileWorld::isNoGraphics())
-        return ret;
-
     for (const std::string& font : ttf_list)
     {
         FT_Face face = NULL;
@@ -255,53 +239,6 @@ namespace LineBreakingRules
     }   // insertBreakMark
 }   // namespace LineBreakingRules
 
-// ============================================================================
-namespace RTLRules
-{
-    //-------------------------------------------------------------------------
-    void insertRTLMark(const std::u32string& str, std::vector<bool>& line,
-                       std::vector<bool>& char_bool)
-    {
-        // Check if first character has strong RTL, then consider this line is
-        // RTL
-        std::vector<FriBidiCharType> types;
-        std::vector<FriBidiLevel> levels;
-        types.resize(str.size(), 0);
-        levels.resize(str.size(), 0);
-        FriBidiParType par_type = FRIBIDI_PAR_ON;
-        const FriBidiChar* fribidi_str = (const FriBidiChar*)str.c_str();
-        fribidi_get_bidi_types(fribidi_str, str.size(), types.data());
-#if FRIBIDI_MAJOR_VERSION >= 1
-        std::vector<FriBidiBracketType> btypes;
-        btypes.resize(str.size(), 0);
-        fribidi_get_bracket_types(fribidi_str, str.size(), types.data(),
-            btypes.data());
-        int max_level = fribidi_get_par_embedding_levels_ex(types.data(),
-            btypes.data(), str.size(), &par_type, levels.data());
-#else
-        int max_level = fribidi_get_par_embedding_levels(types.data(),
-            str.size(), &par_type, levels.data());
-#endif
-        (void)max_level;
-        bool cur_rtl = par_type == FRIBIDI_PAR_RTL;
-        if (cur_rtl)
-        {
-            for (unsigned i = 0; i < line.size(); i++)
-                line[i] = true;
-        }
-        int cur_level = levels[0];
-        for (unsigned i = 0; i < char_bool.size(); i++)
-        {
-            if (levels[i] != cur_level)
-            {
-                cur_rtl = !cur_rtl;
-                cur_level = levels[i];
-            }
-            char_bool[i] = cur_rtl;
-        }
-    }   // insertRTLMark
-}   // namespace RTLRules
-
 // ----------------------------------------------------------------------------
 /* Turn text into glyph layout for rendering by libraqm. */
 void FontManager::shape(const std::u32string& text,
@@ -338,177 +275,8 @@ void FontManager::shape(const std::u32string& text,
             continue;
         }
 
-        raqm_t* rq = raqm_create();
-        if (!rq)
         {
             Log::error("FontManager", "Failed to raqm_create.");
-            gls.clear();
-            if (line_data)
-                line_data->clear();
-            return;
-        }
-
-        const int length = (int)str.size();
-        const uint32_t* string_array = (const uint32_t*)str.c_str();
-
-        if (!raqm_set_text(rq, string_array, length))
-        {
-            Log::error("FontManager", "Failed to raqm_set_text.");
-            raqm_destroy(rq);
-            gls.clear();
-            if (line_data)
-                line_data->clear();
-            return;
-        }
-
-        FT_Face prev_face = NULL;
-        for (int i = 0; i < length; i++)
-        {
-            FT_Face cur_face = m_faces.front();
-            bool override_face = false;
-            if (prev_face != NULL && i != 0)
-            {
-                hb_script_t prev_script = hb_unicode_script(
-                    hb_unicode_funcs_get_default(), str[i - 1]);
-                hb_script_t cur_script = hb_unicode_script(
-                    hb_unicode_funcs_get_default(), str[i]);
-                if (cur_script == HB_SCRIPT_INHERITED ||
-                    (prev_script == HB_SCRIPT_ARABIC &&
-                    // Those exists in the default arabic font
-                    (str[i] == U'.' || str[i] == U'!' || str[i] == U':')))
-                {
-                    // For inherited script (like punctation with arabic or
-                    // join marks), try to use the previous face so it is not
-                    // hb_shape separately
-                    cur_face = prev_face;
-                    override_face = true;
-                }
-            }
-            FT_Face emoji_face = m_faces.size() > 1 ? m_faces[1] : NULL;
-            if (m_has_color_emoji && !override_face &&
-                length > 1 && i < length - 1 &&
-                emoji_face != NULL && str[i + 1] == 0xfe0f)
-            {
-                // Rule for variation selector-16 (emoji presentation)
-                // It is used in for example Keycap Digit One
-                // (U+31, U+FE0F, U+20E3)
-                cur_face = emoji_face;
-                override_face = true;
-            }
-            if (!override_face)
-            {
-                for (unsigned j = 0; j < m_faces.size(); j++)
-                {
-                    unsigned glyph_index =
-                        FT_Get_Char_Index(m_faces[j], str[i]);
-                    if (glyph_index > 0)
-                    {
-                        cur_face = m_faces[j];
-                        break;
-                    }
-                }
-            }
-            prev_face = cur_face;
-            if (!FT_HAS_COLOR(cur_face))
-            {
-                checkFTError(FT_Set_Pixel_Sizes(cur_face, 0,
-                    m_shaping_dpi), "setting DPI");
-            }
-            if (!raqm_set_freetype_face_range(rq, cur_face, i, 1))
-            {
-                Log::error("FontManager",
-                    "Failed to raqm_set_freetype_face_range.");
-                raqm_destroy(rq);
-                gls.clear();
-                if (line_data)
-                    line_data->clear();
-                return;
-            }
-        }
-
-        if (raqm_layout(rq))
-        {
-            std::vector<gui::GlyphLayout> cur_line;
-            std::vector<bool> rtl_line, rtl_char, breakable;
-            rtl_line.resize(str.size(), false);
-            rtl_char.resize(str.size(), false);
-            breakable.resize(str.size(), false);
-            LineBreakingRules::insertBreakMark(str, breakable);
-            translations->insertThaiBreakMark(str, breakable);
-            RTLRules::insertRTLMark(str, rtl_line, rtl_char);
-            size_t count = 0;
-            raqm_glyph_t* glyphs = raqm_get_glyphs(rq, &count);
-            for (unsigned idx = 0; idx < (unsigned)count; idx++)
-            {
-                gui::GlyphLayout gl = { 0 };
-                gl.index = glyphs[idx].index;
-                gl.cluster.push_back(glyphs[idx].cluster);
-                gl.x_advance = glyphs[idx].x_advance / BEARING;
-                gl.x_offset = glyphs[idx].x_offset / BEARING;
-                gl.y_offset = glyphs[idx].y_offset / BEARING;
-                gl.face_idx = m_ft_faces_to_index.at(glyphs[idx].ftface);
-                gl.original_index = idx;
-                if (rtl_line[glyphs[idx].cluster])
-                    gl.flags |= gui::GLF_RTL_LINE;
-                if (rtl_char[glyphs[idx].cluster])
-                    gl.flags |= gui::GLF_RTL_CHAR;
-                if (FT_HAS_COLOR(glyphs[idx].ftface))
-                    gl.flags |= gui::GLF_COLORED;
-                cur_line.push_back(gl);
-            }
-            // Sort glyphs in logical order
-            std::sort(cur_line.begin(), cur_line.end(), []
-                (const gui::GlyphLayout& a_gi, const gui::GlyphLayout& b_gi)
-                {
-                    return a_gi.cluster.front() < b_gi.cluster.front();
-                });
-            for (unsigned l = 0; l < cur_line.size(); l++)
-            {
-                const int cur_cluster = cur_line[l].cluster.front();
-                // Last cluster handling, add the remaining clusters if missing
-                if (l == cur_line.size() - 1)
-                {
-                    for (int extra_cluster = cur_cluster + 1;
-                        extra_cluster <= (int)str.size() - 1; extra_cluster++)
-                        cur_line[l].cluster.push_back(extra_cluster);
-                }
-                else
-                {
-                    // Make sure there is every cluster values appear in the
-                    // list at least once, it will be used for cursor
-                    // positioning later
-                    const int next_cluster = cur_line[l + 1].cluster.front();
-                    for (int extra_cluster = cur_cluster + 1;
-                        extra_cluster <= next_cluster - 1; extra_cluster++)
-                        cur_line[l].cluster.push_back(extra_cluster);
-                }
-                cur_line[l].draw_flags.resize(cur_line[l].cluster.size(),
-                    gui::GLD_NONE);
-            }
-            // Sort glyphs in visual order
-            std::sort(cur_line.begin(), cur_line.end(), []
-                (const gui::GlyphLayout& a_gi,
-                const gui::GlyphLayout& b_gi)
-                {
-                    return a_gi.original_index < b_gi.original_index;
-                });
-            // Use last cluster to determine link breaking, so ligatures can be
-            // handled
-            for (gui::GlyphLayout& gl : cur_line)
-            {
-                int last_cluster = gl.cluster.back();
-                if (breakable[last_cluster])
-                    gl.flags |= gui::GLF_BREAKABLE;
-            }
-            gls.insert(gls.end(), cur_line.begin(), cur_line.end());
-            raqm_destroy(rq);
-            if (line_data)
-                line_data->push_back(str);
-        }
-        else
-        {
-            Log::error("FontManager", "Failed to raqm_layout.");
-            raqm_destroy(rq);
             gls.clear();
             if (line_data)
                 line_data->clear();
@@ -524,8 +292,7 @@ std::vector<irr::gui::GlyphLayout>&
                    FontManager::getCachedLayouts(const irr::core::stringw& str)
 {
     const size_t MAX_LAYOUTS = 600;
-    if (StateManager::get()->getGameState() != GUIEngine::GAME &&
-        m_cached_gls.size() > MAX_LAYOUTS)
+    if (m_cached_gls.size() > MAX_LAYOUTS)
     {
         Log::debug("FontManager",
             "Clearing cached glyph layouts because too many.");
@@ -545,7 +312,7 @@ void FontManager::initGlyphLayouts(const core::stringw& text,
                                    std::vector<irr::gui::GlyphLayout>& gls,
                                    std::vector<std::u32string>* line_data)
 {
-    if (ProfileWorld::isNoGraphics() || text.empty())
+    if (text.empty())
         return;
 
     if (line_data != NULL)
@@ -603,7 +370,6 @@ void FontManager::loadFonts()
     // First load the TTF files required by each font
     std::vector<FT_Face> normal_ttf = loadTTF(stk_config->m_normal_ttf);
     std::vector<FT_Face> bold_ttf = normal_ttf;
-    if (!ProfileWorld::isNoGraphics())
     {
         assert(!normal_ttf.empty());
         FT_Face color_emoji = loadColorEmoji();

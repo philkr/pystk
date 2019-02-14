@@ -18,10 +18,8 @@
 
 #include "karts/kart_rewinder.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "items/attachment.hpp"
 #include "items/powerup.hpp"
-#include "guiengine/message_queue.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/cannon_animation.hpp"
 #include "karts/explosion_animation.hpp"
@@ -31,8 +29,6 @@
 #include "karts/max_speed.hpp"
 #include "karts/skidding.hpp"
 #include "modes/world.hpp"
-#include "network/compress_network_body.hpp"
-#include "network/protocols/client_lobby.hpp"
 #include "network/rewind_manager.hpp"
 #include "network/network_string.hpp"
 #include "physics/btKart.hpp"
@@ -114,12 +110,10 @@ void KartRewinder::computeError()
         const int kartid = getWorldKartId();
         Log::debug("KartRewinder", "Kart id %d disconnected.", kartid);
 
-        SFXManager::get()->quickSound("appear");
         core::stringw player_name = getController()->getName();
         // I18N: Message shown in game to tell player left the game in network
         core::stringw msg = _("%s left the game.", player_name);
 
-        MessageQueue::add(MessageQueue::MT_FRIEND, msg);
         World::getWorld()->eliminateKart(kartid,
             false/*notify_of_elimination*/);
         setPosition(World::getWorld()->getCurrentNumKarts() + 1);
@@ -128,22 +122,6 @@ void KartRewinder::computeError()
         {
             RemoteKartInfo& rki = race_manager->getKartInfo(kartid);
             rki.makeReserved();
-        }
-    }
-    else if (m_has_server_state && isEliminated())
-    {
-        if (auto cl = LobbyProtocol::get<ClientLobby>())
-        {
-            Log::debug("KartRewinder", "Kart id %d connected.",
-                getWorldKartId());
-            cl->requestKartInfo((uint8_t)getWorldKartId());
-            // New live join kart, hide the node until new kart info is received
-            // see ClientLobby::handleKartInfo
-            World::getWorld()->addReservedKart(getWorldKartId());
-            reset();
-            // Final ticks come from server
-            m_live_join_util = std::numeric_limits<int>::max();
-            getNode()->setVisible(false);
         }
     }
 }   // computeError
@@ -222,9 +200,6 @@ BareNetworkString* KartRewinder::saveState(std::vector<std::string>* ru)
     }
     else
     {
-        CompressNetworkBody::compress(
-            m_body.get(), m_motion_state.get(), buffer);
-
         if (m_vehicle->getTimedRotationTicks() > 0)
         {
             buffer->addUInt16(m_vehicle->getTimedRotationTicks());
@@ -369,8 +344,6 @@ void KartRewinder::restoreState(BareNetworkString *buffer, int count)
 
         // Clear any forces applied (like by plunger or bubble gum torque)
         m_body->clearForces();
-        CompressNetworkBody::decompress(
-            buffer, m_body.get(), m_motion_state.get());
         // Update kart transform in case that there are access to its value
         // before Moveable::update() is called (which updates the transform)
         m_transform = m_body->getWorldTransform();

@@ -86,7 +86,7 @@ void STKTextBillboard::updateAbsolutePosition()
     if (CVS->isGLSL())
     {
         m_instanced_data =
-            SP::SPInstancedData(AbsoluteTransformation, 0, 0, 0, 0);
+            SP::SPInstancedData(AbsoluteTransformation, 0, 0, 0, 0, 0); // TODO: Set this?
     }
 }   // updateAbsolutePosition
 

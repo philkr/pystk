@@ -45,15 +45,8 @@ friend class KartRewinder;
     /* Final transformation to place kart. */
     btTransform m_rescue_transform;
 
-    /* Compressed values for server to send to avoid compressing everytime. */
-    int m_rescue_transform_compressed[4];
-
-    // ------------------------------------------------------------------------
-    RescueAnimation(AbstractKart* kart, BareNetworkString* b);
     // ------------------------------------------------------------------------
     RescueAnimation(AbstractKart* kart, bool is_auto_rescue);
-    // ------------------------------------------------------------------------
-    void restoreData(BareNetworkString* b);
     // ------------------------------------------------------------------------
     void init(const btTransform& rescue_transform, float velocity);
 public:

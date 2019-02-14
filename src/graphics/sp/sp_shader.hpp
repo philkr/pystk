@@ -79,6 +79,12 @@ class SPUniformAssigner;
 
 class SPShader : public NoCopy, public SPPerObjectUniform
 {
+public:
+    struct Output{
+        std::string name;
+        GLuint location;
+        GLuint index;
+    };
 private:
     std::string m_name;
 
@@ -99,6 +105,8 @@ private:
     std::function<void()> m_use_function[RP_COUNT], m_unuse_function[RP_COUNT];
 
     const std::function<void(SPShader*)> m_init_function;
+
+    std::vector<Output> m_outputs[RP_COUNT];
 
     const int m_drawing_priority;
 
@@ -238,6 +246,7 @@ public:
         }
         return false;
     }
+    const std::vector<Output> & output(RenderPass rp = RP_1ST) const { return m_outputs[rp]; }
 };
 
 }

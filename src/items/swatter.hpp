@@ -35,7 +35,6 @@ class Attachment;
 class AbstractKart;
 class Item;
 class Moveable;
-class SFXBase;
 
 /**
   * \ingroup items
@@ -59,8 +58,6 @@ private:
 
     /** The kart the swatter is aiming at. */
     AbstractKart      *m_closest_kart;
-
-    SFXBase           *m_swat_sound;
 
     /** Set the end ticks to complete the removing an attached bomb animation. */
 

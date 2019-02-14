@@ -18,8 +18,6 @@
 
 #include "items/bowling.hpp"
 
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "graphics/hit_sfx.hpp"
 #include "graphics/material.hpp"
 #include "io/xml_node.hpp"
@@ -37,9 +35,6 @@ Bowling::Bowling(AbstractKart *kart)
         : Flyable(kart, PowerupManager::POWERUP_BOWLING, 50.0f /* mass */)
 {
     m_has_hit_kart = false;
-    m_roll_sfx = SFXManager::get()->createSoundSource("bowling_roll");
-    m_roll_sfx->play();
-    m_roll_sfx->setLoop(true);
 }   // Bowling
 
 // ----------------------------------------------------------------------------
@@ -47,9 +42,7 @@ Bowling::Bowling(AbstractKart *kart)
  */
 Bowling::~Bowling()
 {
-    // This will stop the sfx and delete the object.
-    removeRollSfx();
-}   // ~RubberBall
+}
 
 // -----------------------------------------------------------------------------
 /** Initialises this object with data from the power.xml file.
@@ -80,7 +73,6 @@ bool Bowling::updateAndDelete(int ticks)
     bool can_be_deleted = Flyable::updateAndDelete(ticks);
     if (can_be_deleted)
     {
-        removeRollSfx();
         return true;
     }
 
@@ -113,7 +105,6 @@ bool Bowling::updateAndDelete(int ticks)
         if(!material || material->isDriveReset())
         {
             hit(NULL);
-            removeRollSfx();
             return true;
         }
     }
@@ -133,12 +124,8 @@ bool Bowling::updateAndDelete(int ticks)
     if(vlen<0.1)
     {
         hit(NULL);
-        removeRollSfx();
         return true;
     }
-
-    if (m_roll_sfx && m_roll_sfx->getStatus()==SFXBase::SFX_PLAYING)
-        m_roll_sfx->setPosition(getXYZ());
 
     return false;
 }   // updateAndDelete
@@ -169,16 +156,6 @@ bool Bowling::hit(AbstractKart* kart, PhysicalObject* obj)
     }
     return was_real_hit;
 }   // hit
-
-// ----------------------------------------------------------------------------
-void Bowling::removeRollSfx()
-{
-    if (m_roll_sfx)
-    {
-        m_roll_sfx->deleteSFX();
-        m_roll_sfx = NULL;
-    }
-}   // removeRollSfx
 
 // ----------------------------------------------------------------------------
 /** Returns the hit effect object to use when this objects hits something.

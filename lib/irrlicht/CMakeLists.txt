@@ -2,20 +2,13 @@
 if(NOT SERVER_ONLY)
     find_package(PNG REQUIRED)
     find_package(JPEG REQUIRED)
-    find_package(ZLIB REQUIRED)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
                         "${JPEG_INCLUDE_DIR}"
                         "${PNG_INCLUDE_DIRS}"
                         "${ZLIB_INCLUDE_DIR}"
                         "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-
-    if(MSVC)
-        include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
-    endif()
-
-    if(MSVC)
-        include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
-    endif()
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
 
     if(NOT USE_GLES2)
         find_package(OpenGL REQUIRED)
@@ -34,20 +27,22 @@ if(NOT SERVER_ONLY)
             message(FATAL_ERROR "XRANDR not found.")
         endif()
     endif()
+    
+    find_package(EGL)
+	if(EGL_FOUND)
+		include_directories(${EGL_INCLUDE_DIR})
+	else()
+		add_definitions(-DNO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
+	endif()
 
-    if(NOT APPLE AND (USE_GLES2 OR ENABLE_WAYLAND_DEVICE))
-        find_package(EGL)
-        
-        if(EGL_FOUND)
-            include_directories(${EGL_INCLUDE_DIR})
-        else()
-            if(USE_GLES2 AND NOT APPLE)
-                message(FATAL_ERROR "EGL not found.")
-            elseif(ENABLE_WAYLAND_DEVICE)
-                message(WARNING "EGL not found. Disable wayland support.")
-                set(ENABLE_WAYLAND_DEVICE OFF)
-            endif()
-        endif()
+
+    if((USE_GLES2 OR ENABLE_WAYLAND_DEVICE) AND NOT EGL_FOUND)
+		if(USE_GLES2)
+			message(FATAL_ERROR "EGL not found.")
+		elseif(ENABLE_WAYLAND_DEVICE)
+			message(WARNING "EGL not found. Disable wayland support.")
+			set(ENABLE_WAYLAND_DEVICE OFF)
+		endif()
     endif()
 
     if(ENABLE_WAYLAND_DEVICE)
@@ -63,8 +58,8 @@ if(NOT SERVER_ONLY)
     endif()
 else()
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-    find_package(ZLIB REQUIRED)
+                        "${CMAKE_CURRENT_SOURCE_DIR}/../../src"
+                        "${CMAKE_CURRENT_BINARY_DIR}/../zlib/")
     include_directories("${ZLIB_INCLUDE_DIR}")
     add_definitions(-DNO_IRR_COMPILE_WITH_LIBPNG_)
     add_definitions(-DNO_IRR_COMPILE_WITH_LIBJPEG_)
@@ -79,7 +74,7 @@ else()
     add_definitions(-DNO_IRR_COMPILE_WITH_WAYLAND_DEVICE_)
 endif()
 
-if(APPLE AND NOT IOS)
+if(APPLE)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source/Irrlicht/MacOSX" "${CMAKE_CURRENT_SOURCE_DIR}/source/Irrlicht")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -F/Library/Frameworks")
@@ -87,9 +82,6 @@ endif()
 
 add_definitions(-DNDEBUG=1 -DIRRLICHT_EXPORTS=1 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES)
 
-if(UNIX OR MINGW)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-endif()
 
 if(WIN32)
     add_definitions(-D_IRR_STATIC_LIB_)
@@ -109,9 +101,7 @@ if(USE_GLES2)
     add_definitions(-D_IRR_COMPILE_WITH_OGLES2_ -DNO_IRR_COMPILE_WITH_OPENGL_)
 endif()
 
-if(CYGWIN)
-    add_definitions(-DNO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-endif()
+add_definitions(-DNO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
 
 
 set(IRRLICHT_SOURCES
@@ -168,6 +158,7 @@ source/Irrlicht/CImageWriterJPG.cpp
 source/Irrlicht/CImageWriterPNG.cpp
 source/Irrlicht/CIrrDeviceAndroid.cpp
 source/Irrlicht/CIrrDeviceLinux.cpp
+source/Irrlicht/CIrrDeviceOffScreen.cpp
 source/Irrlicht/CIrrDeviceSDL.cpp
 source/Irrlicht/CIrrDeviceStub.cpp
 source/Irrlicht/CIrrDeviceWayland.cpp
@@ -300,6 +291,7 @@ source/Irrlicht/CImageWriterJPG.h
 source/Irrlicht/CImageWriterPNG.h
 source/Irrlicht/CIrrDeviceAndroid.h
 source/Irrlicht/CIrrDeviceLinux.h
+source/Irrlicht/CIrrDeviceOffScreen.h
 source/Irrlicht/CIrrDeviceSDL.h
 source/Irrlicht/CIrrDeviceStub.h
 source/Irrlicht/CIrrDeviceWayland.h
@@ -584,11 +576,12 @@ if(NOT SERVER_ONLY AND ENABLE_WAYLAND_DEVICE)
 endif()
 
 
-if(APPLE AND NOT IOS)
+if(APPLE)
     set(IRRLICHT_SOURCES
         ${IRRLICHT_SOURCES}
         source/Irrlicht/MacOSX/AppDelegate.mm
         source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm
+        source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp
         source/Irrlicht/MacOSX/OSXClipboard.mm)
 
     #list(APPEND CMAKE_C_SOURCE_FILE_EXTENSIONS mm)
@@ -602,30 +595,25 @@ if(APPLE AND NOT IOS)
 
     set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3 -fno-rtti")
     set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES LANGUAGE C)
-endif()
-
-if(IOS)
-    set(IRRLICHT_SOURCES
-        ${IRRLICHT_SOURCES}
-        source/Irrlicht/CIrrDeviceiOS.mm
-        source/Irrlicht/CIrrDeviceiOS.h)
-
-    set_source_files_properties(source/Irrlicht/CIrrDeviceiOS.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
-    set_source_files_properties(source/Irrlicht/CIrrDeviceiOS.mm PROPERTIES LANGUAGE C)
+    
 endif()
 
 
 add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 
-target_link_libraries(stkirrlicht ${ZLIB_LIBRARY})
+target_link_libraries(stkirrlicht ${ZLIB_LIBRARY} ${OPENGL_LIBRARIES})
+
+if(APPLE)
+    target_link_libraries(stkirrlicht "-framework CoreFoundation")
+endif()
 
 if(NOT SERVER_ONLY)
     target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY})
     if(UNIX AND NOT APPLE)
-        target_link_libraries(stkirrlicht ${X11_X11_LIB} ${X11_Xrandr_LIB})
+        target_link_libraries(stkirrlicht ${X11_Xrandr_LIB} ${X11_X11_LIB})
     endif()
         
-    if(NOT APPLE AND (USE_GLES2 OR ENABLE_WAYLAND_DEVICE))
+    if(EGL_FOUND)
         target_link_libraries(stkirrlicht ${EGL_LIBRARY})
     endif()
     

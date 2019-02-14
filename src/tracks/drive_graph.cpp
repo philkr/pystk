@@ -21,7 +21,6 @@
 #include "config/user_config.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
-#include "main_loop.hpp"
 #include "modes/world.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/check_lap.hpp"
@@ -105,8 +104,6 @@ void DriveGraph::load(const std::string &quad_file_name,
     // Each quad is part of the graph exactly once now.
     for (unsigned int i = 0; i < quad->getNumNodes(); i++)
     {
-        main_loop->renderGUI(3331, i, quad->getNumNodes());
-
         const XMLNode *xml_node = quad->getNode(i);
         if (!(xml_node->getName() == "quad" || xml_node->getName() == "height-testing"))
         {
@@ -188,8 +185,6 @@ void DriveGraph::load(const std::string &quad_file_name,
     // the node definitions, before the edges can be set.
     for(unsigned int node_index=0; node_index<xml->getNumNodes(); node_index++)
     {
-        main_loop->renderGUI(3333, node_index, xml->getNumNodes());
-
         const XMLNode *xml_node = xml->getNode(node_index);
         // Load the definition of edges between the graph nodes:
         // -----------------------------------------------------
@@ -713,14 +708,6 @@ float DriveGraph::getDistanceFromStart(int j) const
 // -----------------------------------------------------------------------------
 void DriveGraph::differentNodeColor(int n, video::SColor* c) const
 {
-    if (UserConfigParams::m_track_debug)
-    {
-        if (getNode(n)->is3DQuad())
-            *c = video::SColor(255, 0, 255, 0);
-        else
-            *c = video::SColor(255, 255, 255, 0);
-    }
-
 }   // differentNodeColor
 
 // -----------------------------------------------------------------------------

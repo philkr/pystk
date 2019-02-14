@@ -53,6 +53,7 @@ public:
     typedef time_t TimeType;
 
     static void init();
+    static void destroy();
     static void getDate(int *day=NULL, int *month=NULL, int *year=NULL);
 
     /** Converts the time in this object to a human readable string. */

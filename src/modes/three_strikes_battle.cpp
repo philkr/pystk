@@ -17,8 +17,7 @@
 
 #include "modes/three_strikes_battle.hpp"
 
-#include "main_loop.hpp"
-#include "audio/music_manager.hpp"
+#include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/irr_driver.hpp"
@@ -30,7 +29,6 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "physics/physics.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/arena_node.hpp"
 #include "tracks/track.hpp"
@@ -226,10 +224,7 @@ bool ThreeStrikesBattle::kartHit(int kart_id, int hitter)
 
     assert(kart_id < (int)m_karts.size());
     // make kart lose a life, ignore if in profiling mode
-    if (!UserConfigParams::m_arena_ai_stats)
-        m_kart_info[kart_id].m_lives--;
-    else
-        m_total_hit++;
+    m_kart_info[kart_id].m_lives--;
 
     // record event
     BattleEvent evt;
@@ -293,7 +288,6 @@ bool ThreeStrikesBattle::kartHit(int kart_id, int hitter)
     // when almost over, use fast music
     if (num_karts_many_lives<=1 && !m_faster_music_active)
     {
-        music_manager->switchToFastMusic();
         m_faster_music_active = true;
     }
 
@@ -434,8 +428,6 @@ void ThreeStrikesBattle::update(int ticks)
 
         m_tires.push_back(tire_obj);
     }   // while
-    if (UserConfigParams::m_arena_ai_stats)
-        m_frame_count++;
 
 }   // update
 
@@ -476,17 +468,6 @@ void ThreeStrikesBattle::updateKartRanks()
  */
 bool ThreeStrikesBattle::isRaceOver()
 {
-    if (UserConfigParams::m_arena_ai_stats)
-        return (irr_driver->getRealTime()-m_start_time)*0.001f > 20.0f;
-
-    // for tests : never over when we have a single player there :)
-    if (race_manager->getNumberOfKarts() - m_spare_tire_karts.size () ==1 &&
-        getCurrentNumKarts()==1 &&
-        UserConfigParams::m_artist_debug_mode)
-    {
-        return false;
-    }
-
     return getCurrentNumKarts()==1 || getCurrentNumPlayers()==0;
 }   // isRaceOver
 
@@ -502,43 +483,6 @@ void ThreeStrikesBattle::terminateRace()
 }   // terminateRace
 
 //-----------------------------------------------------------------------------
-/** Returns the data to display in the race gui.
- */
-void ThreeStrikesBattle::getKartsDisplayInfo(
-                           std::vector<RaceGUIBase::KartIconDisplayInfo> *info)
-{
-    const unsigned int kart_amount = getNumKarts();
-    for(unsigned int i = 0; i < kart_amount ; i++)
-    {
-        RaceGUIBase::KartIconDisplayInfo& rank_info = (*info)[i];
-
-        // reset color
-        rank_info.lap = -1;
-
-        switch(m_kart_info[i].m_lives)
-        {
-            case 3:
-                rank_info.m_color = video::SColor(255, 0, 255, 0);
-                break;
-            case 2:
-                rank_info.m_color = video::SColor(255, 255, 229, 0);
-                break;
-            case 1:
-                rank_info.m_color = video::SColor(255, 255, 0, 0);
-                break;
-            case 0:
-                rank_info.m_color = video::SColor(128, 128, 128, 0);
-                break;
-        }
-
-        std::ostringstream oss;
-        oss << m_kart_info[i].m_lives;
-
-        rank_info.m_text = oss.str().c_str();
-    }
-}   // getKartsDisplayInfo
-
-//-----------------------------------------------------------------------------
 void ThreeStrikesBattle::enterRaceOverState()
 {
     WorldWithRank::enterRaceOverState();
@@ -551,17 +495,6 @@ void ThreeStrikesBattle::enterRaceOverState()
         assert(sta);
         if (sta->isMoving())
             sta->unspawn();
-    }
-
-    if (UserConfigParams::m_arena_ai_stats)
-    {
-        float runtime = (irr_driver->getRealTime()-m_start_time)*0.001f;
-        Log::verbose("Battle AI profiling", "Number of frames: %d, Average FPS: %f",
-            m_frame_count, (float)m_frame_count/runtime);
-        Log::verbose("Battle AI profiling", "Total rescue: %d , hits %d in %f seconds",
-            m_total_rescue, m_total_hit, runtime);
-        delete this;
-        main_loop->abort();
     }
 
 }   // enterRaceOverState
@@ -638,9 +571,6 @@ void ThreeStrikesBattle::spawnSpareTireKarts()
     unsigned int spawn_sta = unsigned(ratio);
     if (spawn_sta > m_spare_tire_karts.size())
         spawn_sta = (int)m_spare_tire_karts.size();
-    m_race_gui->addMessage(_P("%i spare tire kart has been spawned!",
-                              "%i spare tire karts have been spawned!",
-                              spawn_sta), NULL, 2.0f);
     for (unsigned int i = 0; i < spawn_sta; i++)
     {
         SpareTireAI* sta = dynamic_cast<SpareTireAI*>

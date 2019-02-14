@@ -18,13 +18,12 @@
 #ifndef HEADER_LINEAR_WORLD_HPP
 #define HEADER_LINEAR_WORLD_HPP
 
+#include "config/stk_config.hpp"
 #include "modes/world_with_rank.hpp"
 #include "utils/aligned_array.hpp"
 
 #include <climits>
 #include <vector>
-
-class SFXBase;
 
 /*
  * A 'linear world' is a subcategory of world used in 'standard' races, i.e.
@@ -35,17 +34,6 @@ class SFXBase;
 class LinearWorld : public WorldWithRank
 {
 private:
-    /** Sfx for the final lap. */
-    SFXBase     *m_last_lap_sfx;
-
-    /** Last lap sfx should only be played once. */
-    bool         m_last_lap_sfx_played;
-
-    bool         m_last_lap_sfx_playing;
-
-    /** True if clients and server has the same check structure. */
-    bool         m_check_structure_compatible;
-
     /** The fastest lap time, in ticks of physics dt. */
     int          m_fastest_lap_ticks;
 
@@ -156,9 +144,6 @@ public:
     float         getLiveTimeDifference() const { return m_live_time_difference; }
     bool          hasValidTimeDifference() const { return m_valid_reference_time; }
 
-    virtual  void getKartsDisplayInfo(
-                  std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE;
-
     virtual unsigned int getNumberOfRescuePositions() const OVERRIDE;
     virtual unsigned int getRescuePositionIndex(AbstractKart *kart) OVERRIDE;
     virtual btTransform getRescueTransform(unsigned int index) const OVERRIDE;
@@ -200,7 +185,7 @@ public:
     }
     // ------------------------------------------------------------------------
     /** Returns the kart name that made the fastest lap time */
-    stringw getFastestLapKartName() const
+    core::stringw getFastestLapKartName() const
     {
         return m_fastest_lap_kart_name;
     }
@@ -218,7 +203,7 @@ public:
     }
     // ------------------------------------------------------------------------
     /** Network use: set fastest kart name */
-    void setFastestKartName(const stringw& name)
+    void setFastestKartName(const core::stringw& name)
     {
         m_fastest_lap_kart_name = name;
     }

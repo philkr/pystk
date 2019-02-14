@@ -21,7 +21,6 @@
 #include "graphics/central_settings.hpp"
 #include "graphics/cpu_particle_manager.hpp"
 #include "graphics/irr_driver.hpp"
-#include "guiengine/engine.hpp"
 
 #include <cmath>
 #include "../../lib/irrlicht/source/Irrlicht/os.h"
@@ -235,7 +234,7 @@ void STKParticle::setEmitter(scene::IParticleEmitter* emitter)
 }   // setEmitter
 
 // ----------------------------------------------------------------------------
-void STKParticle::generate(std::vector<CPUParticle>* out)
+void STKParticle::generate(std::vector<CPUParticle>* out, float dt_in_sec)
 {
     if (!getEmitter())
     {
@@ -263,7 +262,7 @@ void STKParticle::generate(std::vector<CPUParticle>* out)
         m_first_execution = false;
     }
 
-    float dt = GUIEngine::getLatestDt() * 1000.f;
+    float dt = dt_in_sec * 1000.f;
     if (m_hm != NULL)
     {
         stimulateHeightMap(dt, active_count, out);

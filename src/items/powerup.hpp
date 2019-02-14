@@ -29,7 +29,6 @@
 class AbstractKart;
 class BareNetworkString;
 class ItemState;
-class SFXBase;
 
 /**
   * \ingroup items
@@ -37,9 +36,6 @@ class SFXBase;
 class Powerup : public NoCopy
 {
 private:
-    /** Sound effect that is being played. */
-    SFXBase                    *m_sound_use;
-
     /** The powerup type. */
     PowerupManager::PowerupType m_type;
 
@@ -57,7 +53,6 @@ public:
     void            set          (PowerupManager::PowerupType _type, int n=1);
     void            reset        ();
     Material*       getIcon      () const;
-    void            adjustSound  ();
     void            use          ();
     void            hitBonusBox (const ItemState &item);
     void            saveState(BareNetworkString *buffer) const;

@@ -4,10 +4,12 @@ in float hue_change;
 in vec3 normal;
 in vec3 tangent;
 in vec2 uv;
+flat in uint label;
 uniform int is_during_day;
 
 layout(location = 0) out vec4 o_diffuse_color;
 layout(location = 1) out vec4 o_normal_color;
+layout(location = 3) out uint o_label;
 
 #stk_include "utils/encode_normal.frag"
 #stk_include "utils/rgb_conversion.frag"
@@ -53,4 +55,5 @@ void main()
 #else
     o_diffuse_color = vec4(final_color, 1.0);
 #endif
+	o_label = label;
 }

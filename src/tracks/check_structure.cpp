@@ -109,11 +109,6 @@ void CheckStructure::update(float dt)
         // Only check active checklines.
         if(m_is_active[i] && isTriggered(m_previous_position[i], xyz, i))
         {
-            if(UserConfigParams::m_check_debug)
-                Log::info("CheckStructure",
-                          "Check structure %d triggered for kart %s at %f.",
-                          m_index, world->getKart(i)->getIdent().c_str(),
-                          World::getWorld()->getTime());
             trigger(i);
             if (triggeringCheckline() && lw)
                 lw->updateCheckLinesServer(getIndex(), i);
@@ -134,10 +129,6 @@ void CheckStructure::changeStatus(const std::vector<int> &indices,
                                   int kart_index,
                                   ChangeState change_state)
 {
-    bool update_debug_colors =
-        UserConfigParams::m_check_debug && race_manager->getNumPlayers()>0 &&
-        kart_index == (int)World::getWorld()->getPlayerKart(0)->getWorldKartId();
-
     for(unsigned int i=0; i<indices.size(); i++)
     {
         CheckStructure *cs =
@@ -148,41 +139,13 @@ void CheckStructure::changeStatus(const std::vector<int> &indices,
         {
         case CS_DEACTIVATE:
             cs->m_is_active[kart_index] = false;
-            if(UserConfigParams::m_check_debug)
-            {
-                Log::info("CheckStructure", "Deactivating %d for %s.",
-                          indices[i],
-                          World::getWorld()->getKart(kart_index)->getIdent().c_str());
-            }
             break;
         case CS_ACTIVATE:
             cs->m_is_active[kart_index] = true;
-            if(UserConfigParams::m_check_debug)
-            {
-                Log::info("CheckStructure", "Activating %d for %s.",
-                          indices[i],
-                          World::getWorld()->getKart(kart_index)->getIdent().c_str());
-            }
             break;
         case CS_TOGGLE:
-            if(UserConfigParams::m_check_debug)
-            {
-                // At least on gcc 4.3.2 we can't simply print
-                // cs->m_is_active[kart_index] ("cannot pass objects of
-                // non-POD type 'struct std::_Bit_reference' through '...';
-                // call will abort at runtime"). So we use this somewhat
-                // unusual but portable construct.
-                Log::info("CheckStructure", "Toggling %d for %s from %d.",
-                          indices[i],
-                          World::getWorld()->getKart(kart_index)->getIdent().c_str(),
-                          cs->m_is_active[kart_index]==true);
-            }
             cs->m_is_active[kart_index] = !cs->m_is_active[kart_index];
         }   // switch
-        if(update_debug_colors)
-        {
-            cs->changeDebugColor(cs->m_is_active[kart_index]);
-        }
     }   // for i<indices.size()
 
     /*
@@ -210,12 +173,6 @@ void CheckStructure::trigger(unsigned int kart_index)
     {
     case CT_NEW_LAP :
         World::getWorld()->newLap(kart_index);
-        if(UserConfigParams::m_check_debug)
-        {
-            Log::info("CheckStructure", "%s new lap %d triggered",
-                      World::getWorld()->getKart(kart_index)->getIdent().c_str(),
-                      m_index);
-        }
         changeStatus(m_check_structures_to_change_state,
                      kart_index, CS_ACTIVATE);
         break;

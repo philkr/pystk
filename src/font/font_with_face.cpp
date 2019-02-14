@@ -27,9 +27,6 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_texture.hpp"
 #include "graphics/stk_tex_manager.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/skin.hpp"
-#include "modes/profile_world.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/utf8.h"
 
@@ -86,12 +83,6 @@ void FontWithFace::init()
 {
     setDPI();
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-    {
-        reset();
-        return;
-    }
-
     // Get the max height for this face
     assert(m_face_ttf->getTotalFaces() > 0);
     FT_Face cur_face = m_face_ttf->getFace(0);
@@ -142,9 +133,6 @@ void FontWithFace::reset()
 void FontWithFace::loadGlyphInfo(wchar_t c)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     unsigned int font_number = 0;
     unsigned int glyph_index = 0;
     m_face_ttf->getFontAndGlyphFromChar(c, &font_number, &glyph_index);
@@ -158,9 +146,6 @@ void FontWithFace::loadGlyphInfo(wchar_t c)
 void FontWithFace::createNewGlyphPage()
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     uint8_t* data = new uint8_t[getGlyphPageSize() * getGlyphPageSize() *
     (CVS->isARBTextureSwizzleUsable() && !useColorGlyphPage() ? 1 : 4)]();
 #else
@@ -189,9 +174,6 @@ void FontWithFace::createNewGlyphPage()
 void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     assert(glyph_index > 0);
     assert(font_number < m_face_ttf->getTotalFaces());
     FT_Face cur_face = m_face_ttf->getFace(font_number);
@@ -250,7 +232,7 @@ void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
     }
 
     const unsigned int cur_tex = m_spritebank->getTextureCount() - 1;
-    if (bits->buffer != NULL && !ProfileWorld::isNoGraphics())
+    if (bits->buffer != NULL)
     {
         video::ITexture* tex = m_spritebank->getTexture(cur_tex);
         glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureName());
@@ -433,16 +415,7 @@ void FontWithFace::setDPI()
                              irr_driver->getActualScreenSize().Width)  / 720.0f;
     int factorTwo = getScalingFactorTwo();
     
-    if (UserConfigParams::m_font_size < 0)
-    {
-        UserConfigParams::m_font_size = 0;
-    }
-    else if (UserConfigParams::m_font_size > 6)
-    {
-        UserConfigParams::m_font_size = 6;
-    }
-    
-    factorTwo += UserConfigParams::m_font_size * 5 - 10;
+    factorTwo += 20 - 10;
     m_face_dpi = int(factorTwo * getScalingFactorOne() * scale);
 #ifndef SERVER_ONLY
     if (!disableTextShaping())
@@ -521,9 +494,6 @@ core::dimension2d<u32> FontWithFace::getDimension(const core::stringw& text,
 #ifdef SERVER_ONLY
     return core::dimension2d<u32>(1, 1);
 #else
-    if (ProfileWorld::isNoGraphics())
-        return core::dimension2d<u32>(1, 1);
-
     const float scale = font_settings ? font_settings->getScale() : 1.0f;
     if (disableTextShaping())
     {
@@ -592,9 +562,6 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
                           FontCharCollector* char_collector)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics() || gl.empty())
-        return;
-
     const bool black_border = font_settings ?
         font_settings->useBlackBorder() : false;
     const bool colored_border = font_settings ?
@@ -889,8 +856,8 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
               video::SColor(-1), video::SColor(-1),
               video::SColor(-1), video::SColor(-1)
         } };
-    video::SColor top = GUIEngine::getSkin()->getColor("font::top");
-    video::SColor bottom = GUIEngine::getSkin()->getColor("font::bottom");
+    video::SColor top(255,255,128,0);
+    video::SColor bottom(255,255,220,15);
     top.setAlpha(color.getAlpha());
     bottom.setAlpha(color.getAlpha());
 
@@ -900,10 +867,8 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
     else
         title_colors = { { bottom, top, top, bottom } };
 
-    video::SColor text_marked = GUIEngine::getSkin()->getColor(
-        "text_field::background_marked");
-    video::SColor text_neutral = GUIEngine::getSkin()->getColor(
-        "text::neutral");
+    video::SColor text_marked(220, 220, 220, 128);
+    video::SColor text_neutral(35, 35, 35, 225);
 
     for (int n = 0; n < indice_amount; n++)
     {
@@ -1010,7 +975,7 @@ void FontWithFace::drawText(const core::stringw& text,
 
 {
 #ifndef SERVER_ONLY
-    if (text.empty() || ProfileWorld::isNoGraphics())
+    if (text.empty())
         return;
 
     if (disableTextShaping())
@@ -1039,7 +1004,7 @@ void FontWithFace::drawTextQuick(const core::stringw& text,
                                  FontCharCollector* char_collector)
 {
 #ifndef SERVER_ONLY
-    if (text.empty() || ProfileWorld::isNoGraphics())
+    if (text.empty())
         return;
 
     render(text2GlyphsWithoutShaping(text), position, color, hcenter,

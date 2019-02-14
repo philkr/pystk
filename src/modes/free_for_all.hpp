@@ -19,7 +19,7 @@
 #define FREE_FOR_ALL_HPP
 
 #include "modes/world_with_rank.hpp"
-#include "states_screens/race_gui_base.hpp"
+#include <SColor.h>
 
 #include <vector>
 
@@ -49,9 +49,6 @@ public:
     virtual bool isRaceOver() OVERRIDE;
     // ------------------------------------------------------------------------
     virtual void reset(bool restart=false) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void getKartsDisplayInfo(
-                 std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE;
     // ------------------------------------------------------------------------
     virtual bool raceHasLaps() OVERRIDE                       { return false; }
     // ------------------------------------------------------------------------

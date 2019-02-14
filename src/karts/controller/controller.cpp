@@ -22,7 +22,6 @@
 
 #include "karts/controller/controller.hpp"
 
-#include "config/player_manager.hpp"
 #include "karts/abstract_kart.hpp"
 
 /** Constructor, saves the kart pointer and a pointer to the KartControl

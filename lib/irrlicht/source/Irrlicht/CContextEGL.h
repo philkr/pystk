@@ -51,6 +51,9 @@
 #ifndef EGL_PLATFORM_X11
 #define EGL_PLATFORM_X11 0x31D5
 #endif
+#ifndef EGL_PLATFORM_DEVICE
+#define EGL_PLATFORM_DEVICE 0x313F
+#endif
 
 enum ContextEGLOpenGLAPI
 {
@@ -70,22 +73,24 @@ enum ContextEGLPlatform
     CEGL_PLATFORM_GBM,
     CEGL_PLATFORM_WAYLAND,
     CEGL_PLATFORM_X11,
+    CEGL_PLATFORM_DEVICE,
     CEGL_PLATFORM_DEFAULT
 };
 
 struct ContextEGLParams
 {
-    ContextEGLOpenGLAPI opengl_api;
-    ContextEGLSurfaceType surface_type;
-    ContextEGLPlatform platform;
-    EGLNativeWindowType window;
-    EGLNativeDisplayType display;
-    bool force_legacy_device;
-    bool handle_srgb;
-    bool with_alpha_channel;
-    bool vsync_enabled;
-    int pbuffer_width;
-    int pbuffer_height;
+    ContextEGLOpenGLAPI opengl_api = CEGL_API_OPENGL;
+    ContextEGLSurfaceType surface_type = CEGL_SURFACE_WINDOW;
+    ContextEGLPlatform platform = CEGL_PLATFORM_DEFAULT;
+    EGLNativeWindowType window = 0;
+    EGLNativeDisplayType display = 0;
+    bool force_legacy_device = false;
+    bool handle_srgb = false;
+    bool with_alpha_channel = false;
+    bool vsync_enabled = false;
+    int pbuffer_width = 0;
+    int pbuffer_height = 0;
+    bool debug = false;
 };
 
 

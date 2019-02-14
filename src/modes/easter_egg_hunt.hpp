@@ -20,7 +20,6 @@
 #define EASTER_EGG_HUNT_HPP
 
 #include "modes/linear_world.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "utils/cpp2011.hpp"
 
 #include <string>
@@ -63,8 +62,6 @@ public:
     virtual const std::string& getIdent() const OVERRIDE;
     virtual void terminateRace() OVERRIDE;
     virtual void update(int ticks) OVERRIDE;
-    virtual void getKartsDisplayInfo(
-                 std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE;
     virtual void collectedItem(const AbstractKart *kart,
                                const ItemState *item     ) OVERRIDE;
     void collectedEasterEggGhost(int world_id);

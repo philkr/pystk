@@ -80,7 +80,7 @@ public:
                const core::vector3df& scale = core::vector3df(1, 1, 1),
                std::shared_ptr<RenderInfo> render_info = nullptr);
     // ------------------------------------------------------------------------
-    ~SPMeshNode();
+    virtual ~SPMeshNode();
     // ------------------------------------------------------------------------
     virtual void render() {}
     // ------------------------------------------------------------------------
@@ -167,6 +167,8 @@ public:
         assert(mb_id < m_texture_matrices.size());
         m_texture_matrices[mb_id] = tm;
     }
+    
+    uint32_t objectId() const;
 };
 
 }

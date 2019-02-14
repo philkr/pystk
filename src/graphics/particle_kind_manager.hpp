@@ -52,6 +52,7 @@ public:
     void   cleanup();
 
     static ParticleKindManager* get();
+	static void destroy();
 };
 #endif
 

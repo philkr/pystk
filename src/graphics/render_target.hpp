@@ -37,6 +37,7 @@ public:
                              const irr::core::rect<irr::s32>* clip_rect,
                              const irr::video::SColor &colors,
                              bool use_alpha_channel_of_texture) const = 0;    
+    virtual RTT* getRTTs() { return nullptr; }
 };
 
 class GL1RenderTarget: public RenderTarget
@@ -84,7 +85,7 @@ public:
     irr::core::dimension2du getTextureSize() const;
     void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt);
     void setFrameBuffer(FrameBuffer* fb) { m_frame_buffer = fb; }
-
+    virtual RTT* getRTTs() override { return m_rtts; }
 };
 
 #endif

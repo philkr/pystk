@@ -22,15 +22,10 @@
 #include "utils/singleton.hpp"
 #include <vector3d.h>
 
-class SFXBase;
-
 class Weather : public AbstractSingleton<Weather>
 {
     float m_next_lightning;
     float m_lightning;
-
-    SFXBase* m_thunder_sound;
-    SFXBase* m_weather_sound;
 
 public:
              Weather();

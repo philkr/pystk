@@ -28,35 +28,6 @@
  */
 void NetworkString::unitTesting()
 {
-    NetworkString s(PROTOCOL_LOBBY_ROOM);
-    assert(s.getProtocolType() == PROTOCOL_LOBBY_ROOM);
-    assert(s.getProtocolType() != PROTOCOL_CONTROLLER_EVENTS);
-    assert(!s.isSynchronous());
-    s.setSynchronous(true);
-    assert(s.isSynchronous());
-    s.setSynchronous(false);
-    assert(!s.isSynchronous());
-
-    // 24bit saving, min (-2^23) -0x800000, max (2^23 - 1) 0x7fffff
-    int min = -0x800000;
-    BareNetworkString smin;
-    smin.addInt24(min);
-    min = smin.getInt24();
-    assert(min == -0x800000);
-
-    int max = 0x7fffff;
-    BareNetworkString smax;
-    smax.addInt24(max);
-    max = smax.getInt24();
-    assert(max == 0x7fffff);
-
-    // Check log message format
-    BareNetworkString slog(28);
-    for(unsigned int i=0; i<28; i++)
-        slog.addUInt8(i);
-    std::string log = slog.getLogMessage();
-    assert(log=="0x000 | 00 01 02 03 04 05 06 07  08 09 0a 0b 0c 0d 0e 0f   | ................\n"
-                "0x010 | 10 11 12 13 14 15 16 17  18 19 1a 1b               | ............\n");
 }   // unitTesting
 
 // ============================================================================

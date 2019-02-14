@@ -48,11 +48,11 @@ namespace scene
 				const core::vector3df& scale = core::vector3df(1.0f, 1.0f, 1.0f))
 			: RelativeTranslation(position), RelativeRotation(rotation), RelativeScale(scale),
 				Parent(0), SceneManager(mgr), TriangleSelector(0), ID(id),
-				AutomaticCullingState(EAC_BOX), DebugDataVisible(EDS_OFF),
-				IsVisible(true), IsDebugObject(false)
-		{
-			if (parent)
-				parent->addChild(this);
+                                AutomaticCullingState(EAC_BOX), DebugDataVisible(EDS_OFF),
+                                IsVisible(true), IsDebugObject(false)
+                {
+                        if (parent)
+                                parent->addChild(this);
 
 			updateAbsolutePosition();
 		}
@@ -69,9 +69,9 @@ namespace scene
 			for (; ait != Animators.end(); ++ait)
 				(*ait)->drop();
 
-			if (TriangleSelector)
-				TriangleSelector->drop();
-		}
+                        if (TriangleSelector)
+                                TriangleSelector->drop();
+                }
 
 
 		//! This method is called just before the rendering process of the whole scene.

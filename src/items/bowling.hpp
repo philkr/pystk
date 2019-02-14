@@ -29,7 +29,6 @@ using namespace irr;
 #include "items/flyable.hpp"
 
 class XMLNode;
-class SFXBase;
 
 /**
   * \ingroup items
@@ -45,10 +44,6 @@ private:
      *  if a kart was hit or not. The sound effect is only played if a
      *  kart was hit. */
     bool m_has_hit_kart;
-
-    /** A sound effect for rolling ball. */
-    SFXBase     *m_roll_sfx;
-    void removeRollSfx();
 
 public:
              Bowling(AbstractKart* kart);

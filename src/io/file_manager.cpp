@@ -183,10 +183,10 @@ FileManager::FileManager()
     }
     if(exe_path.size()==0 || exe_path[exe_path.size()-1]!='/')
         exe_path += "/";
-    if ( getenv ( "SUPERTUXKART_DATADIR" ) != NULL )
+    if ( getenv ( "SUPERTUXKART_DATADIR" ) != NULL && fileExists((std::string(getenv("SUPERTUXKART_DATADIR"))+"/data/").c_str(), version) )
         root_dir = std::string(getenv("SUPERTUXKART_DATADIR"))+"/data/" ;
 #ifdef __APPLE__
-    else if( macSetBundlePathIfRelevant( root_dir ) ) { root_dir = root_dir + "data/"; }
+//    else if( macSetBundlePathIfRelevant( root_dir ) ) { root_dir = root_dir + "data/"; }
 #endif
     else if(fileExists("data/", version))
         root_dir = "data/" ;
@@ -224,8 +224,8 @@ FileManager::FileManager()
                    "Set $SUPERTUXKART_DATADIR to point to the data directory.");
         // fatal will exit the application
     }
-
     addRootDirs(root_dir);
+    addRootDirs(root_dir + "../stk-assets/");
 
     std::string assets_dir;
 #ifdef MOBILE_STK
@@ -314,15 +314,6 @@ void FileManager::discoverPaths()
         if(fileExists(m_root_dirs[i]+"karts/"))
             KartPropertiesManager::addKartSearchDir(m_root_dirs[i]+"karts/");
 
-        // If artist debug mode is enabled, add
-        // work-in-progress tracks and karts
-        if (UserConfigParams::m_artist_debug_mode)
-        {
-            if(fileExists(m_root_dirs[i] + "wip-tracks/"))
-                TrackManager::addTrackSearchDir(m_root_dirs[i] + "wip-tracks/");
-            if(fileExists(m_root_dirs[i] + "wip-karts/"))
-                KartPropertiesManager::addKartSearchDir(m_root_dirs[i] + "wip-karts/");
-        }
         for(unsigned int j=ASSET_MIN; j<=ASSET_MAX; j++)
         {
             if(!dir_found[j] && fileExists(m_root_dirs[i]+m_subdir_name[j]))

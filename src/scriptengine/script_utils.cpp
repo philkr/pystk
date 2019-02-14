@@ -19,13 +19,9 @@
 #include "script_utils.hpp"
 
 #include "animations/three_d_animation.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_device.hpp"
-#include "input/input_manager.hpp"
-#include "network/network_config.hpp"
+#include "input/input.hpp"
 #include "scriptengine/aswrappedcall.hpp"
 #include "scriptengine/script_engine.hpp"
-#include "states_screens/dialogs/tutorial_message_dialog.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "tracks/track_object_manager.hpp"
@@ -159,7 +155,7 @@ namespace Scripting
 
         bool isNetworking()
         {
-            return NetworkConfig::get()->isNetworking();
+            return false;
         }
 
         /** @}*/

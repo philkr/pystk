@@ -21,6 +21,7 @@ layout(location = 9) in vec4 i_rotation;
 layout(location = 10) in vec4 i_scale;
 layout(location = 11) in vec2 i_texture_trans;
 layout(location = 12) in ivec2 i_misc_data;
+layout(location = 13) in uint i_label;
 
 #stk_include "utils/get_world_location.vert"
 
@@ -34,6 +35,7 @@ out vec4 world_position;
 out vec3 world_normal;
 out float camdist;
 out float hue_change;
+flat out uint label;
 
 void main()
 {
@@ -65,4 +67,5 @@ void main()
     gl_Position = u_projection_view_matrix * v_world_position;
     world_position = v_world_position;
     world_normal = v_world_normal;
+    label = i_label;
 }

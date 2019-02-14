@@ -20,10 +20,10 @@
 #define SOCCER_WORLD_HPP
 
 #include "modes/world_with_rank.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "karts/abstract_kart.hpp"
 #include "tracks/check_goal.hpp"
 #include "tracks/check_manager.hpp"
+#include "config/stk_config.hpp"
 
 #include <IMesh.h>
 #include <string>
@@ -269,8 +269,6 @@ private:
     int m_goal_target;
     bool m_count_down_reached_zero;
 
-    SFXBase *m_goal_sound;
-
     /** Counts ticks when the ball is off track, so a reset can be
      *  triggered if the ball is off for more than 2 seconds. */
     int m_ball_invalid_timer;
@@ -322,8 +320,6 @@ public:
     virtual btTransform getRescueTransform(unsigned int rescue_pos) const
         OVERRIDE;
     virtual bool useFastMusicNearEnd() const OVERRIDE { return false; }
-    virtual void getKartsDisplayInfo(
-               std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE {}
 
     virtual bool raceHasLaps() OVERRIDE { return false; }
 

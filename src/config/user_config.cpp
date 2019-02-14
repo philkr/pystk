@@ -31,9 +31,7 @@ static std::vector<UserConfigParam*> all_params;
 #define PARAM_DEFAULT(X) = X
 #include "config/user_config.hpp"
 
-#include "config/saved_grand_prix.hpp"
 #include "config/stk_config.hpp"
-#include "guiengine/engine.hpp"
 #include "io/file_manager.hpp"
 #include "io/utf_writer.hpp"
 #include "io/xml_node.hpp"
@@ -661,7 +659,6 @@ UserConfig::UserConfig()
 // -----------------------------------------------------------------------------
 UserConfig::~UserConfig()
 {
-    UserConfigParams::m_saved_grand_prix_list.clearAndDeleteAll();
 }   // ~UserConfig
 
 // -----------------------------------------------------------------------------
@@ -686,7 +683,6 @@ bool UserConfig::loadConfig()
     int config_file_version = m_current_config_version;
     if(root->get("version", &config_file_version) < 1)
     {
-        GUIEngine::showMessage( _("Your config file was malformed, so it was deleted and a new one will be created."), 10.0f);
         Log::error("UserConfig",
                    "Warning, malformed user config file! Contains no version");
     }
@@ -697,7 +693,6 @@ bool UserConfig::loadConfig()
         // add back the code previously there that upgraded the config file to the new
         // format instead of overwriting it.
 
-        GUIEngine::showMessage(_("Your config file was too old, so it was deleted and a new one will be created."), 10.0f);
         Log::info("UserConfig", "Your config file was too old, so it was deleted and a new one will be created.");
         delete root;
         return false;
@@ -711,17 +706,6 @@ bool UserConfig::loadConfig()
         all_params[i]->findYourDataInAChildOf(root);
     }
 
-
-    // ---- Read Saved GP's
-    UserConfigParams::m_saved_grand_prix_list.clearAndDeleteAll();
-    std::vector<XMLNode*> saved_gps;
-    root->getNodes("SavedGP", saved_gps);
-    const int gp_amount = (int)saved_gps.size();
-    for (int i=0; i<gp_amount; i++)
-    {
-        UserConfigParams::m_saved_grand_prix_list.push_back(
-                                           new SavedGrandPrix( saved_gps[i]) );
-    }
     delete root;
 
     return true;

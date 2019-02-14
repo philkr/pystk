@@ -38,6 +38,7 @@ using namespace irr;
 #include "utils/aligned_array.hpp"
 #include "utils/log.hpp"
 #include "utils/vec3.hpp"
+#include "utils/no_copy.hpp"
 #include "utils/ptr_vector.hpp"
 
 class AbstractKart;
@@ -92,7 +93,7 @@ struct Subtitle
 /**
   * \ingroup tracks
   */
-class Track
+class Track: public NoCopy
 {
 private:
 

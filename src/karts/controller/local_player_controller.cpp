@@ -19,15 +19,13 @@
 
 #include "karts/controller/local_player_controller.hpp"
 
-#include "audio/sfx_base.hpp"
-#include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/particle_emitter.hpp"
 #include "graphics/particle_kind.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "items/attachment.hpp"
 #include "items/item.hpp"
 #include "items/powerup.hpp"
@@ -37,13 +35,8 @@
 #include "karts/skidding.hpp"
 #include "karts/rescue_animation.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
-#include "network/protocols/game_events_protocol.hpp"
-#include "network/protocols/game_protocol.hpp"
-#include "network/race_event_manager.hpp"
 #include "network/rewind_manager.hpp"
 #include "race/history.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
@@ -64,23 +57,13 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
 {
     m_has_started = false;
     m_difficulty = d;
-    m_player = StateManager::get()->getActivePlayer(local_player_id);
-    if(m_player)
-        m_player->setKart(kart);
 
     // Keep a pointer to the camera to remove the need to search for
     // the right camera once per frame later.
     Camera *camera = Camera::createCamera(kart, local_player_id);
 
     m_camera_index = camera->getIndex();
-    m_wee_sound    = SFXManager::get()->createSoundSource("wee");
-    m_bzzt_sound   = SFXManager::get()->getBuffer("bzzt");
-    m_ugh_sound    = SFXManager::get()->getBuffer("ugh");
-    m_grab_sound   = SFXManager::get()->getBuffer("grab_collectable");
-    m_full_sound   = SFXManager::get()->getBuffer("energy_bar_full");
-    m_unfull_sound = SFXManager::get()->getBuffer("energy_bar_unfull");
 
-    m_is_above_nitro_target = false;
     initParticleEmitter();
 }   // LocalPlayerController
 
@@ -89,7 +72,6 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
  */
 LocalPlayerController::~LocalPlayerController()
 {
-    m_wee_sound->deleteSFX();
 }   // ~LocalPlayerController
 
 //-----------------------------------------------------------------------------
@@ -168,18 +150,13 @@ bool LocalPlayerController::action(PlayerAction action, int value,
     if (action == PA_ACCEL && value != 0 && !m_has_started)
     {
         m_has_started = true;
-        if (!NetworkConfig::get()->isNetworking())
+        
         {
             float f = m_kart->getStartupBoostFromStartTicks(
                 World::getWorld()->getAuxiliaryTicks());
             m_kart->setStartupBoost(f);
         }
-        else if (NetworkConfig::get()->isClient())
-        {
-            auto ge = RaceEventManager::getInstance()->getProtocol();
-            assert(ge);
-            ge->sendStartupBoost((uint8_t)m_kart->getWorldKartId());
-        }
+        
     }
 
     // If this event does not change the control state (e.g.
@@ -191,18 +168,6 @@ bool LocalPlayerController::action(PlayerAction action, int value,
     if(!history->replayHistory())
         history->addEvent(m_kart->getWorldKartId(), action, value);
 
-    // If this is a client, send the action to networking layer
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient() &&
-        !RewindManager::get()->isRewinding() &&
-        World::getWorld() && !World::getWorld()->isLiveJoinWorld())
-    {
-        if (auto gp = GameProtocol::lock())
-        {
-            gp->controllerAction(m_kart->getWorldKartId(), action, value,
-                m_steer_val_l, m_steer_val_r);
-        }
-    }
     return PlayerController::action(action, value, /*dry_run*/false);
 }   // action
 
@@ -211,21 +176,7 @@ bool LocalPlayerController::action(PlayerAction action, int value,
  */
 void LocalPlayerController::steer(int ticks, int steer_val)
 {
-    if(UserConfigParams::m_gamepad_debug)
-    {
-        RaceGUIBase* gui_base = World::getWorld()->getRaceGUI();
-        gui_base->clearAllMessages();
-        gui_base->addMessage(StringUtils::insertValues(L"steer_val %i", steer_val),
-                             m_kart, 1.0f,
-                             video::SColor(255, 255, 0, 255), false);
-    }
     PlayerController::steer(ticks, steer_val);
-    
-    if(UserConfigParams::m_gamepad_debug)
-    {
-        Log::debug("LocalPlayerController", "  set to: %f\n",
-                   m_controls->getSteer());
-    }
 }   // steer
 
 //-----------------------------------------------------------------------------
@@ -233,13 +184,6 @@ void LocalPlayerController::steer(int ticks, int steer_val)
  */
 void LocalPlayerController::update(int ticks)
 {
-    if (UserConfigParams::m_gamepad_debug)
-    {
-        // Print a dividing line so that it's easier to see which events
-        // get received in which order in the one frame.
-        Log::debug("LocalPlayerController", "irr_driver", "-------------------------------------");
-    }
-
     PlayerController::update(ticks);
 
     // look backward when the player requests or
@@ -272,9 +216,6 @@ void LocalPlayerController::update(int ticks)
         }
     }
 
-    if (m_is_above_nitro_target == true &&
-        m_kart->getEnergy() < race_manager->getCoinTarget())
-        nitroNotFullSound();
 #endif
     if (m_kart->getKartAnimation() && m_sound_schedule == false)
     {
@@ -283,7 +224,6 @@ void LocalPlayerController::update(int ticks)
     else if (!m_kart->getKartAnimation() && m_sound_schedule == true)
     {
         m_sound_schedule = false;
-        m_kart->playSound(m_bzzt_sound);
     }
 }   // update
 
@@ -294,17 +234,6 @@ void LocalPlayerController::update(int ticks)
 void LocalPlayerController::displayPenaltyWarning()
 {
     PlayerController::displayPenaltyWarning();
-    RaceGUIBase* m=World::getWorld()->getRaceGUI();
-    if (m)
-    {
-        m->addMessage(_("Penalty time!!"), m_kart, 2.0f,
-                      GUIEngine::getSkin()->getColor("font::top"), true /* important */,
-            false /*  big font */, true /* outline */);
-        m->addMessage(_("Don't accelerate before 'Set!'"), m_kart, 2.0f,
-            GUIEngine::getSkin()->getColor("font::normal"), true /* important */,
-            false /*  big font */, true /* outline */);
-    }
-    m_kart->playSound(m_bzzt_sound);
 }   // displayPenaltyWarning
 
 //-----------------------------------------------------------------------------
@@ -353,11 +282,6 @@ void LocalPlayerController::handleZipper(bool play_sound)
     // Only play a zipper sound if it's not already playing, and
     // if the material has changed (to avoid machine gun effect
     // on conveyor belt zippers).
-    if (play_sound || (m_wee_sound->getStatus() != SFXBase::SFX_PLAYING &&
-                       m_kart->getMaterial()!=m_kart->getLastMaterial()      ) )
-    {
-        m_wee_sound->play();
-    }
 
 #ifndef SERVER_ONLY
     // Apply the motion blur according to the speed of the kart
@@ -375,35 +299,6 @@ void LocalPlayerController::handleZipper(bool play_sound)
 void LocalPlayerController::collectedItem(const ItemState &item_state,
                                           float old_energy)
 {
-    if (old_energy < m_kart->getKartProperties()->getNitroMax() &&
-        m_kart->getEnergy() == m_kart->getKartProperties()->getNitroMax())
-    {
-        m_kart->playSound(m_full_sound);
-    }
-    else if (race_manager->getCoinTarget() > 0 &&
-             old_energy < race_manager->getCoinTarget() &&
-             m_kart->getEnergy() >= race_manager->getCoinTarget())
-    {
-        m_kart->playSound(m_full_sound);
-        m_is_above_nitro_target = true;
-    }
-    else
-    {
-        switch(item_state.getType())
-        {
-        case Item::ITEM_BANANA:
-            m_kart->playSound(m_ugh_sound);
-            break;
-        case Item::ITEM_BUBBLEGUM:
-            //More sounds are played by the kart class
-            //See Kart::collectedItem()
-            m_kart->playSound(m_ugh_sound);
-            break;
-        default:
-            m_kart->playSound(m_grab_sound);
-            break;
-        }
-    }
 }   // collectedItem
 
 //-----------------------------------------------------------------------------
@@ -411,8 +306,6 @@ void LocalPlayerController::collectedItem(const ItemState &item_state,
  */
 void LocalPlayerController::nitroNotFullSound()
 {
-    m_kart->playSound(m_unfull_sound);
-    m_is_above_nitro_target = false;
 } //nitroNotFullSound
 
 // ----------------------------------------------------------------------------
@@ -424,19 +317,11 @@ void LocalPlayerController::nitroNotFullSound()
  */
 bool LocalPlayerController::canGetAchievements() const 
 {
-    return !RewindManager::get()->isRewinding() &&
-        m_player->getConstProfile() == PlayerManager::getCurrentPlayer();
+    return false;
 }   // canGetAchievements
 
 // ----------------------------------------------------------------------------
 core::stringw LocalPlayerController::getName() const
 {
-    if (NetworkConfig::get()->isNetworking())
-        return PlayerController::getName();
-
-    core::stringw name = m_player->getProfile()->getName();
-    if (m_difficulty == PLAYER_DIFFICULTY_HANDICAP)
-        name = _("%s (handicapped)", name);
-
-    return name;
+    return "";
 }   // getName

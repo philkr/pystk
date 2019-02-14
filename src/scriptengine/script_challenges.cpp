@@ -19,14 +19,10 @@
 #include "script_track.hpp"
 
 #include "animations/three_d_animation.hpp"
-#include "challenges/unlock_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
-#include "guiengine/engine.hpp"
 #include "modes/world.hpp"
-#include "config/player_manager.hpp"
-#include "states_screens/dialogs/tutorial_message_dialog.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "tracks/track_object_manager.hpp"
@@ -61,54 +57,19 @@ namespace Scripting
         /** Get number of challenges that were completed at any difficulty */
         int getCompletedChallengesCount()
         {
-            if (UserConfigParams::m_unlock_everything > 1)
-                return getChallengeCount();
-
-            return ::Track::getCurrentTrack()->getNumOfCompletedChallenges();
+            return getChallengeCount();
         }   // getCompletedChallengesCount
 
         // --------------------------------------------------------------------
         int getChallengeRequiredPoints(std::string* challenge_name)
         {
-            const ChallengeData* challenge =
-                             unlock_manager->getChallengeData(*challenge_name);
-            if (challenge == NULL)
-            {
-                if (*challenge_name != "tutorial")
-                    Log::error("track", "Cannot find challenge named '%s'\n",
-                               challenge_name->c_str());
-                return false;
-            }
-
-            return challenge->getNumTrophies();
+			return 0;
         }   // getChallengeRequiredPoints
 
         // --------------------------------------------------------------------
         bool isChallengeUnlocked(std::string* challenge_name)
         {
-            if (UserConfigParams::m_unlock_everything > 0)
-                return true;
-
-            const ChallengeData* challenge =
-                             unlock_manager->getChallengeData(*challenge_name);
-            if (challenge == NULL)
-            {
-                if (*challenge_name != "tutorial")
-                    Log::error("track", "Cannot find challenge named '%s'\n",
-                    challenge_name->c_str());
-                return false;
-            }
-
-            const unsigned int val = challenge->getNumTrophies();
-// Android may have less challenges available than the main version
-#ifdef MOBILE_STK
-                bool enough_challenges = true;
-#else
-                const unsigned int val2 = challenge->getNumChallenges();
-                bool enough_challenges = (PlayerManager::getCurrentPlayer()->getNumCompletedChallenges() >= val2);
-#endif
-            bool unlocked = enough_challenges && (PlayerManager::getCurrentPlayer()->getPoints() >= val);
-            return unlocked;
+            return true;
         }   // isChallengeUnlocked
 
         // --------------------------------------------------------------------

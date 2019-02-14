@@ -18,10 +18,8 @@
 
 #include "items/item_event_info.hpp"
 
-#include "network/network_config.hpp"
-#include "network/protocols/game_protocol.hpp"
+#include "network/network_string.hpp"
 #include "network/rewind_manager.hpp"
-#include "network/stk_host.hpp"
 
 
 /** Loads an event from a server message. It helps encapsulate the encoding
@@ -65,18 +63,4 @@ ItemEventInfo::ItemEventInfo(BareNetworkString *buffer, int *count)
  */
 void ItemEventInfo::saveState(BareNetworkString *buffer)
 {
-    assert(NetworkConfig::get()->isServer());
-    buffer->addUInt8(m_type).addTime(m_ticks);
-    if (m_type != IEI_SWITCH)
-    {
-        // Only new item and collecting items need the index and kart id:
-        buffer->addUInt8(m_kart_id).addUInt16(m_index);
-        if (m_type == IEI_NEW)
-        {
-            buffer->add(m_xyz);
-            buffer->add(m_normal);
-        }
-        else if (m_type == IEI_COLLECT)
-            buffer->addUInt16(m_ticks_till_return);
-    }
 }   // saveState

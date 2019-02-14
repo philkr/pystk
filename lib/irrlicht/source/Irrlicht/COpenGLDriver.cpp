@@ -39,12 +39,20 @@ extern bool GLContextDebugBit;
 #ifdef _IRR_COMPILE_WITH_X11_DEVICE_
 #include "CIrrDeviceLinux.h"
 #endif
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#include "CIrrDeviceOffScreen.h"
+#include "CContextEGL.h"
+#endif
+
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+#include "MacOSX/CIrrDeviceOffScreenMacOSX.h"
+#endif
 
 namespace irr
 {
 namespace video
 {
-	bool useCoreContext;
+	bool useCoreContext = true;
 // -----------------------------------------------------------------------
 // WINDOWS CONSTRUCTOR
 // -----------------------------------------------------------------------
@@ -583,6 +591,72 @@ bool COpenGLDriver::initDriver(CIrrDeviceWin32* device)
 // -----------------------------------------------------------------------
 // MacOSX CONSTRUCTOR
 // -----------------------------------------------------------------------
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+//! Windows constructor and init code
+COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
+		io::IFileSystem* io, CIrrDeviceOffScreen *device)
+: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
+	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
+	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
+	OSDevice(device), DeviceType(EIDT_OFFSCREEN)
+{
+	#ifdef _DEBUG
+	setDebugName("COpenGLDriver");
+	#endif
+
+	genericDriverInit();
+}
+bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, 
+										CIrrDeviceOffScreen* device)
+{
+	if (!device->getEGLContext()->makeCurrent())
+	{
+		os::Printer::log("Render Context switch failed.");
+		return false;
+	}
+	
+	return true;
+}
+
+#endif
+
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+//! Windows constructor and init code
+COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
+		io::IFileSystem* io, CIrrDeviceOffScreenMacOSX *device)
+: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
+	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
+	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
+	OSDeviceMacOSX(device), DeviceType(EIDT_OFFSCREEN)
+{
+	#ifdef _DEBUG
+	setDebugName("COpenGLDriver");
+	#endif
+
+	genericDriverInit();
+}
+bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, 
+										CIrrDeviceOffScreenMacOSX* device)
+{
+	if (!device->makeCurrent())
+	{
+		os::Printer::log("Render Context switch failed.");
+		return false;
+	}
+	
+	return true;
+}
+
+#endif
+
+
+// -----------------------------------------------------------------------
+// MacOSX CONSTRUCTOR
+// -----------------------------------------------------------------------
 #ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
 //! Windows constructor and init code
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
@@ -1003,6 +1077,14 @@ bool COpenGLDriver::endScene()
 	}
 #endif
 
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+	if (DeviceType == EIDT_OFFSCREEN)
+	{
+		OSDevice->getEGLContext()->swapBuffers();
+		return true;
+	}
+#endif
+
 #ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
 	if (DeviceType == EIDT_OSX)
 	{
@@ -1074,6 +1156,16 @@ bool COpenGLDriver::beginScene(bool backBuffer, bool zBuffer, SColor color,
 #ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
 	case EIDT_WAYLAND:
 		changeRenderContext(videoData, wl_device);
+		break;
+#endif
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+	case EIDT_OFFSCREEN:
+		changeRenderContext(videoData, OSDevice);
+		break;
+#endif
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+	case EIDT_OFFSCREEN:
+		changeRenderContext(videoData, OSDeviceMacOSX);
 		break;
 #endif
 	default:
@@ -5030,6 +5122,34 @@ IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
 }
 #endif // _IRR_COMPILE_WITH_WAYLAND_DEVICE
 
+
+
+// -----------------------------------
+// Wayland VERSION
+// -----------------------------------
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
+		io::IFileSystem* io, CIrrDeviceOffScreen * device)
+{
+#ifdef _IRR_COMPILE_WITH_OPENGL_
+	return new COpenGLDriver(params, io, device);
+#else
+	return 0;
+#endif //  _IRR_COMPILE_WITH_OPENGL_
+}
+#endif // _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
+		io::IFileSystem* io, CIrrDeviceOffScreenMacOSX * device)
+{
+#ifdef _IRR_COMPILE_WITH_OPENGL_
+	return new COpenGLDriver(params, io, device);
+#else
+	return 0;
+#endif //  _IRR_COMPILE_WITH_OPENGL_
+}
+#endif // _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
 
 // -----------------------------------
 // SDL VERSION

@@ -26,12 +26,11 @@
 #include <IMeshManipulator.h>
 #include <IMeshSceneNode.h>
 
-#include "achievements/achievements_status.hpp"
-#include "config/player_manager.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material.hpp"
 #include "graphics/mesh_tools.hpp"
+#include "graphics/render_info.hpp"
 #include "graphics/stars.hpp"
 #include "io/xml_node.hpp"
 #include "items/projectile_manager.hpp"
@@ -40,15 +39,15 @@
 #include "karts/controller/controller.hpp"
 #include "karts/explosion_animation.hpp"
 #include "modes/linear_world.hpp"
-#include "network/compress_network_body.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
 #include "network/rewind_manager.hpp"
+#include "network/compress_network_body.hpp"
 #include "physics/physics.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/vs.hpp"
+#include "utils/objecttype.h"
 
 #include <typeinfo>
 
@@ -90,8 +89,9 @@ Flyable::Flyable(AbstractKart *kart, PowerupManager::PowerupType type,
     m_last_deleted_ticks = -1;
 
     // Add the graphical model
+    ri_ = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_PROJECTILE));
 #ifndef SERVER_ONLY
-    setNode(irr_driver->addMesh(m_st_model[type], StringUtils::insertValues("flyable_%i", (int)type)));
+    setNode(irr_driver->addMesh(m_st_model[type], StringUtils::insertValues("flyable_%i", (int)type), NULL, ri_));
 #ifdef DEBUG
     std::string debug_name("flyable: ");
     debug_name += type;
@@ -103,6 +103,15 @@ Flyable::Flyable(AbstractKart *kart, PowerupManager::PowerupType type,
     SmoothNetworkBody::setEnable(false);
     m_created_ticks = World::getWorld()->getTicksSinceStart();
 }   // Flyable
+
+void Flyable::setObjectId(uint32_t id) {
+	if (ri_) ri_->setObjectId(makeObjectId(OT_PROJECTILE, id));
+}
+uint32_t Flyable::getObjectId() const {
+	if (ri_) return ri_->objectId() & 0xffffff;
+	return 0;
+}
+
 
 // ----------------------------------------------------------------------------
 /** Creates a bullet physics body for the flyable item.
@@ -444,9 +453,6 @@ bool Flyable::updateAndDelete(int ticks)
 
     if(m_has_hit_something) return true;
 
-    // Round values in network for better synchronization
-    if (NetworkConfig::get()->roundValuesNow())
-        CompressNetworkBody::compress(m_body.get(), m_motion_state.get());
     // Save the compressed values if done in client
     Moveable::update(ticks);
 
@@ -599,15 +605,6 @@ void Flyable::explode(AbstractKart *kart_hit, PhysicalObject *object,
             {
                 world->kartHit(kart->getWorldKartId(),
                     m_owner->getWorldKartId());
-
-                if (m_owner->getController()->canGetAchievements())
-                {
-                    if (m_owner->getWorldKartId() != kart->getWorldKartId())
-                        PlayerManager::addKartHit(kart->getWorldKartId());
-                    PlayerManager::increaseAchievement(AchievementsStatus::ALL_HITS, 1);
-                    if (race_manager->isLinearRaceMode())
-                        PlayerManager::increaseAchievement(AchievementsStatus::ALL_HITS_1RACE, 1);
-                }
             }
         }
     }
