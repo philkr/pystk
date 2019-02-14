@@ -18,7 +18,6 @@
 
 #include "network/protocols/client_lobby.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "config/user_config.hpp"
 #include "config/player_manager.hpp"
 #include "graphics/camera.hpp"
@@ -34,7 +33,6 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "modes/linear_world.hpp"
-#include "network/crypto.hpp"
 #include "network/event.hpp"
 #include "network/game_setup.hpp"
 #include "network/network_config.hpp"
@@ -108,7 +106,7 @@ ClientLobby::~ClientLobby()
         NetworkConfig::get()->setServerDetails(request,
             "clear-user-joined-server");
         request->queue();
-        ConnectToServer::m_previous_unjoin = request->observeExistence();
+//         ConnectToServer::m_previous_unjoin = request->observeExistence();
     }
 }   // ClientLobby
 
@@ -440,42 +438,10 @@ void ClientLobby::finalizeConnectionRequest(NetworkString* header,
                                             BareNetworkString* rest,
                                             bool encrypt)
 {
-    if (encrypt)
-    {
-        auto crypto = Crypto::getClientCrypto();
-        Crypto::resetClientAES();
-        BareNetworkString* result = new BareNetworkString();
-        if (!crypto->encryptConnectionRequest(*rest))
-        {
-            // Failed
-            result->addUInt32(0);
-            *result += BareNetworkString(rest->getData(), rest->getTotalSize());
-            encrypt = false;
-        }
-        else
-        {
-            Log::info("ClientLobby", "Server will validate this online player.");
-            result->addUInt32(rest->getTotalSize());
-            *result += BareNetworkString(rest->getData(), rest->getTotalSize());
-        }
-        delete rest;
-        *header += *result;
-        delete result;
-        sendToServer(header);
-        delete header;
-        if (encrypt)
-        {
-            STKHost::get()->getServerPeerForClient()
-                ->setCrypto(std::move(crypto));
-        }
-    }
-    else
-    {
-        *header += *rest;
-        delete rest;
-        sendToServer(header);
-        delete header;
-    }
+	*header += *rest;
+	delete rest;
+	sendToServer(header);
+	delete header;
 }   // finalizeConnectionRequest
 
 //-----------------------------------------------------------------------------
@@ -527,8 +493,6 @@ void ClientLobby::disconnectedPlayer(Event* event)
         RaceEventManager::getInstance()->isRunning() &&
         !RaceEventManager::getInstance()->isRaceOver();
 
-    if (!in_game_world)
-        SFXManager::get()->quickSound("appear");
     for (unsigned i = 0; i < disconnected_player_count; i++)
     {
         std::string name;
@@ -688,11 +652,6 @@ void ClientLobby::updatePlayerList(Event* event)
     if (!checkDataSize(event, 1)) return;
     NetworkString& data = event->data();
     bool waiting = data.getUInt8() == 1;
-    if (m_waiting_for_game && !waiting)
-    {
-        // The waiting game finished
-        SFXManager::get()->quickSound("wee");
-    }
 
     m_waiting_for_game = waiting;
     unsigned player_count = data.getUInt8();
@@ -742,7 +701,7 @@ void ClientLobby::updatePlayerList(Event* event)
     // Notification sound for new player
     if (!m_total_players.empty() &&
         total_players.size() > m_total_players.size())
-        SFXManager::get()->quickSound("energy_bar_full");
+
     m_total_players = total_players;
 
     NetworkingLobby::getInstance()->updatePlayers();
@@ -751,7 +710,6 @@ void ClientLobby::updatePlayerList(Event* event)
 //-----------------------------------------------------------------------------
 void ClientLobby::handleBadTeam()
 {
-    SFXManager::get()->quickSound("anvil");
     //I18N: Display when all players are in red or blue team, which the race
     //will not be allowed to start
     core::stringw msg = _("All players joined red or blue team.");
@@ -761,7 +719,6 @@ void ClientLobby::handleBadTeam()
 //-----------------------------------------------------------------------------
 void ClientLobby::handleBadConnection()
 {
-    SFXManager::get()->quickSound("anvil");
     core::stringw msg = _("Bad network connection is detected.");
     MessageQueue::add(MessageQueue::MT_ERROR, msg);
 }   // handleBadConnection
@@ -773,7 +730,7 @@ void ClientLobby::becomingServerOwner()
     if (STKHost::get()->isClientServer())
         return;
 
-    SFXManager::get()->quickSound("wee");
+
     //I18N: Display when a player is allow to control the server
     core::stringw msg = _("You are now the owner of server.");
     MessageQueue::add(MessageQueue::MT_GENERIC, msg);
@@ -784,7 +741,7 @@ void ClientLobby::handleChat(Event* event)
 {
     if (!UserConfigParams::m_lobby_chat)
         return;
-    SFXManager::get()->quickSound("plopp");
+
     core::stringw message;
     event->data().decodeString16(&message);
     Log::info("ClientLobby", "%s", StringUtils::wideToUtf8(message).c_str());
@@ -881,7 +838,7 @@ void ClientLobby::startGame(Event* event)
  */
 void ClientLobby::startSelection(Event* event)
 {
-    SFXManager::get()->quickSound("wee");
+
     const NetworkString& data = event->data();
     startVotingPeriod(data.getFloat());
     bool skip_kart_screen = data.getUInt8() == 1;
@@ -1048,7 +1005,7 @@ void ClientLobby::backToLobby(Event *event)
     }
     if (!msg.empty())
     {
-        SFXManager::get()->quickSound("anvil");
+
         MessageQueue::add(MessageQueue::MT_ERROR, msg);
     }
 }   // backToLobby
@@ -1177,7 +1134,7 @@ void ClientLobby::handleKartInfo(Event* event)
         // I18N: Show when player join the started game in network
         msg = _("%s joined the game.", player_name);
     }
-    SFXManager::get()->quickSound("energy_bar_full");
+
     MessageQueue::add(MessageQueue::MT_FRIEND, msg);
 }   // handleKartInfo
 

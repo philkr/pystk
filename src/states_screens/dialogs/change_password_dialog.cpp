@@ -17,7 +17,6 @@
 
 #include "states_screens/dialogs/change_password_dialog.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "config/player_manager.hpp"
 #include "guiengine/engine.hpp"
 #include "guiengine/widgets.hpp"
@@ -129,20 +128,17 @@ void ChangePasswordDialog::submit()
 
     if (current_password.size() < 8 || current_password.size() > 30)
     {
-        SFXManager::get()->quickSound("anvil");
         m_info_widget->setErrorColor();
         m_info_widget->setText(_("Current password invalid."), false);
     }
     else if (new_password1.size() < 8 || new_password1.size() > 30)
     {
-        SFXManager::get()->quickSound("anvil");
         m_info_widget->setErrorColor();
         m_info_widget->setText(_("Password has to be between 8 and 30 "
                                  "characters long!"),                   false);
     }
     else if (new_password1 != new_password2)
     {
-        SFXManager::get()->quickSound("anvil");
         m_info_widget->setErrorColor();
         m_info_widget->setText(_("Passwords don't match!"), false);
     }
@@ -217,7 +213,6 @@ void ChangePasswordDialog::success()
 // ----------------------------------------------------------------------------
 void ChangePasswordDialog::error(const irr::core::stringw & error)
 {
-    SFXManager::get()->quickSound("anvil");
     m_info_widget->setErrorColor();
     m_info_widget->setText(error, false);
     m_options_widget->setActive(true);

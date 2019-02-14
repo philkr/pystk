@@ -18,7 +18,6 @@
 
 #include "karts/kart_rewinder.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "items/attachment.hpp"
 #include "items/powerup.hpp"
 #include "guiengine/message_queue.hpp"
@@ -111,7 +110,6 @@ void KartRewinder::computeError()
         const int kartid = getWorldKartId();
         Log::debug("KartRewinder", "Kart id %d disconnected.", kartid);
 
-        SFXManager::get()->quickSound("appear");
         core::stringw player_name = getController()->getName();
         // I18N: Message shown in game to tell player left the game in network
         core::stringw msg = _("%s left the game.", player_name);

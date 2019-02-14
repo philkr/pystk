@@ -18,8 +18,6 @@
 
 #include "items/rubber_ball.hpp"
 
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "io/xml_node.hpp"
@@ -84,7 +82,6 @@ RubberBall::RubberBall(AbstractKart *kart)
     setAdjustUpVelocity(false);
     m_max_lifespan       = stk_config->time2Ticks(9999);
     m_target             = NULL;
-    m_ping_sfx           = SFXManager::get()->createSoundSource("ball_bounce");
     m_owner_init_pos     = m_owner->getXYZ();
     m_init_pos           = getXYZ();
     additionalPhysicsProperties();
@@ -129,9 +126,6 @@ void RubberBall::additionalPhysicsProperties()
  */
 RubberBall::~RubberBall()
 {
-    if(m_ping_sfx->getStatus()==SFXBase::SFX_PLAYING)
-        m_ping_sfx->stop();
-    m_ping_sfx->deleteSFX();
     CheckManager::get()->removeFlyableFromCannons(this);
 }   // ~RubberBall
 
@@ -705,12 +699,6 @@ float RubberBall::updateHeight()
     if(m_height_timer>m_interval)
     {
         m_height_timer -= m_interval;
-        if (m_ping_sfx->getStatus()!=SFXBase::SFX_PLAYING &&
-            !RewindManager::get()->isRewinding())
-        {
-            m_ping_sfx->setPosition(getXYZ());
-            m_ping_sfx->play();
-        }
 
         if(m_fast_ping)
         {

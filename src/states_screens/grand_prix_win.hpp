@@ -19,7 +19,6 @@
 #ifndef HEADER_GRAND_PRIX_WIN_HPP
 #define HEADER_GRAND_PRIX_WIN_HPP
 
-#include "audio/sfx_base.hpp"
 #include "guiengine/screen.hpp"
 #include "karts/kart_model.hpp"
 #include "states_screens/grand_prix_cutscene.hpp"
@@ -71,7 +70,6 @@ public:
     void loadedFromFile() OVERRIDE {};
     void onCutsceneEnd() OVERRIDE;
     void onUpdate(float dt) OVERRIDE;
-    MusicInformation* getInGameMenuMusic() const OVERRIDE;
 
     /** \pre must be called after pushing the screen, but before onUpdate had the chance to be invoked */
     void setKarts(const std::string idents[3]);

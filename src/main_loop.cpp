@@ -19,7 +19,6 @@
 
 #include "main_loop.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
@@ -350,7 +349,6 @@ void MainLoop::run()
             {
                 if (!ProfileWorld::isNoGraphics())
                 {
-                    SFXManager::get()->quickSound("anvil");
                     if (!STKHost::get()->getErrorMessage().empty())
                     {
                         msg = STKHost::get()->getErrorMessage();
@@ -421,9 +419,6 @@ void MainLoop::run()
                 PROFILER_PUSH_CPU_MARKER("Input/GUI", 0x7F, 0x00, 0x00);
                 input_manager->update(frame_duration);
                 GUIEngine::update(frame_duration);
-                PROFILER_POP_CPU_MARKER();
-                PROFILER_PUSH_CPU_MARKER("Music", 0x7F, 0x00, 0x00);
-                SFXManager::get()->update();
                 PROFILER_POP_CPU_MARKER();
             }
             // Some protocols in network will use RequestManager

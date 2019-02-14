@@ -18,8 +18,6 @@
 #include "states_screens/options/options_screen_ui.hpp"
 
 #include "addons/news_manager.hpp"
-#include "audio/sfx_manager.hpp"
-#include "audio/sfx_base.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"

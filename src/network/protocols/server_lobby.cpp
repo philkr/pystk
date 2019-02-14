@@ -27,7 +27,6 @@
 #include "karts/kart_properties_manager.hpp"
 #include "modes/capture_the_flag.hpp"
 #include "modes/linear_world.hpp"
-#include "network/crypto.hpp"
 #include "network/event.hpp"
 #include "network/game_setup.hpp"
 #include "network/network_config.hpp"
@@ -1243,7 +1242,7 @@ bool ServerLobby::registerServer(bool now)
     else
     {
         request->queue();
-        m_server_recovering = request->observeExistence();
+//         m_server_recovering = request->observeExistence();
     }
     return true;
 }   // registerServer
@@ -1257,7 +1256,7 @@ void ServerLobby::unregisterServer(bool now)
 {
     Online::XMLRequest* request =
         new Online::XMLRequest(!now/*manage memory*/);
-    m_server_unregistered = request->observeExistence();
+//     m_server_unregistered = request->observeExistence();
     NetworkConfig::get()->setServerDetails(request, "stop");
 
     request->addParameter("address", m_server_address.getIP());
@@ -1559,7 +1558,6 @@ void ServerLobby::checkIncomingConnectionRequests()
         PollServerRequest(std::shared_ptr<ServerLobby> sl)
         : XMLRequest(true), m_server_lobby(sl)
         {
-            m_disable_sending_log = true;
         }
     };   // PollServerRequest
     // ========================================================================
@@ -2888,18 +2886,6 @@ bool ServerLobby::decryptConnectionRequest(std::shared_ptr<STKPeer> peer,
     BareNetworkString& data, const std::string& key, const std::string& iv,
     uint32_t online_id, const core::stringw& online_name)
 {
-    auto crypto = std::unique_ptr<Crypto>(new Crypto(
-        Crypto::decode64(key), Crypto::decode64(iv)));
-    if (crypto->decryptConnectionRequest(data))
-    {
-        peer->setCrypto(std::move(crypto));
-        std::lock_guard<std::mutex> lock(m_connection_mutex);
-        Log::info("ServerLobby", "%s validated",
-            StringUtils::wideToUtf8(online_name).c_str());
-        handleUnencryptedConnection(peer, data, online_id,
-            online_name);
-        return true;
-    }
     return false;
 }   // decryptConnectionRequest
 

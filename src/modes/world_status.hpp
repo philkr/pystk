@@ -21,8 +21,6 @@
 #include "utils/cpp2011.hpp"
 #include <atomic>
 
-class SFXBase;
-
 /**
  * \brief A class that manages the clock (countdown, chrono, etc.)
  * Also manages stuff like the 'ready/set/go' text at the beginning or the delay at the end of a race.
@@ -102,14 +100,6 @@ protected:
     bool            m_play_racestart_sounds;
 
 private:
-    /** Sound to play at the beginning of a race, during which a
-     *  a camera intro of the track can be shown. */
-    SFXBase    *m_track_intro_sound;
-    /** Sound used for the first two 'beeps' in ready, set, go. */
-    SFXBase    *m_prestart_sound;
-    /** The third sound to be played in ready, set, go. */
-    SFXBase    *m_start_sound;
-
     /** The clock mode: normal counting forwards, or countdown */ 
     ClockType       m_clock_mode;
 protected:
@@ -143,8 +133,6 @@ private:
     bool            m_engines_started;
 
     bool            m_live_join_world;
-
-    void startEngines();
 
 public:
              WorldStatus();

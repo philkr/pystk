@@ -25,10 +25,6 @@
 #include "utils/string_utils.hpp"
 #include "utils/synchronised.hpp"
 
-#ifdef WIN32
-#  include <winsock2.h>
-#endif
-#include <curl/curl.h>
 #include <assert.h>
 #include <memory>
 #include <string>
@@ -40,22 +36,7 @@ namespace Online
      */
     class XMLRequest : public HTTPRequest
     {
-    private:
-        /** On a successful download contains the converted XML tree. */
-        XMLNode *m_xml_data;
-
-        std::shared_ptr<bool> m_exists;
-    protected:
-
-		/** Additional info contained the downloaded data (or an error
-		*  message if a problem occurred). */
-		irr::core::stringw m_info;
-
-        /** True if the request was successful executed on the server. */
-        bool m_success;
-
-        virtual void afterOperation() OVERRIDE;
-
+        irr::core::stringw NO_CORL_W = "No Curl support";
     public :
         XMLRequest(bool manage_memory = false, int priority = 1);
         virtual ~XMLRequest();
@@ -67,8 +48,7 @@ namespace Online
          */
         const XMLNode * getXMLData() const
         {
-            assert(hasBeenExecuted());
-            return m_xml_data;
+            return nullptr;
         }   // getXMLData
 
         // ------------------------------------------------------------------------
@@ -80,7 +60,7 @@ namespace Online
         const irr::core::stringw & getInfo() const
         {
             assert(hasBeenExecuted());
-            return m_info;
+            return NO_CORL_W;
         }   // getInfo
 
         // --------------------------------------------------------------------
@@ -90,10 +70,8 @@ namespace Online
         bool isSuccess() const
         {
             assert(hasBeenExecuted());
-            return m_success;
+            return false;
         }   // isSuccess
-        // --------------------------------------------------------------------
-        std::weak_ptr<bool> observeExistence() const       { return m_exists; }
 
     };   // class XMLRequest
 } //namespace Online

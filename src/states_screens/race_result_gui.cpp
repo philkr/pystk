@@ -18,9 +18,6 @@
 
 #include "states_screens/race_result_gui.hpp"
 
-#include "audio/music_manager.hpp"
-#include "audio/sfx_manager.hpp"
-#include "audio/sfx_base.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -86,8 +83,6 @@ void RaceResultGUI::init()
     getWidget("middle")->setVisible(false);
     getWidget("bottom")->setVisible(false);
 
-    music_manager->stopMusic();
-
     bool human_win = true;
     unsigned int num_karts = race_manager->getNumberOfKarts();
     for (unsigned int kart_id = 0; kart_id < num_karts; kart_id++)
@@ -95,23 +90,6 @@ void RaceResultGUI::init()
         const AbstractKart *kart = World::getWorld()->getKart(kart_id);
         if (kart->getController()->isLocalPlayerController())
             human_win = human_win && kart->getRaceResult();
-    }
-
-    m_finish_sound = SFXManager::get()->quickSound(
-        human_win ? "race_finish_victory" : "race_finish");
-
-    //std::string path = (human_win ? Different result music too later
-    //    file_manager->getAsset(FileManager::MUSIC, "race_summary.music") :
-    //    file_manager->getAsset(FileManager::MUSIC, "race_summary.music"));
-    std::string path = file_manager->getAsset(FileManager::MUSIC, "race_summary.music");
-    m_race_over_music = music_manager->getMusicInformation(path);
-
-    if (!m_finish_sound)
-    {
-        // If there is no finish sound (because sfx are disabled), start
-        // the race over music here (since the race over music is only started
-        // when the finish sound has been played).
-        music_manager->startMusic(m_race_over_music);
     }
 
     // Calculate how many track screenshots can fit into the "result-table" widget
@@ -145,11 +123,6 @@ void RaceResultGUI::tearDown()
     Screen::tearDown();
     //m_font->setMonospaceDigits(m_was_monospace);
 
-    if (m_finish_sound != NULL &&
-        m_finish_sound->getStatus() == SFXBase::SFX_PLAYING)
-    {
-        m_finish_sound->stop();
-    }
 }   // tearDown
 
 //-----------------------------------------------------------------------------
@@ -852,22 +825,6 @@ void RaceResultGUI::displayCTFResults()
     void RaceResultGUI::onUpdate(float dt)
     {
         renderGlobal(dt);
-
-        // When the finish sound has been played, start the race over music.
-        if (m_finish_sound && m_finish_sound->getStatus() != SFXBase::SFX_PLAYING)
-        {
-            try
-            {
-                // This call is done once each frame, but startMusic() is cheap
-                // if the music is already playing.
-                music_manager->startMusic(m_race_over_music);
-            }
-            catch (std::exception& e)
-            {
-                Log::error("RaceResultGUI", "Exception caught when "
-                    "trying to load music: %s", e.what());
-            }
-        }
     }   // onUpdate
 
     //-----------------------------------------------------------------------------

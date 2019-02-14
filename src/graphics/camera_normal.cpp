@@ -350,12 +350,6 @@ void CameraNormal::positionCamera(float dt, float above_kart, float cam_angle,
             m_camera->setPosition(wanted_position.toIrrVector());
         m_camera->setTarget(wanted_target.toIrrVector());
 
-        if (race_manager->getNumLocalPlayers() < 2)
-        {
-            SFXManager::get()->positionListener(m_camera->getPosition(),
-                                      wanted_target - m_camera->getPosition(),
-                                      Vec3(0, 1, 0));
-        }
     }
 
     Kart *kart = dynamic_cast<Kart*>(m_kart);

@@ -19,7 +19,6 @@
 
 #include "karts/controller/local_player_controller.hpp"
 
-#include "audio/sfx_base.hpp"
 #include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -72,14 +71,7 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
     Camera *camera = Camera::createCamera(kart, local_player_id);
 
     m_camera_index = camera->getIndex();
-    m_wee_sound    = SFXManager::get()->createSoundSource("wee");
-    m_bzzt_sound   = SFXManager::get()->getBuffer("bzzt");
-    m_ugh_sound    = SFXManager::get()->getBuffer("ugh");
-    m_grab_sound   = SFXManager::get()->getBuffer("grab_collectable");
-    m_full_sound   = SFXManager::get()->getBuffer("energy_bar_full");
-    m_unfull_sound = SFXManager::get()->getBuffer("energy_bar_unfull");
 
-    m_is_above_nitro_target = false;
     initParticleEmitter();
 }   // LocalPlayerController
 
@@ -88,7 +80,6 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
  */
 LocalPlayerController::~LocalPlayerController()
 {
-    m_wee_sound->deleteSFX();
 }   // ~LocalPlayerController
 
 //-----------------------------------------------------------------------------
@@ -271,9 +262,6 @@ void LocalPlayerController::update(int ticks)
         }
     }
 
-    if (m_is_above_nitro_target == true &&
-        m_kart->getEnergy() < race_manager->getCoinTarget())
-        nitroNotFullSound();
 #endif
     if (m_kart->getKartAnimation() && m_sound_schedule == false)
     {
@@ -282,7 +270,6 @@ void LocalPlayerController::update(int ticks)
     else if (!m_kart->getKartAnimation() && m_sound_schedule == true)
     {
         m_sound_schedule = false;
-        m_kart->playSound(m_bzzt_sound);
     }
 }   // update
 
@@ -303,7 +290,6 @@ void LocalPlayerController::displayPenaltyWarning()
             GUIEngine::getSkin()->getColor("font::normal"), true /* important */,
             false /*  big font */, true /* outline */);
     }
-    m_kart->playSound(m_bzzt_sound);
 }   // displayPenaltyWarning
 
 //-----------------------------------------------------------------------------
@@ -352,11 +338,6 @@ void LocalPlayerController::handleZipper(bool play_sound)
     // Only play a zipper sound if it's not already playing, and
     // if the material has changed (to avoid machine gun effect
     // on conveyor belt zippers).
-    if (play_sound || (m_wee_sound->getStatus() != SFXBase::SFX_PLAYING &&
-                       m_kart->getMaterial()!=m_kart->getLastMaterial()      ) )
-    {
-        m_wee_sound->play();
-    }
 
 #ifndef SERVER_ONLY
     // Apply the motion blur according to the speed of the kart
@@ -374,38 +355,6 @@ void LocalPlayerController::handleZipper(bool play_sound)
 void LocalPlayerController::collectedItem(const ItemState &item_state,
                                           float old_energy)
 {
-    if (old_energy < m_kart->getKartProperties()->getNitroMax() &&
-        m_kart->getEnergy() == m_kart->getKartProperties()->getNitroMax())
-    {
-        m_kart->playSound(m_full_sound);
-    }
-    else if (race_manager->getCoinTarget() > 0 &&
-             old_energy < race_manager->getCoinTarget() &&
-             m_kart->getEnergy() >= race_manager->getCoinTarget())
-    {
-        m_kart->playSound(m_full_sound);
-        m_is_above_nitro_target = true;
-    }
-    else
-    {
-        switch(item_state.getType())
-        {
-        case Item::ITEM_BANANA:
-            m_kart->playSound(m_ugh_sound);
-            break;
-        case Item::ITEM_BUBBLEGUM:
-            //More sounds are played by the kart class
-            //See Kart::collectedItem()
-            m_kart->playSound(m_ugh_sound);
-            break;
-        case Item::ITEM_TRIGGER:
-            // no default sound for triggers
-            break;
-        default:
-            m_kart->playSound(m_grab_sound);
-            break;
-        }
-    }
 }   // collectedItem
 
 //-----------------------------------------------------------------------------
@@ -413,8 +362,6 @@ void LocalPlayerController::collectedItem(const ItemState &item_state,
  */
 void LocalPlayerController::nitroNotFullSound()
 {
-    m_kart->playSound(m_unfull_sound);
-    m_is_above_nitro_target = false;
 } //nitroNotFullSound
 
 // ----------------------------------------------------------------------------

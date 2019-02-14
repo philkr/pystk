@@ -36,7 +36,6 @@
 #include <map>
 
 class KartProperties;
-class MusicInformation;
 class XMLNode;
 
 /**
@@ -80,8 +79,6 @@ public:
                                             early.                             */
     float m_delay_finish_time;         /**<Delay after a race finished before
                                            the results are displayed.          */
-    float m_music_credit_time;         /**<Time the music credits are
-                                           displayed.                          */
     int   m_max_karts;                 /**<Maximum number of karts.            */
     bool  m_smooth_normals;            /**< If normals for raycasts for wheels
                                            should be interpolated.             */
@@ -159,12 +156,6 @@ public:
      *  next kart. From this the actual number of points for each
      *  position is computed. */
     std::vector<int> m_score_increase;
-
-    /** Filename of the title music to play.*/
-    MusicInformation *m_title_music;
-
-    /** Filename of the music that is played when the track's music was not found */
-    MusicInformation *m_default_music;
 
     /** Maximum number of transform events of a replay. */
     int m_replay_max_frames;

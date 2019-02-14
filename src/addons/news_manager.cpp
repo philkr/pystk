@@ -149,48 +149,6 @@ void* NewsManager::downloadNews(void *obj)
     {
         core::stringw error_message("");
 
-        HTTPRequest *download_req = new HTTPRequest("news.xml");
-        download_req->setAddonsURL("news.xml");
-
-        // Initialise the online portion of the addons manager.
-        if(UserConfigParams::logAddons())
-            Log::info("addons", "Downloading news.");
-        download_req->executeNow();
-
-        if(download_req->hadDownloadError())
-        {
-            // Assume that the server address is wrong. And retry
-            // with the default server address again (just in case
-            // that a redirect went wrong, or a wrong/incorrect
-            // address somehow made its way into the config file.
-            delete download_req;
-
-            // We need a new object, since the state of the old
-            // download request is now done.
-            download_req = new HTTPRequest("news.xml");
-
-            // make sure the new server address is actually used
-            download_req->setAddonsURL("news.xml");
-            download_req->executeNow();
-
-            if(download_req->hadDownloadError())
-            {
-                // This message must be translated dynamically in the main menu.
-                // If it would be translated here, it wouldn't be translated
-                // if the language is changed in the menu!
-                error_message = N_("Error downloading news: '%s'.");
-                const char *const curl_error = download_req->getDownloadErrorMessage();
-                error_message = StringUtils::insertValues(error_message, curl_error);
-                addons_manager->setErrorState();
-                me->setErrorMessage(error_message);
-                Log::error("news", core::stringc(error_message).c_str());
-            }   // hadDownloadError
-        }   // hadDownloadError
-
-        if(!download_req->hadDownloadError())
-            UserConfigParams::m_news_last_updated = StkTime::getTimeSinceEpoch();
-        delete download_req;
-
         // No download error, update the last_updated time value, and delete
         // the potentially loaded xml file
         delete xml;

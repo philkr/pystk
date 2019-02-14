@@ -19,9 +19,6 @@
 
 #include "achievements/achievements_manager.hpp"
 #include "config/player_manager.hpp"
-#include "audio/music_manager.hpp"
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/cannon_animation.hpp"
@@ -57,9 +54,6 @@
  */
 LinearWorld::LinearWorld() : WorldWithRank()
 {
-    m_last_lap_sfx         = SFXManager::get()->createSoundSource("last_lap_fanfare");
-    m_last_lap_sfx_played  = false;
-    m_last_lap_sfx_playing = false;
     m_fastest_lap_ticks    = INT_MAX;
     m_valid_reference_time = false;
     m_live_time_difference = 0.0f;
@@ -78,9 +72,6 @@ void LinearWorld::init()
     assert(!Track::getCurrentTrack()->isArena());
     assert(!Track::getCurrentTrack()->isSoccer());
 
-    m_last_lap_sfx_played           = false;
-    m_last_lap_sfx_playing          = false;
-
     m_fastest_lap_kart_name         = "";
 
     // The values are initialised in reset()
@@ -92,7 +83,6 @@ void LinearWorld::init()
  */
 LinearWorld::~LinearWorld()
 {
-    m_last_lap_sfx->deleteSFX();
 }   // ~LinearWorld
 
 //-----------------------------------------------------------------------------
@@ -104,8 +94,6 @@ void LinearWorld::reset(bool restart)
 {
     WorldWithRank::reset(restart);
     m_finish_timeout = std::numeric_limits<float>::max();
-    m_last_lap_sfx_played  = false;
-    m_last_lap_sfx_playing = false;
     m_fastest_lap_ticks    = INT_MAX;
 
     const unsigned int kart_amount = (unsigned int) m_karts.size();
@@ -277,12 +265,6 @@ void LinearWorld::updateTrackSectors()
 void LinearWorld::updateGraphics(float dt)
 {
     WorldWithRank::updateGraphics(dt);
-    if (m_last_lap_sfx_playing &&
-        m_last_lap_sfx->getStatus() != SFXBase::SFX_PLAYING)
-    {
-        music_manager->resetTemporaryVolume();
-        m_last_lap_sfx_playing = false;
-    }
 
     const GUIEngine::GameState gamestate = StateManager::get()->getGameState();
     
@@ -391,27 +373,6 @@ void LinearWorld::newLap(unsigned int kart_index)
             m_race_gui->addMessage(_("Final lap!"), kart,
                                3.0f, GUIEngine::getSkin()->getColor("font::normal"), true,
                                true /* big font */, true /* outline */);
-        }
-        if(!m_last_lap_sfx_played && lap_count > 1)
-        {
-            if (UserConfigParams::m_music)
-            {
-                m_last_lap_sfx->play();
-                m_last_lap_sfx_played = true;
-                m_last_lap_sfx_playing = true;
-
-                // In case that no music is defined
-                if(music_manager->getCurrentMusic() &&
-                    music_manager->getMasterMusicVolume() > 0.2f)
-                {
-                    music_manager->setTemporaryVolume(0.2f);
-                }
-            }
-            else
-            {
-                m_last_lap_sfx_played = true;
-                m_last_lap_sfx_playing = false;
-            }
         }
     }
     else if (raceHasLaps() && kart_info.m_finished_laps > 0 &&
@@ -911,7 +872,6 @@ void LinearWorld::updateRacePosition()
             kart_info.m_finished_laps == race_manager->getNumLaps() - 1 &&
             useFastMusicNearEnd()                                       )
         {
-            music_manager->switchToFastMusic();
             m_faster_music_active=true;
         }
     }   // for i<kart_amount

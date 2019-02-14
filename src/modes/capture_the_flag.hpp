@@ -48,8 +48,6 @@ private:
 
     scene::ISceneNode* m_blue_flag_indicator;
 
-    SFXBase* m_scored_sound;
-
     int m_red_scores, m_blue_scores;
 
     /* Save the last captured flag ticks */

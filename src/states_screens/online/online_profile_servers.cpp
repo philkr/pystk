@@ -17,7 +17,6 @@
 
 #include "states_screens/online/online_profile_servers.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "config/player_manager.hpp"
 #include "guiengine/engine.hpp"
 #include "guiengine/screen.hpp"

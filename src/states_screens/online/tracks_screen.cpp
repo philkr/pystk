@@ -17,7 +17,6 @@
 
 #include "states_screens/online/tracks_screen.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -705,7 +704,7 @@ void TracksScreen::addVote(uint32_t host_id, const PeerVote& vote)
     {
         // Sound effect like lobby chat
         if (GUIEngine::getCurrentScreen() == this)
-            SFXManager::get()->quickSound("plopp");
+
         m_index_to_hostid.push_back(host_id);
     }
     if (host_id == STKHost::get()->getMyHostId() && m_laps && m_reversed)

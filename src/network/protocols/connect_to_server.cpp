@@ -19,7 +19,6 @@
 #include "network/protocols/connect_to_server.hpp"
 
 #include "config/user_config.hpp"
-#include "network/crypto.hpp"
 #include "network/event.hpp"
 #include "network/network.hpp"
 #include "network/network_config.hpp"
@@ -68,7 +67,7 @@ ConnectToServer::~ConnectToServer()
         NetworkConfig::get()->setServerDetails(request,
             "clear-user-joined-server");
         request->queue();
-        m_previous_unjoin = request->observeExistence();
+//         m_previous_unjoin = request->observeExistence();
     }
 }   // ~ConnectToServer
 
@@ -389,10 +388,6 @@ void ConnectToServer::registerWithSTKServer()
     request->addParameter("server-id", m_server->getServerId());
     request->addParameter("address", addr.getIP());
     request->addParameter("port", addr.getPort());
-
-    Crypto::initClientAES();
-    request->addParameter("aes-key", Crypto::getClientKey());
-    request->addParameter("aes-iv", Crypto::getClientIV());
 
     Log::info("ConnectToServer", "Registering addr %s",
         addr.toString().c_str());

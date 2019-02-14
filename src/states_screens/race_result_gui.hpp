@@ -38,7 +38,6 @@ namespace irr
 }
 
 class MusicInformation;
-class SFXBase;
 
 /**
   * \brief Displays the results (while the end animation is shown).
@@ -164,9 +163,6 @@ private:
 
     /** The previous monospace state of the font. */
     //bool                       m_was_monospace;
-
-    /** Sound effect at end of race. */
-    SFXBase                   *m_finish_sound;
 
     /** Music to be played after race ended. */
     MusicInformation          *m_race_over_music;

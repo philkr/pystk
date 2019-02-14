@@ -16,7 +16,6 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "modes/capture_the_flag.hpp"
-#include "audio/sfx_base.hpp"
 #include "io/file_manager.hpp"
 #include "items/powerup.hpp"
 #include "graphics/irr_driver.hpp"
@@ -49,7 +48,6 @@ CaptureTheFlag::CaptureTheFlag() : FreeForAll()
     m_red_flag_node = m_blue_flag_node = NULL;
     m_red_flag_indicator = m_blue_flag_indicator = NULL;
     m_red_flag_mesh = m_blue_flag_mesh = NULL;
-    m_scored_sound = NULL;
 #ifndef SERVER_ONLY
     file_manager->pushTextureSearchPath(
         file_manager->getAsset(FileManager::MODEL,""), "models");
@@ -62,7 +60,6 @@ CaptureTheFlag::CaptureTheFlag() : FreeForAll()
     irr_driver->grabAllTextures(m_red_flag_mesh);
     irr_driver->grabAllTextures(m_blue_flag_mesh);
     file_manager->popTextureSearchPath();
-    m_scored_sound = SFXManager::get()->createSoundSource("goal_scored");
 #endif
 }   // CaptureTheFlag
 
@@ -76,7 +73,6 @@ CaptureTheFlag::~CaptureTheFlag()
     irr_driver->dropAllTextures(m_blue_flag_mesh);
     irr_driver->removeMeshFromCache(m_red_flag_mesh);
     irr_driver->removeMeshFromCache(m_blue_flag_mesh);
-    m_scored_sound->deleteSFX();
 #endif
 }   // ~CaptureTheFlag
 
@@ -166,8 +162,6 @@ void CaptureTheFlag::updateGraphics(float dt)
             const core::stringw& name = kart->getController()->getName();
             // I18N: Show when a player gets the red flag in CTF
             msg = _("%s has the red flag!", name);
-            if (kart->getController()->isLocalPlayerController())
-                SFXManager::get()->quickSound("wee");
         }
         else if (m_red_flag->isInBase() && !scored_recently)
         {
@@ -184,8 +178,6 @@ void CaptureTheFlag::updateGraphics(float dt)
             const core::stringw& name = kart->getController()->getName();
             // I18N: Show when a player gets the blue flag in CTF
             msg = _("%s has the blue flag!", name);
-            if (kart->getController()->isLocalPlayerController())
-                SFXManager::get()->quickSound("wee");
         }
         else if (m_blue_flag->isInBase() && !scored_recently)
         {
@@ -409,7 +401,6 @@ void CaptureTheFlag::ctfScored(int kart_id, bool red_team_scored,
     m_race_gui->addMessage(scored_msg, NULL, 3.0f);
     kart->getKartModel()
         ->setAnimation(KartModel::AF_WIN_START, true/*play_non_loop*/);
-    m_scored_sound->play();
 #endif
 }   // ctfScored
 

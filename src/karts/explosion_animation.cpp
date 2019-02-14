@@ -18,7 +18,6 @@
 
 #include "karts/explosion_animation.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "graphics/camera.hpp"
 #include "items/attachment.hpp"
 #include "karts/abstract_kart.hpp"
@@ -123,7 +122,6 @@ ExplosionAnimation::ExplosionAnimation(AbstractKart *kart,
         m_xyz = m_kart->getXYZ();
         m_orig_xyz = m_xyz;
     }
-    m_kart->playCustomSFX(SFXManager::CUSTOM_EXPLODE);
 
     if (NetworkConfig::get()->isNetworking() &&
         NetworkConfig::get()->isServer())

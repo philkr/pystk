@@ -33,7 +33,6 @@
 #include <memory>
 #include <string>
 
-class SFXBase;
 class ParticleEmitter;
 class PhysicalObject;
 class ThreeDAnimation;
@@ -272,10 +271,6 @@ class TrackObjectPresentationSound : public TrackObjectPresentation,
                                      public TriggerItemListener
 {
 private:
-
-    /** If a sound is attached to this object and/or this is a sound emitter
-     *  object */
-    SFXBase* m_sound;
 
     /** Currently used for sound effects only, in cutscenes only atm */
     std::string  m_trigger_condition;

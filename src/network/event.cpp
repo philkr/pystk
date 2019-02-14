@@ -18,7 +18,6 @@
 
 #include "network/event.hpp"
 
-#include "network/crypto.hpp"
 #include "network/protocols/client_lobby.hpp"
 #include "network/stk_peer.hpp"
 #include "utils/log.hpp"
@@ -75,15 +74,7 @@ Event::Event(ENetEvent* event, std::shared_ptr<STKPeer> peer)
         {
             throw std::runtime_error("Unencrypted content at wrong state.");
         }
-        if (m_peer->getCrypto() && event->channelID == EVENT_CHANNEL_NORMAL)
-        {
-            m_data = m_peer->getCrypto()->decryptRecieve(event->packet);
-        }
-        else
-        {
-            m_data = new NetworkString(event->packet->data, 
-                (int)event->packet->dataLength);
-        }
+        m_data = new NetworkString(event->packet->data, (int)event->packet->dataLength);
     }
     else
         m_data = NULL;

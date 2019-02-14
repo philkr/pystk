@@ -26,7 +26,6 @@
 #include "utils/cpp2011.hpp"
 
 class AbstractKart;
-class SFXBase;
 
 /**
   * \ingroup items
@@ -192,9 +191,6 @@ private:
      *  the ball will be removed and the kart escapes. This boolean is
      *  used to keep track of the state of this ball. */
     bool         m_aiming_at_target;
-
-    /** A 'ping' sound effect to be played when the ball hits the ground. */
-    SFXBase     *m_ping_sfx;
 
     /* Used by undo and redo the firing when rewind */
     Vec3 m_owner_init_pos, m_init_pos;

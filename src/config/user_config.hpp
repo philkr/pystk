@@ -382,25 +382,6 @@ enum MultitouchControls
 namespace UserConfigParams
 {
 
-    // ---- Audio
-    PARAM_PREFIX GroupUserConfigParam        m_audio_group
-            PARAM_DEFAULT( GroupUserConfigParam("Audio", "Audio Settings") );
-
-    PARAM_PREFIX BoolUserConfigParam         m_sfx
-            PARAM_DEFAULT( BoolUserConfigParam(true, "sfx_on", &m_audio_group,
-            "Whether sound effects are enabled or not (true or false)") );
-    PARAM_PREFIX BoolUserConfigParam         m_music
-            PARAM_DEFAULT(  BoolUserConfigParam(true, "music_on",
-            &m_audio_group,
-            "Whether musics are enabled or not (true or false)") );
-    PARAM_PREFIX FloatUserConfigParam       m_sfx_volume
-            PARAM_DEFAULT(  FloatUserConfigParam(0.6f, "sfx_volume",
-            &m_audio_group, "Volume for sound effects, see openal AL_GAIN "
-                            "for interpretation") );
-    PARAM_PREFIX FloatUserConfigParam       m_music_volume
-            PARAM_DEFAULT(  FloatUserConfigParam(0.5f, "music_volume",
-            &m_audio_group, "Music volume from 0.0 to 1.0") );
-
     // ---- Race setup
     PARAM_PREFIX GroupUserConfigParam        m_race_setup_group
         PARAM_DEFAULT( GroupUserConfigParam("RaceSetup",

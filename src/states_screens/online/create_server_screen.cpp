@@ -17,7 +17,6 @@
 
 #include "states_screens/online/create_server_screen.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
 #include "network/network_config.hpp"
@@ -237,7 +236,6 @@ void CreateServerScreen::createServer()
         //I18N: In the create server screen
         m_info_widget->setText(
             _("Name has to be between 4 and 30 characters long!"), false);
-        SFXManager::get()->quickSound("anvil");
         return;
     }
     assert(max_players > 1 && max_players <=
@@ -254,7 +252,6 @@ void CreateServerScreen::createServer()
         //I18N: In the create server screen
         m_info_widget->setText(
             _("Incorrect characters in password!"), false);
-        SFXManager::get()->quickSound("anvil");
         return;
     }
 

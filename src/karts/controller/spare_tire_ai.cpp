@@ -114,7 +114,6 @@ void SpareTireAI::spawn(int ticks_to_last)
     m_timer = ticks_to_last;
 
     Physics::getInstance()->addKart(m_kart);
-    m_kart->startEngineSFX();
     m_kart->getKartGFX()->reset();
     m_kart->getNode()->setVisible(true);
 

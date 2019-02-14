@@ -27,7 +27,6 @@ namespace irr
 
 using namespace irr;
 
-#include "audio/music_manager.hpp"
 #include "guiengine/screen.hpp"
 #include "utils/ptr_vector.hpp"
 
@@ -83,14 +82,6 @@ public:
                        const int playerID) OVERRIDE;
 
     void setVictoryMusic(bool isVictory) { m_is_victory_music = isVictory; }
-
-    virtual MusicInformation* getMusic() const OVERRIDE
-    {
-        if (m_is_victory_music)
-            return music_manager->getMusicInformation("win_theme.music");
-        else
-            return stk_config->m_title_music;
-    }
 };
 
 #endif

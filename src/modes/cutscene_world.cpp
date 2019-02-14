@@ -20,7 +20,6 @@
 #include "main_loop.hpp"
 #include "animations/animation_base.hpp"
 #include "animations/three_d_animation.hpp"
-#include "audio/sfx_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "graphics/camera.hpp"
@@ -211,8 +210,6 @@ void CutsceneWorld::update(int ticks)
     {
         //printf("INITIAL TIME for CutsceneWorld\n");
 
-        music_manager->startMusic();
-
         PtrVector<TrackObject>& objects = Track::getCurrentTrack()
                                         ->getTrackObjectManager()->getObjects();
         TrackObject* curr;
@@ -325,11 +322,6 @@ void CutsceneWorld::update(int ticks)
                 irr::core::matrix4 matrix = anchorNode->getAbsoluteTransformation();
                 matrix.rotateVect(up);
                 m_camera->setUpVector(up);
-
-                SFXManager::get()->positionListener(m_camera->getAbsolutePosition(),
-                                              m_camera->getTarget() -
-                                                m_camera->getAbsolutePosition(),
-                                                Vec3(0,1,0));
             }
             break;
         }

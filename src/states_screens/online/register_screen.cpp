@@ -19,7 +19,6 @@
 
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
-#include "audio/sfx_manager.hpp"
 #include "guiengine/widgets/button_widget.hpp"
 #include "guiengine/widgets/check_box_widget.hpp"
 #include "guiengine/widgets/label_widget.hpp"
@@ -340,7 +339,7 @@ void RegisterScreen::doRegister()
         return;
     }
 
-    SFXManager::get()->quickSound( "anvil" );
+
 }   // doRegister
 
 // -----------------------------------------------------------------------------

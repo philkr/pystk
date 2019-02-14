@@ -26,8 +26,6 @@
 
 class AbstractKart;
 class ParticleEmitter;
-class SFXBase;
-class SFXBuffer;
 
 /** PlayerKart manages control events from the player and moves
   * them to the Kart
@@ -43,7 +41,6 @@ private:
 
     bool           m_sound_schedule;
     bool           m_has_started;
-    bool           m_is_above_nitro_target;
 
     std::unique_ptr<ParticleEmitter> m_sky_particles_emitter;
 
@@ -52,14 +49,6 @@ private:
     int  m_camera_index;
 
     PerPlayerDifficulty m_difficulty;
-
-    SFXBase     *m_wee_sound;
-    SFXBuffer   *m_bzzt_sound;
-    SFXBuffer   *m_ugh_sound;
-    SFXBuffer   *m_grab_sound;
-    SFXBuffer   *m_full_sound;
-    SFXBuffer   *m_unfull_sound;
-
 
     virtual void steer(int, int) OVERRIDE;
     virtual void displayPenaltyWarning() OVERRIDE;

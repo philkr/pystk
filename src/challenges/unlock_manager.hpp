@@ -30,7 +30,6 @@
 #include <fstream>
 
 class XMLNode;
-class SFXBase;
 
 /**
   * \brief main class to handle locking/challenges
@@ -39,8 +38,6 @@ class SFXBase;
 class UnlockManager : public NoCopy
 {
 private:
-    SFXBase    *m_locked_sound;
-
     typedef std::map<std::string, ChallengeData*> AllChallengesType;
     AllChallengesType             m_all_challenges;
 

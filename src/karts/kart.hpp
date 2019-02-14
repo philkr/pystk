@@ -48,7 +48,6 @@ class KartRewinder;
 class MaxSpeed;
 class ParticleEmitter;
 class ParticleKind;
-class SFXBase;
 class Shadow;
 class Skidding;
 class SkidMarks;
@@ -249,42 +248,23 @@ protected:
     /** Reset position. */
     btTransform  m_reset_transform;
 
-    std::vector<SFXBase*> m_custom_sounds;
     int m_emitter_id = 0;
     static const int EMITTER_COUNT = 3;
-    SFXBase      *m_emitters[EMITTER_COUNT];
-    SFXBase      *m_engine_sound;
-    /** Sound to be played depending on terrain. */
-    SFXBase      *m_terrain_sound;
 
     /** The material for which the last sound effect was played. */
-    const Material *m_last_sound_material;
-
-    SFXBase      *m_nitro_sound;
-    /** A pointer to the previous terrain sound needs to be saved so that an
-     *  'older' sfx can be finished and an abrupt end of the sfx is avoided. */
-    SFXBase      *m_previous_terrain_sound;
-    SFXBase      *m_skid_sound;
-    SFXBuffer    *m_horn_sound;
     static const int CRASH_SOUND_COUNT = 3;
-    SFXBuffer    *m_crash_sounds[CRASH_SOUND_COUNT];
-    SFXBuffer    *m_goo_sound;
-    SFXBuffer    *m_boing_sound;
     int          m_ticks_last_crash;
     RaceManager::KartType m_type;
 
     void          updatePhysics(int ticks);
-    void          handleMaterialSFX();
     void          handleMaterialGFX(float dt);
     void          updateFlying();
     void          updateSliding();
     void          updateEnginePowerAndBrakes(int ticks);
-    void          updateEngineSFX(float dt);
     void          updateSpeed();
     void          updateNitro(int ticks);
     float         applyAirFriction (float engine_power);
     float         getActualWheelForce();
-    void          playCrashSFX(const Material* m, AbstractKart *k);
     void          loadData(RaceManager::KartType type, bool animatedModel);
     void          updateWeight();
 public:
@@ -305,7 +285,6 @@ public:
     virtual void   flyUp() OVERRIDE;
     virtual void   flyDown() OVERRIDE;
 
-    virtual void   startEngineSFX   () OVERRIDE;
     virtual void   adjustSpeed      (float f) OVERRIDE;
     virtual void   increaseMaxSpeed(unsigned int category, float add_speed,
                                     float engine_force, int duration,
@@ -344,7 +323,6 @@ public:
     virtual void   showZipperFire   () OVERRIDE;
     virtual float  getCurrentMaxSpeed() const OVERRIDE;
 
-    virtual bool   playCustomSFX    (unsigned int type) OVERRIDE;
     virtual void   setController(Controller *controller) OVERRIDE;
     virtual void   setXYZ(const Vec3& a) OVERRIDE;
     virtual void changeKart(const std::string& new_ident,
@@ -569,10 +547,6 @@ public:
     // ------------------------------------------------------------------------
     /** Returns whether this kart is jumping. */
     virtual bool isJumping() const OVERRIDE { return m_is_jumping; };
-    // ------------------------------------------------------------------------
-    SFXBase* getNextEmitter();
-    // ------------------------------------------------------------------------
-    virtual void playSound(SFXBuffer* buffer) OVERRIDE;
     // ------------------------------------------------------------------------
     virtual bool isVisible() const OVERRIDE;
     // ------------------------------------------------------------------------

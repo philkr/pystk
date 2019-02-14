@@ -17,7 +17,6 @@
 
 #include "states_screens/grand_prix_editor_screen.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "graphics/irr_driver.hpp"
 #include "guiengine/widget.hpp"
 #include "guiengine/widgets/label_widget.hpp"
@@ -346,7 +345,6 @@ bool GrandPrixEditorScreen::validateName(LabelWidget* label,
     if (name.size() == 0)
     {
         label->setText(_("Name is empty."), false);
-        SFXManager::get()->quickSound("anvil");
         return false;
     }
     else if (grand_prix_manager->existsName(name) ||
@@ -354,13 +352,11 @@ bool GrandPrixEditorScreen::validateName(LabelWidget* label,
     {
         // check for duplicate names
         label->setText(_("Another grand prix with this name already exists."), false);
-        SFXManager::get()->quickSound("anvil");
         return false;
     }
     else if (name.size() > 30)
     {
         label->setText(_("Name is too long."), false);
-        SFXManager::get()->quickSound("anvil");
         return false;
     }
     else

@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <sstream>
 
-#include "audio/music_information.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
 #include "items/item.hpp"
@@ -39,18 +38,11 @@ float STKConfig::UNDEFINED = -99.9f;
 STKConfig::STKConfig()
 {
     m_has_been_loaded         = false;
-    m_title_music             = NULL;
     m_default_kart_properties = new KartProperties();
 }   // STKConfig
 //-----------------------------------------------------------------------------
 STKConfig::~STKConfig()
 {
-    if(m_title_music)
-        delete m_title_music;
-
-    if (m_default_music)
-        delete m_default_music;
-
     if(m_default_kart_properties)
         delete m_default_kart_properties;
 
@@ -140,7 +132,6 @@ void STKConfig::load(const std::string &filename)
     CHECK_NEG(m_skid_fadeout_time,         "skid-fadeout-time"          );
     CHECK_NEG(m_near_ground,               "near-ground"                );
     CHECK_NEG(m_delay_finish_time,         "delay-finish-time"          );
-    CHECK_NEG(m_music_credit_time,         "music-credit-time"          );
     CHECK_NEG(m_leader_time_per_kart,      "leader time-per-kart"       );
     CHECK_NEG(m_penalty_ticks,             "penalty-time"               );
     CHECK_NEG(m_max_display_news,          "max-display-news"           );
@@ -178,7 +169,7 @@ void STKConfig::load(const std::string &filename)
 void STKConfig::init_defaults()
 {
     m_bomb_time                  = m_bomb_time_increase          =
-        m_explosion_impulse_objects = m_music_credit_time        =
+        m_explosion_impulse_objects = 
         m_delay_finish_time      = m_skid_fadeout_time           =
         m_near_ground            = m_solver_split_impulse_thresh =
         m_smooth_angle_limit     = m_default_track_friction      =
@@ -212,8 +203,6 @@ void STKConfig::init_defaults()
     m_solver_set_flags           = 0;
     m_solver_reset_flags         = 0;
     m_network_steering_reduction = -100;
-    m_title_music                = NULL;
-    m_default_music              = NULL;
     m_solver_split_impulse       = false;
     m_smooth_normals             = false;
     m_same_powerup_mode          = POWERUP_MODE_ONLY_IF_SAME;
@@ -389,25 +378,6 @@ void STKConfig::getAllData(const XMLNode * root)
         camera->get("cutscene-fov", &m_cutscene_fov);
     }
 
-    if (const XMLNode *music_node = root->getNode("music"))
-    {
-        std::string title_music;
-        music_node->get("title", &title_music);
-        assert(title_music.size() > 0);
-        title_music = file_manager->getAsset(FileManager::MUSIC, title_music);
-        m_title_music = MusicInformation::create(title_music);
-        if(!m_title_music)
-            Log::error("StkConfig", "Cannot load title music : %s", title_music.c_str());
-
-        std::string default_music;
-        music_node->get("default", &default_music);
-        assert(default_music.size() > 0);
-        default_music = file_manager->getAsset(FileManager::MUSIC, default_music);
-        m_default_music = MusicInformation::create(default_music);
-        if (!m_default_music)
-            Log::error("StkConfig", "Cannot load default music : %s", default_music.c_str());
-    }
-
     if(const XMLNode *skidmarks_node = root->getNode("skid-marks"))
     {
         skidmarks_node->get("max-number",   &m_max_skidmarks    );
@@ -419,10 +389,6 @@ void STKConfig::getAllData(const XMLNode * root)
 
     if(const XMLNode *delay_finish_node= root->getNode("delay-finish"))
         delay_finish_node->get("time", &m_delay_finish_time);
-
-    if(const XMLNode *credits_node= root->getNode("credits"))
-        credits_node->get("music", &m_music_credit_time);
-
 
     if(const XMLNode *bomb_node= root->getNode("bomb"))
     {

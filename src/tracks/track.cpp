@@ -20,7 +20,6 @@
 #include "tracks/track.hpp"
 
 #include "addons/addon.hpp"
-#include "audio/music_manager.hpp"
 #include "challenges/challenge_status.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
@@ -676,41 +675,6 @@ void Track::loadCurves(const XMLNode &node)
 void Track::getMusicInformation(std::vector<std::string>&       filenames,
                                 std::vector<MusicInformation*>& music    )
 {
-    for(int i=0; i<(int)filenames.size(); i++)
-    {
-        std::string full_path = m_root+filenames[i];
-        MusicInformation* mi = music_manager->getMusicInformation(full_path);
-        if(!mi)
-        {
-            try
-            {
-                std::string shared_name = file_manager->searchMusic(filenames[i]);
-                if(shared_name!="")
-                    mi = music_manager->getMusicInformation(shared_name);
-            }
-            catch (...)
-            {
-                mi = NULL;
-            }
-        }
-        if(mi)
-            m_music.push_back(mi);
-        else
-            Log::warn("track",
-                      "Music information file '%s' not found for track '%s' - ignored.\n",
-                      filenames[i].c_str(), m_name.c_str());
-
-    }   // for i in filenames
-
-    if (m_music.empty() && !isInternal() && !m_is_cutscene)
-    {
-        m_music.push_back(stk_config->m_default_music);
-
-        Log::warn("track",
-            "Music information for track '%s' replaced by default music.\n",
-            m_name.c_str());
-    }
-
 }   // getMusicInformation
 
 //-----------------------------------------------------------------------------
@@ -718,11 +682,6 @@ void Track::getMusicInformation(std::vector<std::string>&       filenames,
  */
 void Track::startMusic() const
 {
-    // In case that the music wasn't found (a warning was already printed)
-    if(m_music.size()>0)
-        music_manager->startMusic(m_music[rand()% m_music.size()], false);
-    else
-        music_manager->clearCurrentMusic();
 }   // startMusic
 
 //-----------------------------------------------------------------------------

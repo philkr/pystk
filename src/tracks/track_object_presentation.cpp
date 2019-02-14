@@ -18,8 +18,6 @@
 
 #include "tracks/track_object_presentation.hpp"
 
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_buffer.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
@@ -659,7 +657,6 @@ TrackObjectPresentationSound::TrackObjectPresentationSound(
     // TODO: respect 'parent' if any
 
     m_enabled = true;
-    m_sound = NULL;
     m_xyz   = m_init_xyz;
 
     std::string sound;
@@ -688,81 +685,31 @@ TrackObjectPresentationSound::TrackObjectPresentationSound(
 
     if (disable_for_multiplayer)
         return;
-    // first try track dir, then global dir
-    std::string soundfile = Track::getCurrentTrack()->getTrackFile(sound);
-    //std::string soundfile = file_manager->getAsset(FileManager::MODEL,sound);
-    if (!file_manager->fileExists(soundfile))
-    {
-        soundfile = file_manager->getAsset(FileManager::SFX, sound);
-    }
-
-    SFXBuffer* buffer = new SFXBuffer(soundfile,
-                                      true /* positional */,
-                                      rolloff,
-                                      max_dist,
-                                      volume);
-    buffer->load();
-
-    m_sound = SFXManager::get()->createSoundSource(buffer, true, true);
-    if (m_sound != NULL)
-    {
-        m_sound->setPosition(m_init_xyz);
-        if (!trigger_when_near && m_trigger_condition.empty())
-        {
-            m_sound->setLoop(true);
-            m_sound->play();
-        }
-    }
-    else
-        Log::error("TrackObject", "Sound emitter object could not be created.");
-
 }   // TrackObjectPresentationSound
 
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationSound::updateGraphics(float dt)
 {
-    if (m_sound != NULL && m_enabled)
-    {
-        // muting when too far is implemented manually since not supported by
-        // OpenAL so need to call this every frame to update the muting state
-        // if listener moved
-        m_sound->setPosition(m_xyz);
-    }
 }   // update
 
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationSound::onTriggerItemApproached()
 {
-    if (m_sound != NULL && m_sound->getStatus() != SFXBase::SFX_PLAYING && m_enabled)
-    {
-        m_sound->play();
-    }
 }   // onTriggerItemApproached
 
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationSound::triggerSound(bool loop)
 {
-    if (m_sound != NULL && m_enabled)
-    {
-        m_sound->setLoop(loop);
-        m_sound->play();
-    }
 }   // triggerSound
 
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationSound::stopSound()
 {
-    if (m_sound != NULL) 
-        m_sound->stop();
 }   // stopSound
 
 // ----------------------------------------------------------------------------
 TrackObjectPresentationSound::~TrackObjectPresentationSound()
 {
-    if (m_sound)
-    {
-        m_sound->deleteSFX();
-    }
 }   // ~TrackObjectPresentationSound
 
 // ----------------------------------------------------------------------------
@@ -772,8 +719,6 @@ void TrackObjectPresentationSound::move(const core::vector3df& xyz,
                                         bool isAbsoluteCoord)
 {
     m_xyz = xyz;
-    if (m_sound != NULL && m_enabled)
-        m_sound->setPosition(xyz);
 }   // move
 
 // ----------------------------------------------------------------------------

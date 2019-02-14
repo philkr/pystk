@@ -18,7 +18,6 @@
 #include "states_screens/dialogs/vote_dialog.hpp"
 
 #include "addons/addons_manager.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/player_manager.hpp"
 #include "guiengine/engine.hpp"
 #include "states_screens/state_manager.hpp"
@@ -202,7 +201,6 @@ void VoteDialog::updateFetchVote()
     }   // isSuccess
     else
     {
-        SFXManager::get()->quickSound("anvil");
         m_info_widget->setErrorColor();
         m_info_widget->setText(m_fetch_vote_request->getInfo(), false);
         m_cancel_widget->setActive(true);
@@ -234,7 +232,6 @@ void VoteDialog::onUpdate(float dt)
             }   // isSuccess
             else
             {
-                SFXManager::get()->quickSound( "anvil" );
                 m_info_widget->setErrorColor();
                 m_info_widget->setText(m_perform_vote_request->getInfo(), false);
                 m_cancel_widget->setActive(true);

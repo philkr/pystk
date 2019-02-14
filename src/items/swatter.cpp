@@ -27,8 +27,6 @@
 #include "items/swatter.hpp"
 
 #include "achievements/achievements_status.hpp"
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/player_manager.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/irr_driver.hpp"
@@ -94,15 +92,8 @@ Swatter::Swatter(AbstractKart *kart, bool was_bomb,
         m_scene_node->setAnimationSpeed(0);
     }
 
-    m_swat_sound = NULL;
     m_start_swat_ticks = std::numeric_limits<int>::max();
     m_end_swat_ticks = std::numeric_limits<int>::max();
-#ifndef SERVER_ONLY
-    if (kart->getIdent() == "nolok")
-        m_swat_sound = SFXManager::get()->createSoundSource("hammer");
-    else
-        m_swat_sound = SFXManager::get()->createSoundSource("swatter");
-#endif
 }   // Swatter
 
 // ----------------------------------------------------------------------------
@@ -115,12 +106,6 @@ Swatter::~Swatter()
         irr_driver->removeNode(m_bomb_scene_node);
         m_bomb_scene_node = NULL;
     }
-#ifndef SERVER_ONLY
-    if (m_swat_sound)
-    {
-        m_swat_sound->deleteSFX();
-    }
-#endif
 }   // ~Swatter
 
 // ----------------------------------------------------------------------------
@@ -217,12 +202,6 @@ int Swatter::updateAndTestFinished(int ticks)
                     m_scene_node->setCurrentFrame(0.0f);
                     m_scene_node->setLoopMode(false);
                     m_scene_node->setAnimationSpeed(SWATTER_ANIMATION_SPEED);
-
-#ifndef SERVER_ONLY
-                    // Play swat sound
-                    m_swat_sound->setPosition(swatter_pos);
-                    m_swat_sound->play();
-#endif
                 }
             }
             break;

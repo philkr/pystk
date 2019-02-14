@@ -78,7 +78,6 @@ KartProperties::KartProperties(const std::string &filename)
     m_shadow_z_offset = 0.0f;
 
     m_groups.clear();
-    m_custom_sfx_id.resize(SFXManager::NUM_CUSTOMS);
 
     // Set all other values to undefined, so that it can later be tested
     // if everything is defined properly.
@@ -92,7 +91,6 @@ KartProperties::KartProperties(const std::string &filename)
     m_version                    = 0;
     m_color                      = video::SColor(255, 0, 0, 0);
     m_shape                      = 32;  // close enough to a circle.
-    m_engine_sfx_type            = "engine_small";
     m_nitro_min_consumption      = 64;
     // The default constructor for stk_config uses filename=""
     if (filename != "")
@@ -436,52 +434,6 @@ void KartProperties::getAllData(const XMLNode * root)
     //TODO: wheel front right and wheel front left is not loaded, yet is
     //TODO: listed as an attribute in the xml file after wheel-radius
     //TODO: same goes for their rear equivalents
-
-
-    if(const XMLNode *sounds_node= root->getNode("sounds"))
-    {
-        std::string s;
-        sounds_node->get("engine", &s);
-        if      (s == "large") m_engine_sfx_type = "engine_large";
-        else if (s == "small") m_engine_sfx_type = "engine_small";
-        else
-        {
-            if (SFXManager::get()->soundExist(s))
-            {
-                m_engine_sfx_type = s;
-            }
-            else
-            {
-                Log::error("[KartProperties]",
-                           "Kart '%s' has an invalid engine '%s'.",
-                           m_name.c_str(), s.c_str());
-                m_engine_sfx_type = "engine_small";
-            }
-        }
-
-#ifdef WILL_BE_ENABLED_ONCE_DONE_PROPERLY
-        // Load custom kart SFX files (TODO: enable back when it's implemented properly)
-        for (int i = 0; i < SFXManager::NUM_CUSTOMS; i++)
-        {
-            std::string tempFile;
-            // Get filename associated with each custom sfx tag in sfx config
-            if (sounds_node->get(SFXManager::get()->getCustomTagName(i), tempFile))
-            {
-                // determine absolute filename
-                // FIXME: will not work with add-on packs (is data dir the same)?
-                tempFile = file_manager->getKartFile(tempFile, getIdent());
-
-                // Create sfx in sfx manager and store id
-                m_custom_sfx_id[i] = SFXManager::get()->addSingleSfx(tempFile, 1, 0.2f,1.0f);
-            }
-            else
-            {
-                // if there is no filename associated with a given tag
-                m_custom_sfx_id[i] = -1;
-            }   // if custom sound
-        }   // for i<SFXManager::NUM_CUSTOMS
-#endif
-    }   // if sounds-node exist
 
     if(m_kart_model)
         m_kart_model->loadInfo(*root);

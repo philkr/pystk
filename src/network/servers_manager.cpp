@@ -119,7 +119,7 @@ Online::XMLRequest* ServersManager::getLANRefreshRequest() const
     public:
 
         /** High priority for this request. */
-        LANRefreshRequest() : XMLRequest(true, 100) {m_success = false;}
+        LANRefreshRequest() : XMLRequest(true, 100) {}
         // --------------------------------------------------------------------
         virtual ~LANRefreshRequest() {}
         // --------------------------------------------------------------------
@@ -209,7 +209,6 @@ Online::XMLRequest* ServersManager::getLANRefreshRequest() const
                     //all_servers.[name] = servers_now.back();
                 }   // if received_data
             }    // while still waiting
-            m_success = true;
             ServersManager::get()->setLanServers(servers_now);
             delete broadcast;
         }   // operation

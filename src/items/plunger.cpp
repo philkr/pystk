@@ -21,7 +21,6 @@
 
 #include "items/plunger.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "io/xml_node.hpp"
 #include "items/rubber_band.hpp"
 #include "items/projectile_manager.hpp"
@@ -182,7 +181,6 @@ bool Plunger::hit(AbstractKart *kart, PhysicalObject *obj)
                 !m_has_locally_played_sound)
             {
                 m_has_locally_played_sound = true;
-                SFXManager::get()->quickSound("plunger");
             }
         }
 

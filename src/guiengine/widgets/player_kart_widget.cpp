@@ -453,8 +453,6 @@ void PlayerKartWidget::markAsReady()
     delete m_player_ident_spinner;
     m_player_ident_spinner = NULL;
 
-    SFXManager::get()->quickSound( "wee" );
-
     m_model_view->setRotateTo(30.0f, 1.0f);
 
     player_name_w = 0;

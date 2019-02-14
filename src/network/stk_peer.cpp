@@ -19,7 +19,6 @@
 #include "network/stk_peer.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
-#include "network/crypto.hpp"
 #include "network/event.hpp"
 #include "network/network_config.hpp"
 #include "network/network_string.hpp"
@@ -113,18 +112,11 @@ void STKPeer::sendPacket(NetworkString *data, bool reliable, bool encrypted)
         return;
 
     ENetPacket* packet = NULL;
-    if (m_crypto && encrypted)
-    {
-        packet = m_crypto->encryptSend(*data, reliable);
-    }
-    else
-    {
-        packet = enet_packet_create(data->getData(),
-            data->getTotalSize(), (reliable ?
-            ENET_PACKET_FLAG_RELIABLE :
-            (ENET_PACKET_FLAG_UNSEQUENCED |
-            ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT)));
-    }
+	packet = enet_packet_create(data->getData(),
+		data->getTotalSize(), (reliable ?
+		ENET_PACKET_FLAG_RELIABLE :
+		(ENET_PACKET_FLAG_UNSEQUENCED |
+		ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT)));
 
     if (packet)
     {
@@ -193,8 +185,3 @@ uint32_t STKPeer::getPing()
     return m_enet_peer->roundTripTime;
 }   // getPing
 
-//-----------------------------------------------------------------------------
-void STKPeer::setCrypto(std::unique_ptr<Crypto>&& c)
-{
-    m_crypto = std::move(c);
-}   // setCrypto

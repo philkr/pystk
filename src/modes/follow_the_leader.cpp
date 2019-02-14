@@ -17,7 +17,6 @@
 
 #include "modes/follow_the_leader.hpp"
 
-#include "audio/music_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
@@ -187,12 +186,6 @@ void FollowTheLeaderRace::countdownReachedZero()
             }   // for i<number of cameras
         }
     }   // if kart to eliminate exists
-
-    // almost over, use fast music
-    if(getCurrentNumKarts()==3)
-    {
-        music_manager->switchToFastMusic();
-    }
 
 }   // countdownReachedZero
 

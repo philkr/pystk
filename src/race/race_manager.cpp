@@ -475,7 +475,6 @@ void RaceManager::startNextRace()
 
     main_loop->renderGUI(0);
     // Uncomment to debug audio leaks
-    // sfx_manager->dump();
 
     IrrlichtDevice* device = irr_driver->getDevice();
     GUIEngine::renderLoading();

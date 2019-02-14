@@ -17,7 +17,6 @@
 
 #include "states_screens/online/server_selection.hpp"
 
-#include "audio/sfx_manager.hpp"
 #include "graphics/irr_driver.hpp"
 #include "guiengine/CGUISpriteBank.hpp"
 #include "guiengine/widgets/check_box_widget.hpp"
@@ -343,7 +342,7 @@ void ServerSelection::onUpdate(float dt)
         }
         else
         {
-            SFXManager::get()->quickSound("anvil");
+
             m_server_list_widget->clear();
             m_server_list_widget->addItem("loading",
                                           _("No server is available."));

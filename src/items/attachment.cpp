@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include "achievements/achievements_status.hpp"
-#include "audio/sfx_base.hpp"
 #include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -53,8 +52,6 @@ Attachment::Attachment(AbstractKart* kart)
     m_plugin               = NULL;
     m_kart                 = kart;
     m_previous_owner       = NULL;
-    m_bomb_sound           = NULL;
-    m_bubble_explode_sound = NULL;
     m_node_scale           = std::numeric_limits<float>::max();
     m_initial_speed        = 0.0f;
 
@@ -84,18 +81,6 @@ Attachment::~Attachment()
 {
     if(m_node)
         irr_driver->removeNode(m_node);
-
-    if (m_bomb_sound)
-    {
-        m_bomb_sound->deleteSFX();
-        m_bomb_sound = NULL;
-    }
-
-    if (m_bubble_explode_sound)
-    {
-        m_bubble_explode_sound->deleteSFX();
-        m_bubble_explode_sound = NULL;
-    }
 }   // ~Attachment
 
 //-----------------------------------------------------------------------------
@@ -399,10 +384,6 @@ void Attachment::hitBanana(ItemState *item_state)
         leftover_ticks  = m_ticks_left;
         break;
     default:
-        // There is no attachment currently, but there will be one
-        // so play the character sound ("Uh-Oh")
-        m_kart->playCustomSFX(SFXManager::CUSTOM_ATTACH);
-
         if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_TIME_TRIAL)
             new_attachment = AttachmentType(ticks % 2);
         else
@@ -424,8 +405,6 @@ void Attachment::hitBanana(ItemState *item_state)
         case ATTACH_ANVIL:
             set(ATTACH_ANVIL, stk_config->time2Ticks(kp->getAnvilDuration())
                 + leftover_ticks                                      );
-            // if ( m_kart == m_kart[0] )
-            //   sound -> playSfx ( SOUND_SHOOMF ) ;
             // Reduce speed once (see description above), all other changes are
             // handled in Kart::updatePhysics
             m_kart->adjustSpeed(kp->getAnvilSpeedFactor());
@@ -476,7 +455,6 @@ void Attachment::handleCollisionWithKart(AbstractKart *other)
                           getTicksLeft()+stk_config->time2Ticks(
                                            stk_config->m_bomb_time_increase),
                           m_kart);
-                other->playCustomSFX(SFXManager::CUSTOM_ATTACH);
                 clear();
             }
         }
@@ -496,12 +474,9 @@ void Attachment::handleCollisionWithKart(AbstractKart *other)
                stk_config->time2Ticks(stk_config->m_bomb_time_increase),
             other);
         other->getAttachment()->clear();
-        m_kart->playCustomSFX(SFXManager::CUSTOM_ATTACH);
     }
     else
     {
-        m_kart->playCustomSFX(SFXManager::CUSTOM_CRASH);
-        other->playCustomSFX(SFXManager::CUSTOM_CRASH);
     }
 
 }   // handleCollisionWithKart
@@ -613,15 +588,6 @@ void Attachment::update(int ticks)
     case ATTACH_NOLOK_BUBBLEGUM_SHIELD:
         if (m_ticks_left <= 0)
         {
-            if (!RewindManager::get()->isRewinding())
-            {
-                if (m_bubble_explode_sound) m_bubble_explode_sound->deleteSFX();
-                m_bubble_explode_sound =
-                    SFXManager::get()->createSoundSource("bubblegum_explode");
-                m_bubble_explode_sound->setPosition(m_kart->getXYZ());
-                m_bubble_explode_sound->play();
-            }
-
             if (!m_kart->isGhostKart())
                 ItemManager::get()->dropNewItem(Item::ITEM_BUBBLEGUM, m_kart);
         }
@@ -660,24 +626,11 @@ void Attachment::updateGraphics(float dt)
     {
     case ATTACH_BOMB:
     {
-        if (!m_bomb_sound)
-        {
-            m_bomb_sound = SFXManager::get()->createSoundSource("clock");
-            m_bomb_sound->setLoop(true);
-            m_bomb_sound->play();
-        }
-        m_bomb_sound->setPosition(m_kart->getXYZ());
         return;
     }
     default:
         break;
     }   // switch
-
-    if (m_bomb_sound)
-    {
-        m_bomb_sound->deleteSFX();
-        m_bomb_sound = NULL;
-    }
 }   // updateGraphics
 
 // ----------------------------------------------------------------------------

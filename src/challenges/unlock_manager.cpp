@@ -19,8 +19,6 @@
 #include "challenges/unlock_manager.hpp"
 
 #include "achievements/achievements_manager.hpp"
-#include "audio/sfx_base.hpp"
-#include "audio/sfx_manager.hpp"
 #include "challenges/challenge_data.hpp"
 #include "challenges/challenge_status.hpp"
 #include "challenges/story_mode_status.hpp"
@@ -49,9 +47,6 @@ UnlockManager::UnlockManager()
     // but it's not set yet - so we define it here (and it gets re-assign
     // in main).
     unlock_manager = this;
-
-    m_locked_sound = SFXManager::get()->createSoundSource("locked");
-
 
     // Read challenges from .../data/challenges
     // ----------------------------------------
@@ -229,7 +224,6 @@ StoryModeStatus* UnlockManager::createStoryModeStatus(const XMLNode *node)
 //-----------------------------------------------------------------------------
 void UnlockManager::playLockSound() const
 {
-    m_locked_sound->play();
 }   // playLockSound
 
 //-----------------------------------------------------------------------------

@@ -20,7 +20,6 @@
 
 #include "states_screens/race_gui_base.hpp"
 
-#include "audio/music_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/2dutils.hpp"
 #include "graphics/camera.hpp"
@@ -524,103 +523,7 @@ void RaceGUIBase::addMessage(const core::stringw &msg,
 void RaceGUIBase::drawGlobalMusicDescription()
 {
 #ifndef SERVER_ONLY
-     // show no music description when it's off
-    if (!UserConfigParams::m_music) return;
 
-    gui::IGUIFont*       font = GUIEngine::getFont();
-
-    float race_time =
-        stk_config->ticks2Time(World::getWorld()->getMusicDescriptionTicks());
-
-    // ---- Manage pulsing effect
-    float timeProgression = (float)(race_time) /
-                            (float)(stk_config->m_music_credit_time);
-
-    const int x_pulse = (int)(sinf(race_time*9.0f)*10.0f);
-    const int y_pulse = (int)(cosf(race_time*9.0f)*10.0f);
-
-    float resize = 1.0f;
-    if (timeProgression < 0.1)
-    {
-        resize = timeProgression/0.1f;
-    }
-    else if (timeProgression > 0.9)
-    {
-        resize = 1.0f - (timeProgression - 0.9f)/0.1f;
-    }
-
-    const float resize3 = resize*resize*resize;
-
-    // Get song name, and calculate its size, allowing us to position stuff
-    const MusicInformation* mi = music_manager->getCurrentMusic();
-    if (!mi) return;
-
-    core::stringw thetext = core::stringw(L"\"") + mi->getTitle() + L"\"";
-
-    core::dimension2d< u32 > textSize = font->getDimension(thetext.c_str());
-    int textWidth = textSize.Width;
-
-    int textWidth2 = 0;
-    core::stringw thetext_composer;
-    if (mi->getComposer()!="")
-    {
-        // I18N: string used to show the author of the music. (e.g. "Sunny Song" by "John Doe")
-        thetext_composer = _("by");
-        thetext_composer += " ";
-        thetext_composer += mi->getComposer().c_str();
-        textWidth2 = font->getDimension(thetext_composer.c_str()).Width;
-    }
-    const int max_text_size = (int)(irr_driver->getActualScreenSize().Width*2.0f/3.0f);
-    if (textWidth  > max_text_size) textWidth  = max_text_size;
-    if (textWidth2 > max_text_size) textWidth2 = max_text_size;
-
-    const int ICON_SIZE = 64;
-    const int y         = irr_driver->getActualScreenSize().Height - 80;
-    // the 20 is an arbitrary space left between the note icon and the text
-    const int noteX     = (irr_driver->getActualScreenSize().Width / 2)
-                        - std::max(textWidth, textWidth2)/2 - ICON_SIZE/2 - 20;
-    const int noteY     = y;
-    // the 20 is an arbitrary space left between the note icon and the text
-    const int textXFrom = (irr_driver->getActualScreenSize().Width / 2)
-                        - std::max(textWidth, textWidth2)/2 + 20;
-    const int textXTo   = (irr_driver->getActualScreenSize().Width / 2)
-                        + std::max(textWidth, textWidth2)/2 + 20;
-
-    // ---- Draw "by" text
-    const int text_y = (int)(irr_driver->getActualScreenSize().Height - 80*(resize3)
-                     + 40*(1-resize));
-
-    static const video::SColor white = video::SColor(255, 255, 255, 255);
-    if(mi->getComposer()!="")
-    {
-        core::rect<s32> pos_by(textXFrom, text_y+40,
-                               textXTo,   text_y+40);
-        font->draw(thetext_composer, pos_by, white,
-                   true, true);
-    }
-
-    // ---- Draw "song name" text
-    core::rect<s32> pos(textXFrom, text_y,
-                        textXTo,   text_y);
-
-    font->draw(thetext.c_str(), pos, white, true /* hcenter */,
-               true /* vcenter */);
-
-    // Draw music icon
-    if (m_music_icon != NULL)
-    {
-        int iconSizeX = (int)(ICON_SIZE*resize + x_pulse*resize*resize);
-        int iconSizeY = (int)(ICON_SIZE*resize + y_pulse*resize*resize);
-    
-        core::rect<s32> dest(noteX-iconSizeX/2+20,
-                             noteY-iconSizeY/2+ICON_SIZE/2,
-                             noteX+iconSizeX/2+20,
-                             noteY+iconSizeY/2+ICON_SIZE/2);
-        const core::rect<s32> source(core::position2d<s32>(0,0),
-                                     m_music_icon->getSize());
-    
-        draw2DImage(m_music_icon, dest, source, NULL, NULL, true);
-    }
 #endif
 }   // drawGlobalMusicDescription
 

@@ -38,7 +38,6 @@
 #include <string>
 #include <vector>
 
-class Crypto;
 class NetworkPlayerProfile;
 class NetworkString;
 class STKHost;
@@ -89,8 +88,6 @@ protected:
 
     /** Available karts and tracks from this peer */
     std::pair<std::set<std::string>, std::set<std::string> > m_available_kts;
-
-    std::unique_ptr<Crypto> m_crypto;
 
     std::deque<uint32_t> m_previous_pings;
 
@@ -181,10 +178,6 @@ public:
                             { enet_peer_ping_interval(m_enet_peer, interval); }
     // ------------------------------------------------------------------------
     uint32_t getPing();
-    // ------------------------------------------------------------------------
-    Crypto* getCrypto() const                        { return m_crypto.get(); }
-    // ------------------------------------------------------------------------
-    void setCrypto(std::unique_ptr<Crypto>&& c);
     // ------------------------------------------------------------------------
     uint32_t getAveragePing() const           { return m_average_ping.load(); }
     // ------------------------------------------------------------------------

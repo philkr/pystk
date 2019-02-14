@@ -18,8 +18,6 @@
 
 #include "states_screens/state_manager.hpp"
 
-#include "audio/sfx_manager.hpp"
-#include "audio/music_manager.hpp"
 #include "config/stk_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "guiengine/engine.hpp"
@@ -213,17 +211,6 @@ void StateManager::onGameStateChange(GameState new_state)
     {
         irr_driver->showPointer();
         input_manager->setMode(InputManager::MENU);
-        SFXManager::get()->positionListener( Vec3(0,0,0), Vec3(0,1,0), Vec3(0, 1, 0) );
-
-        if (new_state == MENU)
-        {
-            GUIEngine::Screen* screen = GUIEngine::getCurrentScreen();
-            if (screen != NULL)
-            {
-                music_manager->startMusic(
-                    GUIEngine::getCurrentScreen()->getMusic());
-            }
-        }
     }
 }   // onGameStateChange
 
@@ -231,21 +218,6 @@ void StateManager::onGameStateChange(GameState new_state)
 
 void StateManager::onTopMostScreenChanged()
 {
-    if (m_game_mode == MENU && GUIEngine::getCurrentScreen() != NULL)
-    {
-        if (GUIEngine::getCurrentScreen()->getMusic() != NULL)
-        {
-            music_manager->startMusic(GUIEngine::getCurrentScreen()->getMusic());
-        }
-    }
-    else if (m_game_mode == INGAME_MENU && GUIEngine::getCurrentScreen() != NULL)
-    {
-        if (GUIEngine::getCurrentScreen()->getInGameMenuMusic() != NULL)
-        {
-            music_manager->startMusic(GUIEngine::getCurrentScreen()->getInGameMenuMusic());
-        }
-    }
-
 }   // onTopMostScreenChanged
 
 // ----------------------------------------------------------------------------

@@ -17,8 +17,6 @@
 
 #include "guiengine/event_handler.hpp"
 
-#include "audio/music_manager.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_tex_manager.hpp"
@@ -172,25 +170,7 @@ bool EventHandler::OnEvent (const SEvent &event)
         
         IrrlichtDevice* device = irr_driver->getDevice();
         assert(device != NULL);
-        
-        if (cmd == APP_CMD_PAUSE || cmd == APP_CMD_LOST_FOCUS)
-        {
-            // Make sure that pause/unpause is executed only once
-            if (device->isWindowMinimized() == device->isWindowFocused())
-            {
-                music_manager->pauseMusic();
-                SFXManager::get()->pauseAll();
-            }
-        }
-        else if (cmd == APP_CMD_RESUME || cmd == APP_CMD_GAINED_FOCUS)
-        {
-            if (device->isWindowActive())
-            {
-                music_manager->resumeMusic();
-                SFXManager::get()->resumeAll();
-            }
-        }
-        else if (cmd == APP_CMD_LOW_MEMORY)
+        if (cmd == APP_CMD_LOW_MEMORY)
         {
             Log::warn("EventHandler", "Low memory event received");
         }

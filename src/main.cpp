@@ -174,8 +174,6 @@
 #include "achievements/achievements_manager.hpp"
 #include "addons/addons_manager.hpp"
 #include "addons/news_manager.hpp"
-#include "audio/music_manager.hpp"
-#include "audio/sfx_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
@@ -997,8 +995,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         race_manager->setDifficulty(RaceManager::Difficulty(3));
         UserConfigParams::m_no_start_screen = true;
         UserConfigParams::m_race_now = true;
-        UserConfigParams::m_sfx = false;
-        UserConfigParams::m_music = false;
     }
     if(CommandLine::has("--battle-ai-stats"))
     {
@@ -1016,8 +1012,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         race_manager->setDifficulty(RaceManager::Difficulty(3));
         UserConfigParams::m_no_start_screen = true;
         UserConfigParams::m_race_now = true;
-        UserConfigParams::m_sfx = false;
-        UserConfigParams::m_music = false;
     }
 
     if (UserConfigParams::m_artist_debug_mode)
@@ -1630,12 +1624,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
 
     CommandLine::reportInvalidParameters();
 
-    if (ProfileWorld::isProfileMode() || ProfileWorld::isNoGraphics())
-    {
-        UserConfigParams::m_sfx = false;  // Disable sound effects
-        UserConfigParams::m_music = false;// and music when profiling
-    }
-
     return 1;
 }   // handleCmdLine
 
@@ -1718,8 +1706,6 @@ void initRest()
         NewsManager::get();   // this will create the news manager
 #endif
 
-    music_manager = new MusicManager();
-    SFXManager::create();
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
     history                 = new History              ();
@@ -1747,7 +1733,6 @@ void initRest()
     }
 
     track_manager->loadTrackList();
-    music_manager->addMusicToTracks();
 
     GUIEngine::addLoadingIcon(irr_driver->getTexture(FileManager::GUI_ICON,
                                                      "notes.png"      ) );
@@ -2327,8 +2312,6 @@ static void cleanSuperTuxKart()
 
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
-    music_manager->stopMusic();
-    SFXManager::get()->stopThread();
     irr_driver->updateConfigIfRelevant();
     AchievementsManager::destroy();
     Referee::cleanup();
@@ -2383,17 +2366,6 @@ static void cleanSuperTuxKart()
     {
         Log::warn("Thread", "Request Manager not aborting in time, proceeding without cleanup.");
     }
-
-    if (!SFXManager::get()->waitForReadyToDeleted(2.0f))
-    {
-        Log::info("Thread", "SFXManager not stopping, exiting anyway.");
-    }
-    SFXManager::destroy();
-
-    // Music manager can not be deleted before the SFX thread is stopped
-    // (since SFX commands can contain music information, which are
-    // deleted by the music manager).
-    delete music_manager;
 
     // The add-ons manager might still be called from a currenty running request
     // in the request manager, so it can not be deleted earlier.

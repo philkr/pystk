@@ -1,13 +1,12 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.0)
 
 # root CMakeLists for the SuperTuxKart project
-project(SuperTuxKart)
+project(SuperTuxKart VERSION 1.0)
 set(PROJECT_VERSION "git")
 add_definitions( -DSUPERTUXKART_VERSION="${PROJECT_VERSION}" )
 
-if(NOT (CMAKE_MAJOR_VERSION VERSION_LESS 3))
-  cmake_policy(SET CMP0043 OLD)
-endif()
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
@@ -23,53 +22,6 @@ option(CHECK_ASSETS "Check if assets are installed in ../stk-assets" ON)
 option(USE_SYSTEM_ANGELSCRIPT "Use system angelscript instead of built-in angelscript. If you enable this option, make sure to use a compatible version." OFF)
 option(USE_SYSTEM_ENET "Use system ENET instead of the built-in version, when available." ON)
 option(USE_SYSTEM_GLEW "Use system GLEW instead of the built-in version, when available." ON)
-
-option(USE_CRYPTO_OPENSSL "Use OpenSSL instead of Nettle for cryptography in STK." OFF)
-CMAKE_DEPENDENT_OPTION(BUILD_RECORDER "Build opengl recorder" ON
-    "NOT SERVER_ONLY;NOT APPLE" OFF)
-CMAKE_DEPENDENT_OPTION(USE_FRIBIDI "Support for right-to-left languages" ON
-    "NOT SERVER_ONLY" OFF)
-CMAKE_DEPENDENT_OPTION(USE_WIIUSE "Support for wiimote input devices" ON
-    "NOT SERVER_ONLY;NOT MINGW;NOT CYGWIN" OFF)
-
-if(APPLE)
-    list(APPEND CMAKE_PREFIX_PATH /usr/local/opt)
-    include_directories(/usr/local/opt/fribidi/include/)
-    include_directories(/usr/local/opt/openssl@1.1/include/)
-    include_directories(/usr/local/opt/openssl@1.1/include/openssl/)
-    include_directories(/usr/local/opt/freetype/include/freetype2/)
-endif()
-
-if((UNIX AND NOT APPLE) AND NOT SERVER_ONLY)
-    option(ENABLE_WAYLAND_DEVICE "Enable Wayland device for linux build" ON)
-    
-    if((${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm") OR 
-       (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64"))
-        option(USE_GLES2 "Use OpenGL ES2 renderer" ON)
-    else()
-        option(USE_GLES2 "Use OpenGL ES2 renderer" OFF)
-    endif()
-
-endif()
-
-if(UNIX OR MINGW)
-    option(DEBUG_SYMBOLS "Compile with debug symbols" OFF)
-endif()
-
-if(MSVC AND (MSVC_VERSION LESS 1900))
-    # Normally hide the option to build wiiuse on VS, since it depends
-    # on the installation of the Windows DDK (Driver Developer Kit),
-    # which also needs an absolute path :(
-    option(WIIUSE_BUILD "Build wiiuse lib (only for developers)" OFF)
-    mark_as_advanced(WIIUSE_BUILD)
-else()
-    set(WIIUSE_BUILD ON)
-endif()
-
-if(UNIX AND NOT APPLE)
-    option(USE_ASAN   "Build with Leak/Address sanitizer" OFF)
-    option(USE_LIBBFD "Use libbfd for crash reporting and leak check" OFF)
-endif()
 
 set(STK_SOURCE_DIR "src")
 set(STK_DATA_DIR "${PROJECT_SOURCE_DIR}/data")
@@ -127,13 +79,6 @@ if(SERVER_ONLY)
     add_definitions(-DNO_IRR_COMPILE_WITH_X11_ -DNO_IRR_COMPILE_WITH_OPENGL_ -DNO_IRR_COMPILE_WITH_OSX_DEVICE_)
 endif()
 
-if(UNIX OR MINGW)
-    if(DEBUG_SYMBOLS)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
-    endif()
-endif()
-
 if(UNIX AND NOT APPLE)
     find_package(PkgConfig REQUIRED)
 
@@ -145,6 +90,10 @@ endif()
 # Build the Bullet physics library
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/bullet")
 include_directories("${PROJECT_SOURCE_DIR}/lib/bullet/src")
+
+# Build FreeType
+add_subdirectory("${PROJECT_SOURCE_DIR}/lib/freetype")
+include_directories(${FREETYPE_INCLUDES})
 
 # Find system ENet library or build it if missing
 if((UNIX AND NOT APPLE) AND USE_SYSTEM_ENET)
@@ -161,26 +110,17 @@ else()
 endif()
 
 # Find system GLEW library or build it if missing
-if (APPLE)
-    find_package(glew)
+if (APPLE AND FALSE)
+    find_package(glew REQUIRED)
 
     if(GLEW_FOUND)
         include_directories(${GLEW_INCLUDE_DIRS})
     endif()
-elseif(NOT USE_GLES2 AND NOT SERVER_ONLY)
+else()
     add_definitions(-DGLEW_NO_GLU)
-    if((UNIX AND NOT APPLE) AND USE_SYSTEM_GLEW)
-        pkg_check_modules(GLEW glew>=2.1)
-    endif()
-
-    if(GLEW_FOUND)
-        include_directories(${GLEW_INCLUDE_DIRS})
-    else()
-        # Fallback to built-in version silently
-        add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glew")
-        include_directories("${PROJECT_SOURCE_DIR}/lib/glew/include")
-        set(GLEW_LIBRARIES "glew")
-    endif()
+	add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glew")
+	include_directories("${PROJECT_SOURCE_DIR}/lib/glew/include")
+	set(GLEW_LIBRARIES "glew")
 endif()
 
 if(MSVC)
@@ -218,59 +158,18 @@ if (NOT SERVER_ONLY)
     endif()
 endif()
 
-if (BUILD_RECORDER)
-    find_library(OPENGLRECORDER_LIBRARY NAMES openglrecorder libopenglrecorder PATHS "${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib")
-    find_path(OPENGLRECORDER_INCLUDEDIR NAMES openglrecorder.h PATHS "${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/include")
-    if (NOT OPENGLRECORDER_LIBRARY OR NOT OPENGLRECORDER_INCLUDEDIR)
-        if(PROJECT_VERSION STREQUAL "git")
-            message(WARNING "libopenglrecorder not found, disabling in-game recorder. "
-                "To use recorder, install libopenglrecorder.")
-            set(OPENGLRECORDER_LIBRARY CACHE INTERNAL "")
-            set(OPENGLRECORDER_INCLUDEDIR CACHE INTERNAL "")
-            set(BUILD_RECORDER OFF)
-        else()
-            message(FATAL_ERROR "libopenglrecorder not found. "
-            "Either install libopenglrecorder or disable in-game recorder with -DBUILD_RECORDER=0")
-        endif()
-    else()
-        include_directories(${OPENGLRECORDER_INCLUDEDIR})
-        mark_as_advanced(OPENGLRECORDER_LIBRARY OPENGLRECORDER_INCLUDEDIR)
-        add_definitions(-DENABLE_RECORDER)
-    endif()
-endif()
-
 if(NOT SERVER_ONLY)
     add_subdirectory("${PROJECT_SOURCE_DIR}/lib/graphics_utils")
     include_directories("${PROJECT_SOURCE_DIR}/lib/graphics_utils")
-endif()
 
-if(NOT SERVER_ONLY)
-    find_library(SQUISH_LIBRARY NAMES squish libsquish)
-    find_path(SQUISH_INCLUDEDIR NAMES squish.h PATHS)
-    if (NOT SQUISH_LIBRARY OR NOT SQUISH_INCLUDEDIR)
-        add_subdirectory("${PROJECT_SOURCE_DIR}/lib/libsquish")
-        include_directories("${PROJECT_SOURCE_DIR}/lib/libsquish")
-        SET(SQUISH_LIBRARY squish)
-    else()
-        include_directories("${SQUISH_INCLUDEDIR}")
-        MESSAGE(STATUS "Use system libsquish: ${SQUISH_LIBRARY}")
-    endif()
+	add_subdirectory("${PROJECT_SOURCE_DIR}/lib/libsquish")
+	include_directories("${PROJECT_SOURCE_DIR}/lib/libsquish")
+	SET(SQUISH_LIBRARY squish)
 endif()
 
 # Build the irrlicht library
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/irrlicht")
 include_directories("${PROJECT_SOURCE_DIR}/lib/irrlicht/include")
-
-# Build the Wiiuse library
-# Note: wiiuse MUST be declared after irrlicht, since otherwise
-# (at least on VS) irrlicht will find wiiuse io.h file because
-# of the added include directory.
-if(USE_WIIUSE)
-    if(WIIUSE_BUILD)
-        add_subdirectory("${PROJECT_SOURCE_DIR}/lib/wiiuse")
-    endif()
-    include_directories("${PROJECT_SOURCE_DIR}/lib/wiiuse/src")
-endif()
 
 # Set include paths
 include_directories(${STK_SOURCE_DIR})
@@ -282,84 +181,14 @@ elseif(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")   # Enable multi-processor compilation (faster)
 endif()
 
-
-# Build the angelscript library if not in system
-if(USE_SYSTEM_ANGELSCRIPT)
-    find_package(Angelscript)
-    if(ANGELSCRIPT_FOUND)
-        include_directories(${Angelscript_INCLUDE_DIRS})
-    else()
-        message(FATAL_ERROR "Angelscript not found. "
-            "Either install angelscript or use built-in version using "
-            "-DUSE_SYSTEM_ANGELSCRIPT=0")
-    endif()
-else()
-    add_subdirectory("${PROJECT_SOURCE_DIR}/lib/angelscript/projects/cmake")
-    include_directories("${PROJECT_SOURCE_DIR}/lib/angelscript/include")
-    set(Angelscript_LIBRARIES angelscript)
-endif()
-
-if(NOT SERVER_ONLY)
-    # OpenAL
-    find_package(OpenAL REQUIRED)
-    include_directories(${OPENAL_INCLUDE_DIR})
-
-    # OggVorbis
-    find_package(OggVorbis REQUIRED)
-    include_directories(${OGGVORBIS_INCLUDE_DIRS})
-
-    add_definitions(-DENABLE_SOUND)
-endif()
-
-# Freetype
-if (NOT SERVER_ONLY)
-    find_package(Freetype)
-    if(FREETYPE_FOUND)
-        include_directories(${FREETYPE_INCLUDE_DIRS})
-    else()
-        message(FATAL_ERROR "Freetype not found. "
-            "Freetype is required to display characters in SuperTuxKart. ")
-    endif()
-endif()
-
-# Fribidi
-if(USE_FRIBIDI)
-    find_package(Fribidi)
-    if(FRIBIDI_FOUND)
-        include_directories(${FRIBIDI_INCLUDE_DIRS})
-    else()
-        message(FATAL_ERROR "Fribidi not found. "
-            "Either install fribidi or disable bidi support with -DUSE_FRIBIDI=0 "
-            "(if you don't use a right-to-left language then you don't need this).")
-    endif()
-endif()
+# Angel script
+add_subdirectory("${PROJECT_SOURCE_DIR}/lib/angelscript/projects/cmake")
+include_directories("${PROJECT_SOURCE_DIR}/lib/angelscript/include")
+set(Angelscript_LIBRARIES angelscript)
 
 # OpenGL
-if(NOT USE_GLES2 AND NOT SERVER_ONLY)
-    find_package(OpenGL REQUIRED)
-    include_directories(${OPENGL_INCLUDE_DIR})
-endif()
-
-if(USE_LIBBFD)
-    find_package(Libbfd)
-    if(LIBBFD_FOUND)
-        add_definitions(-DENABLE_LIBBFD)
-        include_directories(${LIBBFD_INCLUDE_DIRS})
-    else()
-        set(USE_LIBBFD OFF CACHE BOOL "Use libbfd for crash reporting and leak check" FORCE)
-        message(WARNING "Libbfd not found, disable integrated stack trace.")
-    endif()
-endif()
-
-# Set some compiler options
-if(UNIX OR MINGW)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
-endif()
-
-if(MINGW AND CMAKE_BUILD_TYPE MATCHES Release)
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
-endif()
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
 
 if(WIN32)
     # By default windows.h has macros defined for min and max that screw up everything
@@ -402,32 +231,16 @@ source_group_hierarchy(STK_SOURCES STK_HEADERS)
 
 
 if(APPLE)
-    # icon files to copy in the bundle
-    set(OSX_ICON_FILES ${PROJECT_SOURCE_DIR}/data/supertuxkart.icns)
-    set_source_files_properties(${OSX_ICON_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    set(STK_SOURCES ${STK_SOURCES} ${OSX_ICON_FILES})
-
     # build the executable and create an app bundle
-    add_executable(supertuxkart MACOSX_BUNDLE ${STK_SOURCES})
+#    add_executable(supertuxkart MACOSX_BUNDLE ${STK_SOURCES})
+    add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
 
-    find_library(IOKIT_LIBRARY IOKit)
-    find_library(COCOA_LIBRARY Cocoa)
+#    find_library(IOKIT_LIBRARY IOKit)
+#    find_library(COCOA_LIBRARY Cocoa)
 
-    target_link_libraries(supertuxkart
-         ${IOKIT_LIBRARY}
-         ${COCOA_LIBRARY})
-
-    # configure CMake to use a custom Info.plist
-    set_target_properties(supertuxkart PROPERTIES
-        MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/data/SuperTuxKart-Info.plist)
-
-    if(CMAKE_GENERATOR MATCHES "Xcode")
-        add_custom_command(TARGET supertuxkart POST_BUILD
-            COMMAND ln -f -s ${PROJECT_SOURCE_DIR}/data ${CMAKE_BINARY_DIR}/bin/\${CONFIGURATION}/supertuxkart.app/Contents/Resources)
-    else()
-        add_custom_command(TARGET supertuxkart POST_BUILD
-            COMMAND ln -f -s ${PROJECT_SOURCE_DIR}/data ${CMAKE_BINARY_DIR}/bin/supertuxkart.app/Contents/Resources)
-    endif()
+#    target_link_libraries(supertuxkart
+#         ${IOKIT_LIBRARY}
+#         ${COCOA_LIBRARY})
 else()
     if(MSVC)
         set(PTHREAD_NAMES pthreadVC2)
@@ -454,47 +267,6 @@ else()
     target_link_libraries(supertuxkart ${PTHREAD_LIBRARY})
 endif()
 
-# CURL and OpenSSL or Nettle
-# 1.0.1d for compatible AES GCM handling
-SET(OPENSSL_MINIMUM_VERSION "1.0.1d")
-if(MSVC)
-    set(USE_CRYPTO_OPENSSL ON)
-    target_link_libraries(supertuxkart ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib/libcurl.lib)
-    target_link_libraries(supertuxkart ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib/libeay32.lib)
-elseif(MINGW)
-    set(USE_CRYPTO_OPENSSL ON)
-    target_link_libraries(supertuxkart ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib/libcurldll.a)
-    target_link_libraries(supertuxkart ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib/libeay32.dll)
-else()
-    find_package(CURL REQUIRED)
-    include_directories(${CURL_INCLUDE_DIRS})
-
-    find_path(NETTLE_INCLUDE_DIRS nettle/version.h)
-    find_library(NETTLE_LIBRARY NAMES nettle libnettle)
-
-    if (NOT NETTLE_INCLUDE_DIRS OR NOT NETTLE_LIBRARY OR USE_CRYPTO_OPENSSL)
-        set(USE_CRYPTO_OPENSSL ON)
-        find_package(OpenSSL REQUIRED)
-
-        if(${OPENSSL_VERSION} VERSION_LESS ${OPENSSL_MINIMUM_VERSION} OR
-            (${OPENSSL_VERSION} VERSION_EQUAL ${OPENSSL_MINIMUM_VERSION} AND ${OPENSSL_VERSION} STRLESS ${OPENSSL_MINIMUM_VERSION}))
-            message(FATAL_ERROR "OpenSSL version found (${OPENSSL_VERSION}) is less then the minimum required (${OPENSSL_MINIMUM_VERSION}), aborting.")
-        endif()
-        include_directories(${OpenSSL_INCLUDE_DIRS})
-    else()
-        set(USE_CRYPTO_OPENSSL OFF)
-        include_directories(${NETTLE_INCLUDE_DIRS})
-    endif()
-endif()
-
-if (USE_CRYPTO_OPENSSL)
-    message(STATUS "OpenSSL will be used for cryptography in STK.")
-    add_definitions(-DENABLE_CRYPTO_OPENSSL)
-else()
-    message(STATUS "Nettle will be used for cryptography in STK.")
-    add_definitions(-DENABLE_CRYPTO_NETTLE)
-endif()
-
 # Common library dependencies
 target_link_libraries(supertuxkart
     bulletdynamics
@@ -506,40 +278,14 @@ target_link_libraries(supertuxkart
     ${CURL_LIBRARIES}
     )
 
-if (USE_CRYPTO_OPENSSL)
-    target_link_libraries(supertuxkart ${OPENSSL_CRYPTO_LIBRARY})
-else()
-    target_link_libraries(supertuxkart ${NETTLE_LIBRARY})
-endif()
-
 if(NOT SERVER_ONLY)
-    if(NOT USE_GLES2)
-        target_link_libraries(supertuxkart ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES})
-    else()
-        target_link_libraries(supertuxkart GLESv2)
-    endif()
+	target_link_libraries(supertuxkart ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES})
 
     target_link_libraries(supertuxkart
-        ${SQUISH_LIBRARY}
-        ${FREETYPE_LIBRARIES}
-        ${JPEG_LIBRARIES}
-        ${OGGVORBIS_LIBRARIES}
-        ${OPENAL_LIBRARY}
+       ${SQUISH_LIBRARY}
+       ${FREETYPE_LIBRARIES}
+#        ${JPEG_LIBRARIES}
         graphics_utils)
-endif()
-
-if(UNIX AND NOT APPLE)
-    if(USE_LIBBFD)
-        target_link_libraries(supertuxkart ${LIBBFD_LIBRARIES})
-    endif()
-    if(USE_ASAN)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-        target_link_libraries(supertuxkart "-fsanitize=address")
-    endif()
-endif()
-
-if(BUILD_RECORDER)
-    target_link_libraries(supertuxkart ${OPENGLRECORDER_LIBRARY})
 endif()
 
 # FreeBSD does not search in /usr/local/lib, but at least Freetype is installed there :(
@@ -547,30 +293,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
-if(USE_FRIBIDI)
-    target_link_libraries(supertuxkart ${FRIBIDI_LIBRARIES})
-    add_definitions(-DENABLE_BIDI)
-endif()
-
-# Wiiuse
-# ------
-if(USE_WIIUSE)
-    if(APPLE)
-        find_library(BLUETOOTH_LIBRARY NAMES IOBluetooth PATHS /Developer/Library/Frameworks/IOBluetooth.framework)
-        target_link_libraries(supertuxkart wiiuse ${BLUETOOTH_LIBRARY})
-    elseif(WIN32)
-        add_definitions(-DWIIUSE_STATIC)
-        if(WIIUSE_BUILD)
-            target_link_libraries(supertuxkart wiiuse)
-        else()
-            target_link_libraries(supertuxkart ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib/wiiuse.lib)
-        endif()
-    else()
-        target_link_libraries(supertuxkart wiiuse bluetooth)
-    endif()
-    add_definitions(-DENABLE_WIIUSE)
-
-endif()
 
 if(MSVC OR MINGW)
   target_link_libraries(supertuxkart iphlpapi.lib)
@@ -611,6 +333,9 @@ if(CHECK_ASSETS)
        (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data/textures) AND
        (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data/tracks))
     message(STATUS "Assets found in data directory")
+  elseif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/stk-assets)
+    set(STK_ASSETS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/stk-assets/)
+    message(STATUS "Assets found")
   elseif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../stk-assets)
     set(STK_ASSETS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../stk-assets/)
     message(STATUS "Assets found")

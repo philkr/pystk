@@ -51,7 +51,6 @@ typedef unsigned char uchar;
 
 class BareNetworkString
 {
-friend class Crypto;
 private:
     LEAK_CHECK();
 

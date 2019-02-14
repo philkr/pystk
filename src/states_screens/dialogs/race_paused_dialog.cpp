@@ -19,8 +19,6 @@
 
 #include <string>
 
-#include "audio/music_manager.hpp"
-#include "audio/sfx_manager.hpp"
 #include "config/user_config.hpp"
 #include "guiengine/engine.hpp"
 #include "guiengine/scalable_font.hpp"
@@ -71,8 +69,6 @@ RacePausedDialog::RacePausedDialog(const float percentWidth,
 
     if (NetworkConfig::get()->isNetworking())
     {
-        music_manager->pauseMusic();
-        SFXManager::get()->pauseAll();
         m_text_box->clearListeners();
         if (UserConfigParams::m_lobby_chat)
         {
@@ -104,8 +100,6 @@ RacePausedDialog::~RacePausedDialog()
 {
     if (NetworkConfig::get()->isNetworking())
     {
-        music_manager->resumeMusic();
-        SFXManager::get()->resumeAll();
     }
     else
     {

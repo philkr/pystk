@@ -18,7 +18,6 @@
 #include "modes/three_strikes_battle.hpp"
 
 #include "main_loop.hpp"
-#include "audio/music_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/irr_driver.hpp"
@@ -292,7 +291,6 @@ bool ThreeStrikesBattle::kartHit(int kart_id, int hitter)
     // when almost over, use fast music
     if (num_karts_many_lives<=1 && !m_faster_music_active)
     {
-        music_manager->switchToFastMusic();
         m_faster_music_active = true;
     }
 

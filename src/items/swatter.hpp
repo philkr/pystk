@@ -34,7 +34,6 @@ using namespace irr;
 class AbstractKart;
 class Item;
 class Moveable;
-class SFXBase;
 
 /**
   * \ingroup items
@@ -58,8 +57,6 @@ private:
     Moveable          *m_target;
 
     AbstractKart      *m_closest_kart;
-
-    SFXBase           *m_swat_sound;
 
     /** Set the end ticks to complete the removing an attached bomb animation. */
     int                m_removed_bomb_ticks;

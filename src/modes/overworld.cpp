@@ -17,7 +17,6 @@
 
 #include "modes/overworld.hpp"
 
-#include "audio/music_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -125,10 +124,6 @@ void OverWorld::update(int ticks)
         // Normally done in WorldStatus::update(), during phase SET_PHASE,
         // so we have to start music 'manually', since we skip all phases.
         Track::getCurrentTrack()->startMusic();
-
-        if (UserConfigParams::m_music)
-            music_manager->startMusic();
-        m_karts[0]->startEngineSFX();
     }
     World::update(ticks);
     World::updateTrack(ticks);
