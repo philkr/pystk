@@ -19,134 +19,6 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-/**
- * \mainpage SuperTuxKart developer documentation
- *
- * This document contains the developer documentation for SuperTuxKart,
- * including the list of modules, the list of classes, the API reference,
- * and some pages that describe in more depth some parts of the code/engine.
- *
- * \section Overview
- *
- * Here is an overview of the high-level interactions between modules :
- \dot
- digraph interaction {
-# race -> modes
- race -> tracks
- race -> karts
-# modes -> tracks
-# modes -> karts
- tracks -> graphics
- karts -> graphics
- tracks -> items
- items -> graphics
- animations -> graphics
- graphics -> "Antarctica/irrlicht"
-# guiengine -> irrlicht
-# states_screens -> guiengine
-# input -> states_screens
- input -> guiengine
- guiengine -> font_system
- karts -> physics
- physics -> karts
- tracks -> physics
- ai -> controller
- controller -> karts
- input -> controller
- tracks -> animations
- physics -> animations
- animations -> physics
- karts -> audio
- physics -> audio
- "translations\n(too many connections\nto draw)"
- "configuration\n(too many connections\nto draw)"
- addons -> tracks
- addons -> karts
- guiengine -> addons
- guiengine -> race
- addons -> online_manager
- challenges -> race
-# challenges -> modes
- guiengine -> challenges
- online_manager -> addons
- online_manager -> "STK Server"
- "STK Server" -> online_manager
- karts -> replay
- replay 
- # force karts and tracks on the same level, looks better this way
- subgraph { 
-  rank = same; karts; tracks; 
- } 
-
-}
- \enddot
-
- Note that this graph is only an approximation because the real one would be
- much too complicated :)
-
-
- \section Modules
-
- \li \ref addonsgroup :
-   Handles add-ons that can be downloaded.
- \li \ref animations :
-   This module manages interpolation-based animation (of position, rotation
-   and/or scale)
- \li \ref audio :
-   This module handles audio (sound effects and music).
- \li \ref challenges :
-   This module handles the challenge system, which locks features (tracks, karts
-   modes, etc.) until the user completes some task.
- \li \ref config :
-   This module handles the user configuration, the supertuxkart configuration
-   file (which contains options usually not edited by the player) and the input
-   configuration file.
- \li \ref font :
-   This module stores font files and tools used to draw characters in STK.
- \li \ref graphics :
-   This module contains the core graphics engine, that is mostly a thin layer
-   on top of irrlicht providing some additional features we need for STK
-   (like particles, more scene node types, mesh manipulation tools, material
-   management, etc...)
- \li \ref guiengine :
-   Contains the generic GUI engine (contains the widgets and the backing logic
-   for event handling, the skin, screens and dialogs). See module @ref states_screens
-   for the actual STK GUI screens. Note that all input comes through this module
-   too.
- \li \ref widgetsgroup :
-   Contains the various types of widgets supported by the GUI engine.
- \li \ref input :
-   Contains classes for input management (keyboard and gamepad)
- \li \ref io :
-  Contains generic utility classes for file I/O (especially XML handling).
- \li \ref items :
-   Defines the various collectibles and weapons of STK.
- \li \ref karts :
-   Contains classes that deal with the properties, models and physics
-   of karts.
- \li \ref controller :
-   Contains kart controllers, which are either human players or AIs
-   (this module thus contains the AIs)
- \li \ref modes :
-   Contains the logic for the various game modes (race, follow the leader,
-   battle, etc.)
- \li \ref physics :
-   Contains various physics utilities.
- \li \ref race :
-   Contains the race information that is conceptually above what you can find
-   in group Modes. Handles highscores, grands prix, number of karts, which
-   track was selected, etc.
- \li \ref states_screens :
-   Contains the various screens and dialogs of the STK user interface,
-   using the facilities of the guiengine module. Also contains the
-   stack of menus and handles state management (in-game vs menu).
- \li \ref tracks :
-   Contains information about tracks, namely drivelines, checklines and track
-   objects.
- \li \ref tutorial :
-   Work in progress
- */
-
 #ifdef WIN32
 #  ifdef __CYGWIN__
 #    include <unistd.h>
@@ -252,14 +124,160 @@
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
 
-static void cleanSuperTuxKart();
-static void cleanUserConfig();
+struct PySTKConfig {
+	int screen_width=600, screen_height=400;
+	bool glow = true, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
+	int particles_effects = 2;
+	bool animated_characters = true;
+	bool motionblur = true;
+	bool mlaa = true;
+	bool texture_compression = true;
+	bool ssao = true;
+	bool degraded_IBL = true;
+	int high_definition_textures = 2 | 1;
+	
+	int difficulty = 2;
+	RaceManager::MinorRaceModeType mode = RaceManager::MINOR_MODE_NORMAL_RACE;
+	std::string kart, track;
+	int laps = 3;
+	int seed = 0;
+};
+
+class PySuperTuxKart {
+protected:
+	static int n_running;
+	void setupConfig(const PySTKConfig & config);
+	void load();
+	void setupRaceStart();
+
+protected:
+	static void initRest();
+	static void initUserConfig();
+	static void cleanSuperTuxKart();
+	static void cleanUserConfig();
+public:
+	static void init() {
+		initUserConfig();
+		stk_config->load(file_manager->getAsset("stk_config.xml"));
+		initRest();
+	}
+	static void clean() {
+		if (input_manager) {
+			delete input_manager;
+			input_manager = NULL;
+		}
+		cleanSuperTuxKart();
+		Log::flushBuffers();
+
+	#ifndef WIN32
+		if (user_config) //close logfiles
+		{
+			Log::closeOutputFiles();
+	#endif
+	#ifndef ANDROID
+			fclose(stderr);
+			fclose(stdout);
+	#endif
+	#ifndef WIN32
+		}
+	#endif
+		delete file_manager;
+	}
+	static int nRunning() { return n_running; }
+public:
+	PySuperTuxKart(const PySTKConfig & config) {
+		if (n_running > 0)
+			throw std::invalid_argument("Cannot run more than one supertux instance per process!");
+		n_running++;
+		
+		setupConfig(config);
+		
+		load();
+	}
+	void start() {
+		setupRaceStart();
+		StateManager::get()->enterGameState();
+		race_manager->setupPlayerKartInfo();
+		race_manager->startNew(false);
+		
+		// TODO: Replace this with stepping
+        main_loop->run();
+	}
+	
+	~PySuperTuxKart() {
+		n_running--;
+		StateManager::get()->resetActivePlayers();
+	}
+
+
+};
+int PySuperTuxKart::n_running = 0;
+
+
+void PySuperTuxKart::load() {
+	input_manager = new InputManager ();
+
+	// Get into menu mode initially.
+	input_manager->setMode(InputManager::MENU);
+	main_loop = new MainLoop(0/*parent_pid*/);
+	material_manager->loadMaterial();
+
+	// Preload the explosion effects (explode.png)
+	ParticleKindManager::get()->getParticles("explosion.xml");
+
+	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
+														"options_video.png"));
+	kart_properties_manager -> loadAllKarts    ();
+
+	// Needs the kart and track directories to load potential challenges
+	// in those dirs, so it can only be created after reading tracks
+	// and karts.
+	unlock_manager = new UnlockManager();
+	AchievementsManager::create();
+
+	// Reading the rest of the player data needs the unlock manager to
+	// initialise the game slots of all players and the AchievementsManager
+	// to initialise the AchievementsStatus, so it is done only now.
+	PlayerManager::get()->initRemainingData();
+
+	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
+														"gui_lock.png"  ) );
+	projectile_manager->loadData();
+
+	// Both item_manager and powerup_manager load models and therefore
+	// textures from the model directory. To avoid reading the
+	// materials.xml twice, we do this here once for both:
+	file_manager->pushTextureSearchPath(file_manager->getAsset(FileManager::MODEL,""), "models");
+	const std::string materials_file =
+		file_manager->getAsset(FileManager::MODEL,"materials.xml");
+	if(materials_file!="")
+	{
+		// Some of the materials might be needed later, so just add
+		// them all permanently (i.e. as shared). Adding them temporary
+		// will actually not be possible: powerup_manager adds some
+		// permanent icon materials, which would (with the current
+		// implementation) make the temporary materials permanent anyway.
+		material_manager->addSharedMaterial(materials_file);
+	}
+	Referee::init();
+	powerup_manager->loadPowerupsModels();
+	ItemManager::loadDefaultItemMeshes();
+
+	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
+														"gift.png")       );
+
+	attachment_manager->loadModels();
+	file_manager->popTextureSearchPath();
+
+	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
+														"banana.png")    );
+}
 
 // ============================================================================
 /** This function sets up all data structure for an immediate race start.
  *  It is used when the -N or -R command line options are used.
  */
-void setupRaceStart()
+void PySuperTuxKart::setupRaceStart()
 {
     // Skip the start screen. This esp. means that no login screen is
     // displayed (if necessary), so we have to make sure there is
@@ -296,25 +314,7 @@ void setupRaceStart()
 }   // setupRaceStart
 
 
-struct PySTKConfig {
-	int screen_width=600, screen_height=400;
-	bool glow = true, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
-	int particles_effects = 2;
-	bool animated_characters = true;
-	bool motionblur = true;
-	bool mlaa = true;
-	bool texture_compression = true;
-	bool ssao = true;
-	bool degraded_IBL = true;
-	int high_definition_textures = 2 | 1;
-	
-	int difficulty = 2;
-	RaceManager::MinorRaceModeType mode = RaceManager::MINOR_MODE_NORMAL_RACE;
-	std::string kart, track;
-	int laps = 3;
-};
-
-int setupConfig(const PySTKConfig & config) {
+void PySuperTuxKart::setupConfig(const PySTKConfig & config) {
 	UserConfigParams::m_fullscreen = false;
 	UserConfigParams::m_prev_width  = UserConfigParams::m_width  = config.screen_width;
 	UserConfigParams::m_prev_height = UserConfigParams::m_height = config.screen_height;
@@ -336,25 +336,27 @@ int setupConfig(const PySTKConfig & config) {
 	race_manager->setDifficulty(RaceManager::Difficulty(config.difficulty));
 	race_manager->setMinorMode(config.mode);
 	
-	const KartProperties *prop = kart_properties_manager->getKart(config.kart);
-	if (prop)
-	{
-		UserConfigParams::m_default_kart = config.kart;
-
-		// if a player was added with -N, change its kart.
-		// Otherwise, nothing to do, kart choice will be picked
-		// up upon player creation.
-		if (StateManager::get()->activePlayerCount() > 0)
+	if (config.kart.length()) {
+		const KartProperties *prop = kart_properties_manager->getKart(config.kart);
+		if (prop)
 		{
-			race_manager->setPlayerKart(0, config.kart);
+			UserConfigParams::m_default_kart = config.kart;
+
+			// if a player was added with -N, change its kart.
+			// Otherwise, nothing to do, kart choice will be picked
+			// up upon player creation.
+			if (StateManager::get()->activePlayerCount() > 0)
+			{
+				race_manager->setPlayerKart(0, config.kart);
+			}
+			Log::verbose("main", "You chose to use kart '%s'.",
+							config.kart.c_str());
 		}
-		Log::verbose("main", "You chose to use kart '%s'.",
+		else
+		{
+			Log::warn("main", "Kart '%s' not found, ignored.",
 						config.kart.c_str());
-	}
-	else
-	{
-		Log::warn("main", "Kart '%s' not found, ignored.",
-					config.kart.c_str());
+		}
 	}
 	if (config.track.length())
 		race_manager->setTrack(config.track);
@@ -373,7 +375,7 @@ int setupConfig(const PySTKConfig & config) {
 //=============================================================================
 /** Initialises the minimum number of managers to get access to user_config.
  */
-void initUserConfig()
+void PySuperTuxKart::initUserConfig()
 {
     file_manager = new FileManager();
     user_config  = new UserConfig();     // needs file_manager
@@ -399,7 +401,7 @@ void initUserConfig()
 }   // initUserConfig
 
 //=============================================================================
-void initRest()
+void PySuperTuxKart::initRest()
 {
     SP::setMaxTextureSize();
     irr_driver = new IrrDriver();
@@ -498,210 +500,22 @@ void initRest()
 
 }   // initRest
 
-//=============================================================================
-
-#if defined(WIN32) && defined(_MSC_VER)
-    #ifdef DEBUG
-        #pragma comment(linker, "/SUBSYSTEM:console")
-    #else
-        #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-    #endif
-#endif
-
-// ----------------------------------------------------------------------------
-#ifdef ANDROID
-extern "C"
-{
-#endif
-void main_abort()
-{
-    if (main_loop)
-    {
-        main_loop->requestAbort();
-    }
-}
-#ifdef ANDROID
-}
-#endif
-
 // ----------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
-    CommandLine::init(argc, argv);
-
-    CrashReporting::installHandlers();
-#ifndef WIN32
-    signal(SIGTERM, [](int signum)
-        {
-            main_abort();
-        });
-#endif
-    srand(( unsigned ) time( 0 ));
-
-    try
-    {
-        // Init the minimum managers so that user config exists, then
-        // handle all command line options that do not need (or must
-        // not have) other managers initialised:
-        initUserConfig();
-        stk_config->load(file_manager->getAsset("stk_config.xml"));
-        if (!ProfileWorld::isNoGraphics())
-            profiler.init();
-        initRest();
-
-
+	PySuperTuxKart::init();
+	{
 		PySTKConfig config;
-		
-		// TODO: Load the config
-		
-        setupConfig(config);
-
-        input_manager = new InputManager ();
-
-        // Get into menu mode initially.
-        input_manager->setMode(InputManager::MENU);
-		main_loop = new MainLoop(0/*parent_pid*/);
-        material_manager->loadMaterial();
-
-        // Preload the explosion effects (explode.png)
-        ParticleKindManager::get()->getParticles("explosion.xml");
-
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "options_video.png"));
-        kart_properties_manager -> loadAllKarts    ();
-
-        // Needs the kart and track directories to load potential challenges
-        // in those dirs, so it can only be created after reading tracks
-        // and karts.
-        unlock_manager = new UnlockManager();
-        AchievementsManager::create();
-
-        // Reading the rest of the player data needs the unlock manager to
-        // initialise the game slots of all players and the AchievementsManager
-        // to initialise the AchievementsStatus, so it is done only now.
-        PlayerManager::get()->initRemainingData();
-
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "gui_lock.png"  ) );
-        projectile_manager->loadData();
-
-        // Both item_manager and powerup_manager load models and therefore
-        // textures from the model directory. To avoid reading the
-        // materials.xml twice, we do this here once for both:
-        file_manager->pushTextureSearchPath(file_manager->getAsset(FileManager::MODEL,""), "models");
-        const std::string materials_file =
-            file_manager->getAsset(FileManager::MODEL,"materials.xml");
-        if(materials_file!="")
-        {
-            // Some of the materials might be needed later, so just add
-            // them all permanently (i.e. as shared). Adding them temporary
-            // will actually not be possible: powerup_manager adds some
-            // permanent icon materials, which would (with the current
-            // implementation) make the temporary materials permanent anyway.
-            material_manager->addSharedMaterial(materials_file);
-        }
-        Referee::init();
-        powerup_manager->loadPowerupsModels();
-        ItemManager::loadDefaultItemMeshes();
-
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "gift.png")       );
-
-        attachment_manager->loadModels();
-        file_manager->popTextureSearchPath();
-
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "banana.png")    );
-/*
-
-#ifndef SERVER_ONLY
-        if (!ProfileWorld::isNoGraphics())
-        {
-            addons_manager->checkInstalledAddons();
-
-            // Load addons.xml to get info about add-ons even when not
-            // allowed to access the Internet
-            if (UserConfigParams::m_internet_status !=
-                Online::RequestManager::IPERM_ALLOWED)
-            {
-                std::string xml_file = file_manager->getAddonsFile("addonsX.xml");
-                if (file_manager->fileExists(xml_file))
-                {
-                    try
-                    {
-                        const XMLNode *xml = new XMLNode(xml_file);
-                        addons_manager->initAddons(xml);
-                    }
-                    catch (std::runtime_error& e)
-                    {
-                        Log::warn("Addons", "Exception thrown when initializing add-ons manager : %s", e.what());
-                    }
-                }
-            }
-        }
-#endif*/
-/*
-        if(UserConfigParams::m_unit_testing)
-        {
-            runUnitTests();
-            exit(0);
-        }*/
-
-		setupRaceStart();
-            // Go straight to the race
-		StateManager::get()->enterGameState();
-		
-		race_manager->setupPlayerKartInfo();
-		race_manager->startNew(false);
-        main_loop->run();
-
-    }  // try
-    catch (std::exception &e)
-    {
-        Log::flushBuffers();
-        Log::error("main", "Exception caught : %s.",e.what());
-        Log::error("main", "Aborting SuperTuxKart.");
-        Log::flushBuffers();
-    }
-
-    /* Program closing...*/
-
-    // If the window was closed in the middle of a race, remove players,
-    // so we don't crash later when StateManager tries to access input devices.
-    StateManager::get()->resetActivePlayers();
-    if (input_manager)
-    {
-        delete input_manager;
-        input_manager = NULL;
-    }
-
-    if (STKHost::existHost())
-        STKHost::get()->shutdown();
-
-    cleanSuperTuxKart();
-    NetworkConfig::destroy();
-
-#ifdef DEBUG
-    MemoryLeaks::checkForLeaks();
-#endif
-
-    Log::flushBuffers();
-
-#ifndef WIN32
-    if (user_config) //close logfiles
-    {
-        Log::closeOutputFiles();
-#endif
-#ifndef ANDROID
-        fclose(stderr);
-        fclose(stdout);
-#endif
-#ifndef WIN32
-    }
-#endif
-
-    delete file_manager;
-
+		PySuperTuxKart kart(config);
+	}
+	{
+		PySTKConfig config;
+		PySuperTuxKart kart(config);
+		kart.start();
+	}
+	
+	
+	PySuperTuxKart::clean();
     return 0 ;
 }   // main
 
@@ -718,7 +532,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 //=============================================================================
 /** Frees all manager and their associated memory.
  */
-static void cleanSuperTuxKart()
+void PySuperTuxKart::cleanSuperTuxKart()
 {
 
     delete main_loop;
@@ -800,7 +614,7 @@ static void cleanSuperTuxKart()
 /**
  * Frees all the memory of initUserConfig()
  */
-static void cleanUserConfig()
+void PySuperTuxKart::cleanUserConfig()
 {
     if(stk_config)              delete stk_config;
     if(translations)            delete translations;
