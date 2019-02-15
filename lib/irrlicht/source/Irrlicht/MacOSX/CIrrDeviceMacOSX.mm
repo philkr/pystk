@@ -8,7 +8,7 @@
 #ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
 
 #import <Cocoa/Cocoa.h>
-#import <OpenGL/gl.h>
+#import <glproxy/gl.h>
 #ifndef __MAC_10_6
 #import <Carbon/Carbon.h>
 #endif

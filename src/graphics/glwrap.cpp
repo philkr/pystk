@@ -33,37 +33,8 @@
 #include <string>
 #include <sstream>
 
-#ifdef DEBUG
-#if !defined(__APPLE__) && !defined(ANDROID)
-#define ARB_DEBUG_OUTPUT
-#endif
-#endif
-
 #if defined(USE_GLES2)
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
-#ifdef ARB_DEBUG_OUTPUT
-#define GL_DEBUG_SEVERITY_HIGH_ARB            GL_DEBUG_SEVERITY_HIGH_KHR
-#define GL_DEBUG_SEVERITY_LOW_ARB             GL_DEBUG_SEVERITY_LOW_KHR
-#define GL_DEBUG_SEVERITY_MEDIUM_ARB          GL_DEBUG_SEVERITY_MEDIUM_KHR
-#define GL_DEBUG_SOURCE_API_ARB               GL_DEBUG_SOURCE_API_KHR
-#define GL_DEBUG_SOURCE_APPLICATION_ARB       GL_DEBUG_SOURCE_APPLICATION_KHR
-#define GL_DEBUG_SOURCE_OTHER_ARB             GL_DEBUG_SOURCE_OTHER_KHR
-#define GL_DEBUG_SOURCE_SHADER_COMPILER_ARB   GL_DEBUG_SOURCE_SHADER_COMPILER_KHR
-#define GL_DEBUG_SOURCE_THIRD_PARTY_ARB       GL_DEBUG_SOURCE_THIRD_PARTY_KHR
-#define GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB     GL_DEBUG_SOURCE_WINDOW_SYSTEM_KHR
-#define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_KHR
-#define GL_DEBUG_TYPE_ERROR_ARB               GL_DEBUG_TYPE_ERROR_KHR
-#define GL_DEBUG_TYPE_OTHER_ARB               GL_DEBUG_TYPE_OTHER_KHR
-#define GL_DEBUG_TYPE_PERFORMANCE_ARB         GL_DEBUG_TYPE_PERFORMANCE_KHR
-#define GL_DEBUG_TYPE_PORTABILITY_ARB         GL_DEBUG_TYPE_PORTABILITY_KHR
-#define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB  GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_KHR
-
-#define GLDEBUGPROCARB GLDEBUGPROCKHR
-PFNGLDEBUGMESSAGECALLBACKKHRPROC pglDebugMessageCallbackKHR;
-#define glDebugMessageCallbackARB pglDebugMessageCallbackKHR
-#endif
+#include <glproxy/egl.h>
 #endif
 
 static bool is_gl_init = false;
@@ -175,48 +146,6 @@ void initGL()
         
     is_gl_init = true;
     // For Mesa extension reporting
-#if !defined(USE_GLES2)
-#ifndef WIN32
-    glewExperimental = GL_TRUE;
-#endif
-    GLenum err = glewInit();
-    
-    if (err == GLEW_ERROR_NO_GLX_DISPLAY)
-    {
-        Log::info("GLEW", "Glew couldn't open glx display.");
-    }
-    else if (err != GLEW_OK)
-    {
-        Log::fatal("GLEW", "Glew initialization failed with error %s", glewGetErrorString(err));
-    }
-#else
-#ifdef ARB_DEBUG_OUTPUT
-    glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKKHRPROC)eglGetProcAddress("glDebugMessageCallbackKHR");
-#endif
-#endif
-
-#ifdef ARB_DEBUG_OUTPUT
-    if (glDebugMessageCallbackARB)
-        glDebugMessageCallbackARB((GLDEBUGPROCARB)debugCallback, NULL);
-#endif
-
-#ifndef ANDROID
-    if (SP::sp_apitrace && hasGLExtension("GL_KHR_debug"))
-    {
-#ifdef USE_GLES2
-        glDebugMessageControl = (void(GL_APIENTRY*)(GLenum, GLenum, GLenum, GLsizei,
-            const GLuint*, GLboolean))eglGetProcAddress("glDebugMessageControlKHR");
-        glDebugMessageInsert = (void(GL_APIENTRY*)(GLenum, GLenum, GLuint, GLenum,
-            GLsizei, const char*))eglGetProcAddress("glDebugMessageInsertKHR");
-        assert(glDebugMessageControl && glDebugMessageInsert);
-#endif
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-    }
-    else
-    {
-        SP::sp_apitrace = false;
-    }
-#endif
 }
 
 ScopedGPUTimer::ScopedGPUTimer(GPUTimer &t) : timer(t)

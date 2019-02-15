@@ -16,57 +16,20 @@
 	// include windows headers for HWND
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-	#endif
-	#include <GL/gl.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#include "glext.h"
-	#endif
-	#include "wglext.h"
-
-	#ifdef _MSC_VER
-		#pragma comment(lib, "OpenGL32.lib")
-	#endif
-
+	#include <glproxy/gl.h>
+	#include <glproxy/wgl.h>
 #elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
 	#include "MacOSX/CIrrDeviceMacOSX.h"
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-	#endif
-	#include <OpenGL/gl.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#include "glext.h"
-	#endif
+	#include <glproxy/gl.h>
 #elif defined(_IRR_COMPILE_WITH_SDL_DEVICE_) && !defined(_IRR_COMPILE_WITH_X11_DEVICE_)
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-		#define GLX_GLXEXT_LEGACY 1
-	#else
-		#define GL_GLEXT_PROTOTYPES 1
-		#define GLX_GLXEXT_PROTOTYPES 1
-	#endif
 	#define NO_SDL_GLEXT
 	#include <SDL/SDL_video.h>
 	#include <SDL/SDL_opengl.h>
         typedef void (APIENTRYP PFNGLBLENDEQUATIONPROC) (GLenum mode);
-	#include "glext.h"
+	#include "glproxy/gl.h"
 #else
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-		#define GL_GLEXT_LEGACY 1
-		#define GLX_GLXEXT_LEGACY 1
-	#else
-		#define GL_GLEXT_PROTOTYPES 1
-		#define GLX_GLXEXT_PROTOTYPES 1
-	#endif
-	#include <GL/gl.h>
-	#include <GL/glx.h>
-	#if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-        typedef void (APIENTRYP PFNGLBLENDEQUATIONPROC) (GLenum mode);
-	#include <GL/glext.h>
-	#undef GLX_ARB_get_proc_address // avoid problems with local glxext.h
-	#include <GL/glxext.h>
-	#endif
+	#include <glproxy/gl.h>
+	#include <glproxy/glx.h>
 #endif
 
 #ifndef GL_ARB_shader_objects

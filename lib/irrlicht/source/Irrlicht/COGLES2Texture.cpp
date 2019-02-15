@@ -23,7 +23,7 @@
 #if !defined(_IRR_COMPILE_WITH_IPHONE_DEVICE_)
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#include <EGL/egl.h>
+#include <glproxy/egl.h>
 #endif
 
 namespace

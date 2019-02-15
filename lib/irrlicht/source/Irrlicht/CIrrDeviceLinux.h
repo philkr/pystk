@@ -19,7 +19,7 @@
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 #define GLX_GLXEXT_LEGACY 1
-#include <GL/glx.h>
+#include <glproxy/glx.h>
 #endif
 
 #include <X11/Xlib.h>

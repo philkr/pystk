@@ -1,0 +1,44 @@
+version: 2.99.{build}
+pull_requests:
+  do_not_increment_build_number: true
+branches:
+  except:
+  - coverity_scan
+  - gh_pages
+skip_tags: true
+image:
+  - Visual Studio 2015
+configuration:
+  - Debug
+  - Release
+platform:
+  - x64
+  - Win32
+init:
+  - cmd: |
+      cmake -version
+before_build:
+  - cmd: |
+      cd /d %APPVEYOR_BUILD_FOLDER%
+      mkdir angle
+      cd angle
+      call ..\scripts\download-angle.bat
+      7z x angle.zip
+      set ANGLE_PATH=%CD%
+      echo %ANGLE_PATH%
+      set PATH=%ANGLE_PATH%;%PATH%
+      cd /d %APPVEYOR_BUILD_FOLDER%
+      mkdir build
+      cd build
+      if "%PLATFORM%"=="Win32" cmake -G"Visual Studio 10 2010" ..
+      if "%PLATFORM%"=="x64" cmake -G"Visual Studio 10 2010 Win64" ..
+
+build_script:
+  - cmd: |
+      cd /d %APPVEYOR_BUILD_FOLDER%
+      "%ProgramFiles(x86)%\MSBuild\14.0\Bin\amd64\MSBuild.exe" /verbosity:minimal build/GLproxy.sln /p:Configuration="%CONFIGURATION%" /p:Platform="%PLATFORM%" /p:PlatformToolset=v90
+
+test_script:
+  - cmd: |
+      cd %APPVEYOR_BUILD_FOLDER%/build
+      ctest -C %CONFIGURATION% --output-on-failure

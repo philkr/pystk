@@ -109,9 +109,9 @@ else()
     set(ENET_LIBRARIES "enet")
 endif()
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glfw")
-include_directories("${PROJECT_SOURCE_DIR}/lib/glfw/include")
-set(GLEW_LIBRARIES "glfw")
+add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glproxy")
+include_directories("${PROJECT_SOURCE_DIR}/lib/glproxy/include")
+set(GLEW_LIBRARIES "glproxy")
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/zlib")
 include_directories("${PROJECT_SOURCE_DIR}/lib/zlib")
@@ -267,7 +267,7 @@ if(NOT SERVER_ONLY)
     target_link_libraries(supertuxkart
        ${SQUISH_LIBRARY}
        ${FREETYPE_LIBRARIES}
-#        ${JPEG_LIBRARIES}
+       ${JPEG_LIBRARIES}
         graphics_utils)
 endif()
 

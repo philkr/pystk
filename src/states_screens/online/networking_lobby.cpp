@@ -26,7 +26,6 @@
 #include "graphics/irr_driver.hpp"
 #include "guiengine/CGUISpriteBank.hpp"
 #include "guiengine/scalable_font.hpp"
-#include "guiengine/widgets/CGUIEditBox.hpp"
 #include "guiengine/widgets/button_widget.hpp"
 #include "guiengine/widgets/icon_button_widget.hpp"
 #include "guiengine/widgets/label_widget.hpp"

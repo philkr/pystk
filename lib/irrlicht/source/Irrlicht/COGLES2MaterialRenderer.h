@@ -17,7 +17,7 @@
 #include <OpenGLES/ES2/glext.h>
 #else
 #include <GLES2/gl2.h>
-#include <EGL/eglplatform.h>
+#include <glproxy/eglplatform.h>
 #endif
 
 #include "EMaterialTypes.h"

@@ -10,11 +10,6 @@ if(NOT SERVER_ONLY)
 
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
-
-#     find_package(OpenGL REQUIRED)
-#     include_directories(${OPENGL_INCLUDE_DIR})
-	
-# 	glfw
 else()
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/")
     if(MSVC)
@@ -34,6 +29,18 @@ else()
     add_definitions(-DNO_IRR_COMPILE_WITH_OPENGL_)
     add_definitions(-DNO_IRR_COMPILE_WITH_X11_)
     add_definitions(-DNO_IRR_COMPILE_WITH_WAYLAND_DEVICE_)
+endif()
+if(UNIX AND NOT APPLE)
+	find_package(X11 REQUIRED)
+	include_directories(${X11_INCLUDE_DIR})
+
+	if(NOT X11_FOUND)
+		message(FATAL_ERROR "X11 not found.")
+	endif()
+
+	if(NOT X11_Xrandr_FOUND)
+		message(FATAL_ERROR "XRANDR not found.")
+    endif()
 endif()
 
 if(APPLE)
@@ -561,5 +568,5 @@ add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 target_link_libraries(stkirrlicht ${ZLIB_LIBRARY})
 
 if(NOT SERVER_ONLY)
-    target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY} glfw)
+    target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY} ${X11_X11_LIB} ${X11_Xrandr_LIB} glproxy)
 endif()

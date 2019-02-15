@@ -1,0 +1,24 @@
+language: c
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: [ 'kubuntu-backports', 'ubuntu-toolchain-r-test', 'george-edison55-precise-backports' ]
+          packages: [ 'cmake', 'xorg-dev', 'xutils-dev',
+                      'libglu1-mesa-dev', 'libgl1-mesa-dev', 'libegl1-mesa-dev',
+                      'libgl1-mesa-dri', 'libgles1-mesa-dev', 'libgles2-mesa-dev']
+before_install:
+  - "export DISPLAY=:99.0"
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x24"
+
+install: ulimit -c
+
+script:
+  - cmake -version
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build .
+  - ctest
