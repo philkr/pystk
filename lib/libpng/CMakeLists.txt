@@ -43,10 +43,10 @@ set(PNGLIB_VERSION ${PNGLIB_MAJOR}.${PNGLIB_MINOR}.${PNGLIB_RELEASE})
 # version, find_package would fail with an error message. Since
 # all variables are already set in this case, the find package
 # is actually not necessary in this case, so just ignore it
-if(NOT WIN32 OR MINGW)
-    find_package(ZLIB REQUIRED)
-    include_directories(${ZLIB_INCLUDE_DIR})
-endif()
+# if(NOT WIN32 OR MINGW)
+#     find_package(ZLIB REQUIRED)
+#     include_directories(${ZLIB_INCLUDE_DIR})
+# endif()
 
 if(NOT WIN32)
   find_library(M_LIBRARY

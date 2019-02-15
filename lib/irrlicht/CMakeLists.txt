@@ -8,58 +8,13 @@ if(NOT SERVER_ONLY)
                         "${PNG_INCLUDE_DIRS}"
                         "${ZLIB_INCLUDE_DIR}")
 
-    if(MSVC)
-        include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
-    endif()
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
 
-    if(MSVC OR APPLE)
-        include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
-    endif()
-
-    if(NOT USE_GLES2)
-        find_package(OpenGL REQUIRED)
-        include_directories(${OPENGL_INCLUDE_DIR})
-    endif()
-        
-    if(UNIX AND NOT APPLE)
-        find_package(X11 REQUIRED)
-        include_directories(${X11_INCLUDE_DIR})
-        
-        if(NOT X11_FOUND)
-            message(FATAL_ERROR "X11 not found.")
-        endif()
-        
-        if(NOT X11_Xrandr_FOUND)
-            message(FATAL_ERROR "XRANDR not found.")
-        endif()
-    endif()
-
-    if(USE_GLES2 OR ENABLE_WAYLAND_DEVICE)
-        find_package(EGL)
-        
-        if(EGL_FOUND)
-            include_directories(${EGL_INCLUDE_DIR})
-        else()
-            if(USE_GLES2)
-                message(FATAL_ERROR "EGL not found.")
-            elseif(ENABLE_WAYLAND_DEVICE)
-                message(WARNING "EGL not found. Disable wayland support.")
-                set(ENABLE_WAYLAND_DEVICE OFF)
-            endif()
-        endif()
-    endif()
-
-    if(ENABLE_WAYLAND_DEVICE)
-        find_package(Wayland)
-        
-        if(WAYLAND_FOUND AND NOT (WAYLAND_VERSION VERSION_LESS "1.14"))
-            include_directories(${WAYLAND_INCLUDE_DIR})
-            add_definitions(-D_IRR_COMPILE_WITH_WAYLAND_DEVICE_)
-        else()
-            message(WARNING "Wayland not found. Disable wayland support.")
-            set(ENABLE_WAYLAND_DEVICE OFF)
-        endif()        
-    endif()
+#     find_package(OpenGL REQUIRED)
+#     include_directories(${OPENGL_INCLUDE_DIR})
+	
+# 	glfw
 else()
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/")
     if(MSVC)
@@ -89,10 +44,6 @@ endif()
 
 add_definitions(-DNDEBUG=1 -DIRRLICHT_EXPORTS=1 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES)
 
-if(UNIX OR MINGW)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-endif()
-
 if(WIN32)
     add_definitions(-D_IRR_STATIC_LIB_)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS) # Shut up about unsafe stuff
@@ -111,9 +62,7 @@ if(USE_GLES2)
     add_definitions(-D_IRR_COMPILE_WITH_OGLES2_ -DNO_IRR_COMPILE_WITH_OPENGL_)
 endif()
 
-if(CYGWIN)
-    add_definitions(-DNO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-endif()
+add_definitions(-DNO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
 
 
 set(IRRLICHT_SOURCES
@@ -612,20 +561,5 @@ add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 target_link_libraries(stkirrlicht ${ZLIB_LIBRARY})
 
 if(NOT SERVER_ONLY)
-    target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY})
-    if(UNIX AND NOT APPLE)
-        target_link_libraries(stkirrlicht ${X11_X11_LIB} ${X11_Xrandr_LIB})
-    endif()
-        
-    if(USE_GLES2 OR ENABLE_WAYLAND_DEVICE)
-        target_link_libraries(stkirrlicht ${EGL_LIBRARY})
-    endif()
-    
-    if(ENABLE_WAYLAND_DEVICE)
-        target_link_libraries(stkirrlicht ${WAYLAND_LIBRARIES})
-    endif()
-endif()
-
-if(WIN32)
-    target_link_libraries(stkirrlicht imm32 xinput9_1_0)
+    target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY} glfw)
 endif()
