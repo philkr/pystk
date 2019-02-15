@@ -211,12 +211,12 @@ include(sources.cmake)
 # Generate source groups useful for MSVC project explorer
 include(cmake/SourceGroupFunctions.cmake)
 source_group_hierarchy(STK_SOURCES STK_HEADERS)
-
+LIST(REMOVE_ITEM STK_SOURCES "src/main.cpp" "src/pystk.cpp")
 
 if(APPLE)
+    add_library(stk ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
     # build the executable and create an app bundle
 #    add_executable(supertuxkart MACOSX_BUNDLE ${STK_SOURCES})
-    add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
 
 #    find_library(IOKIT_LIBRARY IOKit)
 #    find_library(COCOA_LIBRARY Cocoa)
@@ -246,61 +246,37 @@ else()
     endif()
 
     # Build the final executable
-    add_executable(supertuxkart ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
-    target_link_libraries(supertuxkart ${PTHREAD_LIBRARY})
+    add_library(stk ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
+    target_link_libraries(stk ${PTHREAD_LIBRARY})
 endif()
 
 # Common library dependencies
-target_link_libraries(supertuxkart
+target_link_libraries(stk
     bulletdynamics
     bulletcollision
     bulletmath
     ${ENET_LIBRARIES}
     stkirrlicht
     ${Angelscript_LIBRARIES}
-    ${CURL_LIBRARIES}
     )
 
 if(NOT SERVER_ONLY)
-	target_link_libraries(supertuxkart ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES})
+	target_link_libraries(stk ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES})
 
-    target_link_libraries(supertuxkart
+    target_link_libraries(stk
        ${SQUISH_LIBRARY}
        ${FREETYPE_LIBRARIES}
        ${JPEG_LIBRARIES}
         graphics_utils)
-endif()
 
-# FreeBSD does not search in /usr/local/lib, but at least Freetype is installed there :(
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
 endif()
 
 
-if(MSVC OR MINGW)
-  target_link_libraries(supertuxkart iphlpapi.lib)
-  add_custom_command(TARGET supertuxkart POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/dll"
-        $<TARGET_FILE_DIR:supertuxkart>)
-  add_custom_target(stkshaders SOURCES ${STK_SHADERS})
-endif()
+add_executable(supertuxkart src/main.cpp )
+target_link_libraries(supertuxkart stk)
 
-if(MINGW)
-    find_library(LIBGCC NAMES "libgcc_s_dw2-1.dll" "libgcc_s_sjlj-1.dll" "libgcc_s_seh-1.dll" PATHS ${CMAKE_FIND_ROOT_PATH})
-    if(LIBGCC)
-        file(COPY ${LIBGCC} DESTINATION ${CMAKE_BINARY_DIR}/bin/)
-    endif()
-    find_library(LIBSTDCPP NAMES "libstdc++-6.dll" PATHS ${CMAKE_FIND_ROOT_PATH})
-    if(LIBSTDCPP)
-        file(COPY ${LIBSTDCPP} DESTINATION ${CMAKE_BINARY_DIR}/bin/)
-    endif()
-    find_library(LIBPTHREAD NAMES "winpthread-1.dll" "libwinpthread-1.dll" "pthreadGC2.dll" PATHS ${CMAKE_FIND_ROOT_PATH})
-    if(LIBPTHREAD)
-        file(COPY ${LIBPTHREAD} DESTINATION ${CMAKE_BINARY_DIR}/bin/)
-    endif()
-endif()
-
+add_executable(pystk src/pystk.cpp)
+target_link_libraries(pystk stk)
 
 # ==== Checking if data folder exists ====
 if(NOT IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)
@@ -331,22 +307,4 @@ if(CHECK_ASSETS)
     message( FATAL_ERROR "${PARENT_DIR}/stk-assets folder doesn't exist. "
       "Please download the stk-assets, or disable this test with -DCHECK_ASSETS=off." )
   endif()
-endif()
-
-
-# ==== Install target ====
-install(TARGETS supertuxkart RUNTIME DESTINATION ${STK_INSTALL_BINARY_DIR} BUNDLE DESTINATION .)
-install(DIRECTORY ${STK_DATA_DIR} DESTINATION ${STK_INSTALL_DATA_DIR} PATTERN ".svn" EXCLUDE PATTERN ".git" EXCLUDE)
-if(STK_ASSETS_DIR AND CHECK_ASSETS)
-  install(DIRECTORY ${STK_ASSETS_DIR} DESTINATION ${STK_INSTALL_DATA_DIR}/data PATTERN ".svn" EXCLUDE PATTERN ".git" EXCLUDE)
-endif()
-install(FILES ${STK_DATA_DIR}/supertuxkart.desktop DESTINATION share/applications)
-install(FILES data/supertuxkart_48.png DESTINATION share/icons/hicolor/48x48/apps RENAME supertuxkart.png)
-install(FILES data/supertuxkart_128.png DESTINATION share/icons/hicolor/128x128/apps RENAME supertuxkart.png)
-install(FILES data/supertuxkart_48.png DESTINATION share/pixmaps RENAME supertuxkart.png)
-install(FILES data/supertuxkart.appdata.xml DESTINATION share/metainfo)
-
-if(MINGW)
-    install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/ DESTINATION ${STK_INSTALL_BINARY_DIR}
-            FILES_MATCHING PATTERN "*.dll")
 endif()
