@@ -63,6 +63,7 @@
 #include "graphics/referee.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/sp/sp_shader.hpp"
+#include "graphics/sp/sp_texture_manager.hpp"
 #include "guiengine/engine.hpp"
 #include "guiengine/event_handler.hpp"
 #include "guiengine/dialog_queue.hpp"
@@ -194,15 +195,9 @@ public:
 		
 		load();
 	}
-	void start() {
-		setupRaceStart();
-		StateManager::get()->enterGameState();
-		race_manager->setupPlayerKartInfo();
-		race_manager->startNew(false);
-		
-		// TODO: Replace this with stepping
-        main_loop->run();
-	}
+	void start();
+	bool step(float dt);
+	void stop();
 	
 	~PySuperTuxKart() {
 		n_running--;
@@ -213,6 +208,57 @@ public:
 };
 int PySuperTuxKart::n_running = 0;
 
+void PySuperTuxKart::start() {
+	setupRaceStart();
+	StateManager::get()->enterGameState();
+	race_manager->setupPlayerKartInfo();
+	race_manager->startNew(false);
+	
+	// TODO: Replace this with stepping
+// 	main_loop->run();
+}
+void PySuperTuxKart::stop() {
+	if (CVS->isGLSL())
+	{
+		// Flush all command before delete world, avoid later access
+		SP::SPTextureManager::get()
+			->checkForGLCommand(true/*before_scene*/);
+		// Reset screen in case the minimap was drawn
+		glViewport(0, 0, irr_driver->getActualScreenSize().Width,
+			irr_driver->getActualScreenSize().Height);
+	}
+
+	// In case the user opened a race pause dialog
+	GUIEngine::ModalDialog::dismiss();
+
+	if (World::getWorld())
+	{
+		race_manager->clearNetworkGrandPrixResult();
+		race_manager->exitRace();
+	}
+}
+bool PySuperTuxKart::step(float dt) {
+	uint64_t t0 = StkTime::getRealTimeMs();
+	if (World::getWorld())
+		World::getWorld()->updateGraphics(dt);
+	uint64_t t1 = StkTime::getRealTimeMs();
+	irr_driver->update(dt);
+	uint64_t t2 = StkTime::getRealTimeMs();
+	input_manager->update(dt);
+	uint64_t t3 = StkTime::getRealTimeMs();
+	GUIEngine::update(dt);
+	uint64_t t4 = StkTime::getRealTimeMs();
+	
+	if (World::getWorld())
+        World::getWorld()->updateWorld(1);
+	uint64_t t5 = StkTime::getRealTimeMs();
+	
+	if (!irr_driver->getDevice()->run())
+		return false;
+	uint64_t t6 = StkTime::getRealTimeMs();
+	printf("%d %d %d %d %d %d\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
+	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
+}
 
 void PySuperTuxKart::load() {
 	input_manager = new InputManager ();
@@ -512,6 +558,8 @@ int main(int argc, char *argv[] )
 		PySTKConfig config;
 		PySuperTuxKart kart(config);
 		kart.start();
+		while (kart.step(0.1));
+		kart.stop();
 	}
 	
 	
