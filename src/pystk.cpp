@@ -61,6 +61,7 @@
 #include "graphics/material_manager.hpp"
 #include "graphics/particle_kind_manager.hpp"
 #include "graphics/referee.hpp"
+#include "graphics/render_target.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/sp/sp_shader.hpp"
 #include "graphics/sp/sp_texture_manager.hpp"
@@ -105,6 +106,7 @@
 #include "race/race_manager.hpp"
 #include "replay/replay_play.hpp"
 #include "replay/replay_recorder.hpp"
+#include "scriptengine/property_animator.hpp"
 #include "states_screens/main_menu_screen.hpp"
 #include "states_screens/online/networking_lobby.hpp"
 #include "states_screens/online/register_screen.hpp"
@@ -143,6 +145,39 @@ struct PySTKConfig {
 	int laps = 3;
 	int seed = 0;
 };
+PySTKConfig hd_config = {600,400,
+	true, true, true, true, true, true,
+	2,
+	true,
+	true,
+	true,
+	true,
+	true,
+	true,
+	1 | 2,
+};
+PySTKConfig sd_config = {600,400,
+	false, false, false, false, false, false,
+	2,
+	true,
+	true,
+	true,
+	true,
+	true,
+	true,
+	1 | 2,
+};
+PySTKConfig ld_config = {600,400,
+	false, false, false, false, false, false,
+	0,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	0,
+};
 
 class PySuperTuxKart {
 protected:
@@ -150,7 +185,8 @@ protected:
 	void setupConfig(const PySTKConfig & config);
 	void load();
 	void setupRaceStart();
-
+	void render(float dt);
+	std::unique_ptr<RenderTarget> render_target;
 protected:
 	static void initRest();
 	static void initUserConfig();
@@ -194,6 +230,8 @@ public:
 		setupConfig(config);
 		
 		load();
+	
+		render_target = irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" );
 	}
 	void start();
 	bool step(float dt);
@@ -213,11 +251,9 @@ void PySuperTuxKart::start() {
 	StateManager::get()->enterGameState();
 	race_manager->setupPlayerKartInfo();
 	race_manager->startNew(false);
-	
-	// TODO: Replace this with stepping
-// 	main_loop->run();
 }
 void PySuperTuxKart::stop() {
+	render_target.reset();
 	if (CVS->isGLSL())
 	{
 		// Flush all command before delete world, avoid later access
@@ -237,12 +273,28 @@ void PySuperTuxKart::stop() {
 		race_manager->exitRace();
 	}
 }
+void PySuperTuxKart::render(float dt) {
+//     m_wind->update();
+
+    PropertyAnimator::get()->update(dt);
+	SP::SPTextureManager::get()->checkForGLCommand();
+
+	World *world = World::getWorld();
+
+    if (world)
+    {
+		for(unsigned int cam = 0; cam < Camera::getNumCameras(); cam++)
+			render_target->renderToTexture(Camera::getCamera(cam)->getCameraSceneNode(), dt);
+    }
+}
+
 bool PySuperTuxKart::step(float dt) {
 	uint64_t t0 = StkTime::getRealTimeMs();
 	if (World::getWorld())
 		World::getWorld()->updateGraphics(dt);
 	uint64_t t1 = StkTime::getRealTimeMs();
 	irr_driver->update(dt);
+	render(dt);
 	uint64_t t2 = StkTime::getRealTimeMs();
 	input_manager->update(dt);
 	uint64_t t3 = StkTime::getRealTimeMs();
@@ -551,14 +603,17 @@ int main(int argc, char *argv[] )
 {
 	PySuperTuxKart::init();
 	{
-		PySTKConfig config;
-		PySuperTuxKart kart(config);
-	}
-	{
-		PySTKConfig config;
+		PySTKConfig config = sd_config; //hd_config;
 		PySuperTuxKart kart(config);
 		kart.start();
-		while (kart.step(0.1));
+		for (int i=0; i<100; i++) kart.step(0.1);
+		kart.stop();
+	}
+	{
+		PySTKConfig config = ld_config;
+		PySuperTuxKart kart(config);
+		kart.start();
+		for (int i=0; i<100; i++) kart.step(0.1);
 		kart.stop();
 	}
 	
