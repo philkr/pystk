@@ -56,12 +56,14 @@
 #include "graphics/camera.hpp"
 #include "graphics/camera_debug.hpp"
 #include "graphics/central_settings.hpp"
+#include "graphics/frame_buffer.hpp"
 #include "graphics/graphics_restrictions.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/particle_kind_manager.hpp"
 #include "graphics/referee.hpp"
 #include "graphics/render_target.hpp"
+#include "graphics/rtts.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/sp/sp_shader.hpp"
 #include "graphics/sp/sp_texture_manager.hpp"
@@ -179,6 +181,40 @@ PySTKConfig ld_config = {600,400,
 	0,
 };
 
+struct PySTKRenderTarget {
+	std::unique_ptr<RenderTarget> rt_;
+	std::vector<uint8_t> color_buf_;
+	std::vector<float> depth_buf_;
+	PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt):rt_(std::move(rt)) {
+		if (auto rtt = rt_->getRTTs()) {
+			unsigned int W = rtt->getWidth(), H = rtt->getHeight();
+			color_buf_.resize(W*H*4);
+			depth_buf_.resize(W*H);
+		}
+	}
+	void render(irr::scene::ICameraSceneNode* camera, float dt) {
+		rt_->renderToTexture(camera, dt);
+	}
+	void fetch() {
+		RTT * rtts = rt_->getRTTs();
+		if (rtts) {
+			unsigned int W = rtts->getWidth(), H = rtts->getHeight();
+			// Read the color and depth image
+			if (color_buf_.size() < 4*W*H) color_buf_.resize(4*W*H);
+			if (depth_buf_.size() < W*H) depth_buf_.resize(W*H);
+			
+			rtts->getFBO(FBO_COLORS).bind();
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, color_buf_.data());
+			glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, depth_buf_.data());
+			
+			// Read the depth map
+			rtts->getDepthStencilTexture();
+		}
+	}
+};
+
 class PySuperTuxKart {
 protected:
 	static int n_running;
@@ -186,7 +222,8 @@ protected:
 	void load();
 	void setupRaceStart();
 	void render(float dt);
-	std::unique_ptr<RenderTarget> render_target;
+	std::vector<std::unique_ptr<PySTKRenderTarget> > render_targets_;
+
 protected:
 	static void initRest();
 	static void initUserConfig();
@@ -230,8 +267,8 @@ public:
 		setupConfig(config);
 		
 		load();
-	
-		render_target = irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" );
+		
+		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
 	}
 	void start();
 	bool step(float dt);
@@ -253,7 +290,7 @@ void PySuperTuxKart::start() {
 	race_manager->startNew(false);
 }
 void PySuperTuxKart::stop() {
-	render_target.reset();
+	render_targets_.clear();
 	if (CVS->isGLSL())
 	{
 		// Flush all command before delete world, avoid later access
@@ -283,8 +320,14 @@ void PySuperTuxKart::render(float dt) {
 
     if (world)
     {
-		for(unsigned int cam = 0; cam < Camera::getNumCameras(); cam++)
-			render_target->renderToTexture(Camera::getCamera(cam)->getCameraSceneNode(), dt);
+		// Render all views
+		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
+			render_targets_[i]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
+		}
+		// Fetch all views
+		for(unsigned int i = 0; i < render_targets_.size(); i++) {
+			render_targets_[i]->fetch();
+		}
     }
 }
 
@@ -308,7 +351,7 @@ bool PySuperTuxKart::step(float dt) {
 	if (!irr_driver->getDevice()->run())
 		return false;
 	uint64_t t6 = StkTime::getRealTimeMs();
-	printf("%d %d %d %d %d %d\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
+	printf("%lu %lu %lu %lu %lu %lu\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
 	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
 }
 
