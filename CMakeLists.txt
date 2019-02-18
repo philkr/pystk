@@ -7,6 +7,7 @@ add_definitions( -DSUPERTUXKART_VERSION="${PROJECT_VERSION}" )
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 include(CMakeDependentOption)
@@ -219,6 +220,7 @@ LIST(REMOVE_ITEM STK_SOURCES "src/main.cpp" "src/pystk.cpp")
 
 if(APPLE)
     add_library(stk ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
+
     # build the executable and create an app bundle
 #    add_executable(supertuxkart MACOSX_BUNDLE ${STK_SOURCES})
 
@@ -279,8 +281,10 @@ endif()
 add_executable(supertuxkart src/main.cpp )
 target_link_libraries(supertuxkart stk)
 
-add_executable(pystk src/pystk.cpp)
-target_link_libraries(pystk stk)
+pybind11_add_module(pystk pystk/binding.cpp pystk/pystk.cpp)
+target_link_libraries(pystk PRIVATE pybind11::module stk)
+set_target_properties(pystk PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
+                                       SUFFIX "${PYTHON_MODULE_EXTENSION}")
 
 # ==== Checking if data folder exists ====
 if(NOT IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)

@@ -42,6 +42,7 @@
 
 #include <IEventReceiver.h>
 
+#include "pystk.hpp"
 #include "main_loop.hpp"
 #include "achievements/achievements_manager.hpp"
 #include "addons/addons_manager.hpp"
@@ -129,159 +130,133 @@
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
 
-struct PySTKConfig {
-	int screen_width=600, screen_height=400;
-	bool glow = true, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
-	int particles_effects = 2;
-	bool animated_characters = true;
-	bool motionblur = true;
-	bool mlaa = true;
-	bool texture_compression = true;
-	bool ssao = true;
-	bool degraded_IBL = true;
-	int high_definition_textures = 2 | 1;
-	
-	int difficulty = 2;
-	RaceManager::MinorRaceModeType mode = RaceManager::MINOR_MODE_NORMAL_RACE;
-	std::string kart, track;
-	int laps = 3;
-	int seed = 0;
-};
-PySTKConfig hd_config = {600,400,
-	true, true, true, true, true, true,
-	2,
-	true,
-	true,
-	true,
-	true,
-	true,
-	true,
-	1 | 2,
-};
-PySTKConfig sd_config = {600,400,
-	false, false, false, false, false, false,
-	2,
-	true,
-	true,
-	true,
-	true,
-	true,
-	true,
-	1 | 2,
-};
-PySTKConfig ld_config = {600,400,
-	false, false, false, false, false, false,
-	0,
-	false,
-	false,
-	false,
-	false,
-	false,
-	false,
-	0,
-};
+const PySTKConfig & PySTKConfig::hd() {
+	static PySTKConfig config = {600,400,
+		true, true, true, true, true, true,
+		2,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		1 | 2,
+	};
+	return config;
+}
+const PySTKConfig & PySTKConfig::sd() {
+	static PySTKConfig config = {600,400,
+		false, false, false, false, false, false,
+		2,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		1 | 2,
+	};
+	return config;
+}
+const PySTKConfig & PySTKConfig::ld() {
+	static PySTKConfig config = {600,400,
+		false, false, false, false, false, false,
+		0,
+		false,
+		false,
+		false,
+		false,
+		false,
+		false,
+		0,
+	};
+	return config;
+}
 
-struct PySTKRenderTarget {
+
+class PySTKRenderTarget {
+	friend class PySuperTuxKart;
+
+private:
 	std::unique_ptr<RenderTarget> rt_;
-	std::vector<uint8_t> color_buf_;
-	std::vector<float> depth_buf_;
-	PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt):rt_(std::move(rt)) {
-		if (auto rtt = rt_->getRTTs()) {
-			unsigned int W = rtt->getWidth(), H = rtt->getHeight();
-			color_buf_.resize(W*H*4);
-			depth_buf_.resize(W*H);
-		}
-	}
-	void render(irr::scene::ICameraSceneNode* camera, float dt) {
-		rt_->renderToTexture(camera, dt);
-	}
-	void fetch() {
-		RTT * rtts = rt_->getRTTs();
-		if (rtts) {
-			unsigned int W = rtts->getWidth(), H = rtts->getHeight();
-			// Read the color and depth image
-			if (color_buf_.size() < 4*W*H) color_buf_.resize(4*W*H);
-			if (depth_buf_.size() < W*H) depth_buf_.resize(W*H);
-			
-			rtts->getFBO(FBO_COLORS).bind();
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, color_buf_.data());
-			glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, depth_buf_.data());
-			
-			// Read the depth map
-			rtts->getDepthStencilTexture();
-		}
-	}
-};
-
-class PySuperTuxKart {
-protected:
-	static int n_running;
-	void setupConfig(const PySTKConfig & config);
-	void load();
-	void setupRaceStart();
-	void render(float dt);
-	std::vector<std::unique_ptr<PySTKRenderTarget> > render_targets_;
 
 protected:
-	static void initRest();
-	static void initUserConfig();
-	static void cleanSuperTuxKart();
-	static void cleanUserConfig();
-public:
-	static void init() {
-		initUserConfig();
-		stk_config->load(file_manager->getAsset("stk_config.xml"));
-		initRest();
-	}
-	static void clean() {
-		if (input_manager) {
-			delete input_manager;
-			input_manager = NULL;
-		}
-		cleanSuperTuxKart();
-		Log::flushBuffers();
-
-	#ifndef WIN32
-		if (user_config) //close logfiles
-		{
-			Log::closeOutputFiles();
-	#endif
-	#ifndef ANDROID
-			fclose(stderr);
-			fclose(stdout);
-	#endif
-	#ifndef WIN32
-		}
-	#endif
-		delete file_manager;
-	}
-	static int nRunning() { return n_running; }
-public:
-	PySuperTuxKart(const PySTKConfig & config) {
-		if (n_running > 0)
-			throw std::invalid_argument("Cannot run more than one supertux instance per process!");
-		n_running++;
-		
-		setupConfig(config);
-		
-		load();
-		
-		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
-	}
-	void start();
-	bool step(float dt);
-	void stop();
+	void render(irr::scene::ICameraSceneNode* camera, float dt);
+	void fetch(std::shared_ptr<PySTKRenderData> data);
 	
-	~PySuperTuxKart() {
-		n_running--;
-		StateManager::get()->resetActivePlayers();
-	}
-
-
+public:
+	PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt);
+	
 };
+
+PySTKRenderTarget::PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt):rt_(std::move(rt)) {
+}
+void PySTKRenderTarget::render(irr::scene::ICameraSceneNode* camera, float dt) {
+	rt_->renderToTexture(camera, dt);
+}
+void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
+	RTT * rtts = rt_->getRTTs();
+	if (rtts && data) {
+		unsigned int W = rtts->getWidth(), H = rtts->getHeight();
+		// Read the color and depth image
+		data->color_buf_.resize(W*H*4);
+		data->depth_buf_.resize(W*H);
+		
+		rtts->getFBO(FBO_COLORS).bind();
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data->color_buf_.data());
+		glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, data->depth_buf_.data());
+		
+		// Read the depth map
+		rtts->getDepthStencilTexture();
+	}
+}
+
 int PySuperTuxKart::n_running = 0;
+void PySuperTuxKart::init() {
+	initUserConfig();
+	stk_config->load(file_manager->getAsset("stk_config.xml"));
+	initRest();
+}
+void PySuperTuxKart::clean() {
+	if (input_manager) {
+		delete input_manager;
+		input_manager = NULL;
+	}
+	cleanSuperTuxKart();
+	Log::flushBuffers();
+
+#ifndef WIN32
+	if (user_config) //close logfiles
+	{
+		Log::closeOutputFiles();
+#endif
+#ifndef ANDROID
+		fclose(stderr);
+		fclose(stdout);
+#endif
+#ifndef WIN32
+	}
+#endif
+	delete file_manager;
+}
+int PySuperTuxKart::nRunning() { return n_running; }
+PySuperTuxKart::PySuperTuxKart(const PySTKConfig & config) {
+	if (n_running > 0)
+		throw std::invalid_argument("Cannot run more than one supertux instance per process!");
+	n_running++;
+	
+	setupConfig(config);
+	
+	load();
+	
+	render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
+}
+PySuperTuxKart::~PySuperTuxKart() {
+	n_running--;
+	StateManager::get()->resetActivePlayers();
+}
 
 void PySuperTuxKart::start() {
 	setupRaceStart();
@@ -324,9 +299,10 @@ void PySuperTuxKart::render(float dt) {
 		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
 			render_targets_[i]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
 		}
+		if (render_data_.size() < render_targets_.size()) render_data_.resize( render_targets_.size() );
 		// Fetch all views
 		for(unsigned int i = 0; i < render_targets_.size(); i++) {
-			render_targets_[i]->fetch();
+			render_targets_[i]->fetch(render_data_[i]);
 		}
     }
 }
@@ -454,6 +430,18 @@ void PySuperTuxKart::setupRaceStart()
     input_manager->getDeviceManager()->setAssignMode(ASSIGN);
 }   // setupRaceStart
 
+static RaceManager::MinorRaceModeType translate_mode(PySTKConfig::RaceMode mode) {
+	switch (mode) {
+		case PySTKConfig::NORMAL_RACE: return RaceManager::MINOR_MODE_NORMAL_RACE;
+		case PySTKConfig::TIME_TRIAL: return RaceManager::MINOR_MODE_TIME_TRIAL;
+		case PySTKConfig::FOLLOW_LEADER: return RaceManager::MINOR_MODE_FOLLOW_LEADER;
+		case PySTKConfig::THREE_STRIKES: return RaceManager::MINOR_MODE_3_STRIKES;
+		case PySTKConfig::FREE_FOR_ALL: return RaceManager::MINOR_MODE_FREE_FOR_ALL;
+		case PySTKConfig::CAPTURE_THE_FLAG: return RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
+		case PySTKConfig::SOCCER: return RaceManager::MINOR_MODE_SOCCER;
+	}
+	return RaceManager::MINOR_MODE_NORMAL_RACE;
+}
 
 void PySuperTuxKart::setupConfig(const PySTKConfig & config) {
 	UserConfigParams::m_fullscreen = false;
@@ -475,7 +463,7 @@ void PySuperTuxKart::setupConfig(const PySTKConfig & config) {
 	UserConfigParams::m_high_definition_textures = config.high_definition_textures;
 	
 	race_manager->setDifficulty(RaceManager::Difficulty(config.difficulty));
-	race_manager->setMinorMode(config.mode);
+	race_manager->setMinorMode(translate_mode(config.mode));
 	
 	if (config.kart.length()) {
 		const KartProperties *prop = kart_properties_manager->getKart(config.kart);
@@ -640,7 +628,7 @@ void PySuperTuxKart::initRest()
     race_manager->setTrack(UserConfigParams::m_last_track);
 
 }   // initRest
-
+/*
 // ----------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
@@ -673,7 +661,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
     return main(__argc, __argv);
 }
-#endif
+#endif*/
 
 //=============================================================================
 /** Frees all manager and their associated memory.

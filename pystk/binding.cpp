@@ -1,0 +1,72 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <memory>
+#include <vector>
+#include "pystk.hpp"
+
+namespace py = pybind11;
+using namespace pybind11::literals;
+
+PYBIND11_MODULE(pystk, m) {
+	m.doc() = "Python SuperTuxKart interface";
+
+	{
+		py::class_<PySTKConfig, std::shared_ptr<PySTKConfig>> cls(m, "Config", "SuperTuxKart configuration.");
+	
+		py::enum_<PySTKConfig::RaceMode>(cls, "RaceMode")
+			.value("NORMAL_RACE", PySTKConfig::RaceMode::NORMAL_RACE)
+			.value("TIME_TRIAL", PySTKConfig::RaceMode::TIME_TRIAL)
+			.value("FOLLOW_LEADER", PySTKConfig::RaceMode::FOLLOW_LEADER)
+			.value("THREE_STRIKES", PySTKConfig::RaceMode::THREE_STRIKES)
+			.value("FREE_FOR_ALL", PySTKConfig::RaceMode::FREE_FOR_ALL)
+			.value("CAPTURE_THE_FLAG", PySTKConfig::RaceMode::CAPTURE_THE_FLAG)
+			.value("SOCCER", PySTKConfig::RaceMode::SOCCER);
+	
+		cls.def_readwrite("screen_width", &PySTKConfig::screen_width);
+		cls.def_readwrite("screen_height", &PySTKConfig::screen_height);
+		cls.def_readwrite("glow ", &PySTKConfig::glow );
+		cls.def_readwrite("dof ", &PySTKConfig::dof );
+		cls.def_readwrite("particles_effects ", &PySTKConfig::particles_effects );
+		cls.def_readwrite("animated_characters ", &PySTKConfig::animated_characters );
+		cls.def_readwrite("motionblur ", &PySTKConfig::motionblur );
+		cls.def_readwrite("mlaa ", &PySTKConfig::mlaa );
+		cls.def_readwrite("texture_compression ", &PySTKConfig::texture_compression );
+		cls.def_readwrite("ssao ", &PySTKConfig::ssao );
+		cls.def_readwrite("degraded_IBL ", &PySTKConfig::degraded_IBL );
+		cls.def_readwrite("high_definition_textures ", &PySTKConfig::high_definition_textures );
+		
+		cls.def_readwrite("difficulty ", &PySTKConfig::difficulty );
+		cls.def_readwrite("mode ", &PySTKConfig::mode );
+		cls.def_readwrite("kart", &PySTKConfig::kart);
+		cls.def_readwrite("track", &PySTKConfig::track);
+		cls.def_readwrite("laps ", &PySTKConfig::laps );
+		cls.def_readwrite("seed ", &PySTKConfig::seed );
+		
+		cls.def_static("hd", &PySTKConfig::hd,"High-definitaiton graphics settings");
+		cls.def_static("sd", &PySTKConfig::sd,"Standard-definition graphics settings");
+		cls.def_static("ld", &PySTKConfig::ld,"Low-definition graphics settings");
+	}
+
+	{
+		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
+	}
+	
+	m.def("nRunning", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
+	{
+		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> > cls(m, "SuperTuxKart", "SuperTuxKart instance");
+		cls.def(py::init<const PySTKConfig &>(),py::arg("config"));
+		cls.def("start", &PySuperTuxKart::start,"");
+		cls.def("step", (bool (PySuperTuxKart::*)(float)) &PySuperTuxKart::step,"step with arguments float",py::arg("dt"));
+		cls.def("stop", &PySuperTuxKart::stop,"");
+	}
+	
+	// Initialize SuperTuxKart
+	PySuperTuxKart::init();
+	
+	// This segfaults, no cleanup
+// 	auto atexit = py::module::import("atexit");
+// 		atexit.attr("register")(py::cpp_function([]() {
+// 			PySuperTuxKart::clean();
+// 	}));
+}
+
