@@ -15,7 +15,7 @@ struct PySTKConfig {
 	};
 	
 	int screen_width=600, screen_height=400;
-	bool glow = true, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
+	bool glow = false, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
 	int particles_effects = 2;
 	bool animated_characters = true;
 	bool motionblur = true;
@@ -39,14 +39,10 @@ struct PySTKConfig {
 
 class PySTKRenderTarget;
 
-class PySTKRenderData {
-protected:
-	friend class PySTKRenderTarget;
+struct PySTKRenderData {
+	int width, height;
 	std::vector<uint8_t> color_buf_;
 	std::vector<float> depth_buf_;
-
-public:
-	
 };
 
 
@@ -77,4 +73,5 @@ public:
 	void start();
 	bool step(float dt);
 	void stop();
+	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 };

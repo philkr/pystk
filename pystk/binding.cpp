@@ -7,6 +7,55 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
+namespace pybind11 {
+class ro_view : public py::object {
+public:
+	template<typename T>
+    explicit ro_view(const T * v, const std::vector<Py_ssize_t> & shape) {
+		// Compute the stride
+		static std::vector<Py_ssize_t> stride;
+		stride.resize( shape.size() );
+		Py_ssize_t itemsize = sizeof(T), s = 1;
+		for(int i=stride.size()-1; i>=0; i--) {
+			stride[i] = s * itemsize;
+			s *= shape[i];
+		}
+		static std::string fmt;
+		fmt = py::format_descriptor<T>::format();
+		
+		static Py_buffer buf { };
+		buf.buf = const_cast<T *>(v);
+		buf.itemsize = itemsize;
+		buf.format = const_cast<char *>(fmt.c_str());
+		buf.ndim = (int) shape.size();
+		buf.len = s;
+		buf.strides = stride.data();
+		buf.shape = const_cast<Py_ssize_t *>(shape.data());
+		buf.suboffsets = nullptr;
+		buf.readonly = true;
+		buf.internal = nullptr;
+
+		m_ptr = PyMemoryView_FromBuffer(&buf);
+		if (!m_ptr)
+			py::pybind11_fail("Unable to create memoryview from buffer descriptor");
+    }
+
+    PYBIND11_OBJECT_CVT(ro_view, object, PyMemoryView_Check, PyMemoryView_FromObject)
+};
+}
+
+template<typename T>
+py::memoryview view(const T * v, const std::vector<ssize_t> & shape) {
+	std::vector<ssize_t> stride = shape;
+	ssize_t s = sizeof(T);
+	for(int i=stride.size()-1; i>=0; i--) {
+		stride[i] = s;
+		s *= shape[i];
+	}
+	py::buffer_info bi(const_cast<T * >(v), shape, stride);
+	return py::memoryview(bi);
+}
+
 PYBIND11_MODULE(pystk, m) {
 	m.doc() = "Python SuperTuxKart interface";
 
@@ -49,6 +98,10 @@ PYBIND11_MODULE(pystk, m) {
 
 	{
 		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
+		
+		cls.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 4}); }, "Color image of the kart");
+		cls.def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart");
+		
 	}
 	
 	m.def("nRunning", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
@@ -58,6 +111,7 @@ PYBIND11_MODULE(pystk, m) {
 		cls.def("start", &PySuperTuxKart::start,"");
 		cls.def("step", (bool (PySuperTuxKart::*)(float)) &PySuperTuxKart::step,"step with arguments float",py::arg("dt"));
 		cls.def("stop", &PySuperTuxKart::stop,"");
+		cls.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
 	}
 	
 	// Initialize SuperTuxKart

@@ -216,7 +216,7 @@ include(sources.cmake)
 # Generate source groups useful for MSVC project explorer
 include(cmake/SourceGroupFunctions.cmake)
 source_group_hierarchy(STK_SOURCES STK_HEADERS)
-LIST(REMOVE_ITEM STK_SOURCES "src/main.cpp" "src/pystk.cpp")
+LIST(REMOVE_ITEM STK_SOURCES "src/main.cpp")
 
 if(APPLE)
     add_library(stk ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
@@ -281,10 +281,11 @@ endif()
 add_executable(supertuxkart src/main.cpp )
 target_link_libraries(supertuxkart stk)
 
-pybind11_add_module(pystk pystk/binding.cpp pystk/pystk.cpp)
+pybind11_add_module(pystk pystk/binding.cpp pystk/pystk.cpp pystk/util.cpp)
 target_link_libraries(pystk PRIVATE pybind11::module stk)
 set_target_properties(pystk PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                        SUFFIX "${PYTHON_MODULE_EXTENSION}")
+add_custom_command(TARGET pystk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pystk> ${PROJECT_SOURCE_DIR}/examples/ )
 
 # ==== Checking if data folder exists ====
 if(NOT IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)

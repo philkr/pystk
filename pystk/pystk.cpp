@@ -129,10 +129,11 @@
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
+#include "util.hpp"
 
 const PySTKConfig & PySTKConfig::hd() {
 	static PySTKConfig config = {600,400,
-		true, true, true, true, true, true,
+		false, true, true, false, true, 
 		2,
 		true,
 		true,
@@ -146,7 +147,7 @@ const PySTKConfig & PySTKConfig::hd() {
 }
 const PySTKConfig & PySTKConfig::sd() {
 	static PySTKConfig config = {600,400,
-		false, false, false, false, false, false,
+		false, false, false, false, false,
 		2,
 		true,
 		true,
@@ -160,7 +161,7 @@ const PySTKConfig & PySTKConfig::sd() {
 }
 const PySTKConfig & PySTKConfig::ld() {
 	static PySTKConfig config = {600,400,
-		false, false, false, false, false, false,
+		false, false, false, false, false,
 		0,
 		false,
 		false,
@@ -172,7 +173,6 @@ const PySTKConfig & PySTKConfig::ld() {
 	};
 	return config;
 }
-
 
 class PySTKRenderTarget {
 	friend class PySuperTuxKart;
@@ -199,8 +199,12 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 	if (rtts && data) {
 		unsigned int W = rtts->getWidth(), H = rtts->getHeight();
 		// Read the color and depth image
+		data->width = W;
+		data->height = H;
 		data->color_buf_.resize(W*H*4);
 		data->depth_buf_.resize(W*H);
+		
+		glPixelZoom(1,-1);
 		
 		rtts->getFBO(FBO_COLORS).bind();
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -208,9 +212,15 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data->color_buf_.data());
 		glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, data->depth_buf_.data());
 		
-		// Read the depth map
-		rtts->getDepthStencilTexture();
+		// TODO: Read other buffers
+		
+		
+		
+		// Flip all buffers (thank you OpenGL)
+		yflip(data->color_buf_.data(), H, W*4);
+		yflip(data->depth_buf_.data(), H, W);
 	}
+	
 }
 
 int PySuperTuxKart::n_running = 0;
@@ -299,7 +309,7 @@ void PySuperTuxKart::render(float dt) {
 		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
 			render_targets_[i]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
 		}
-		if (render_data_.size() < render_targets_.size()) render_data_.resize( render_targets_.size() );
+		while (render_data_.size() < render_targets_.size()) render_data_.push_back( std::make_shared<PySTKRenderData>() );
 		// Fetch all views
 		for(unsigned int i = 0; i < render_targets_.size(); i++) {
 			render_targets_[i]->fetch(render_data_[i]);
@@ -312,7 +322,16 @@ bool PySuperTuxKart::step(float dt) {
 	if (World::getWorld())
 		World::getWorld()->updateGraphics(dt);
 	uint64_t t1 = StkTime::getRealTimeMs();
-	irr_driver->update(dt);
+	
+	// irr_driver->update alternative
+	if (1) {
+		irr_driver->update(dt);
+	} else {
+		PropertyAnimator::get()->update(dt);
+		SP::SPTextureManager::get()->checkForGLCommand();
+		
+		// TODO: ShaderBasedRenderer::render
+	}
 	render(dt);
 	uint64_t t2 = StkTime::getRealTimeMs();
 	input_manager->update(dt);
@@ -327,7 +346,7 @@ bool PySuperTuxKart::step(float dt) {
 	if (!irr_driver->getDevice()->run())
 		return false;
 	uint64_t t6 = StkTime::getRealTimeMs();
-	printf("%lu %lu %lu %lu %lu %lu\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
+// 	printf("%lu %lu %lu %lu %lu %lu\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
 	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
 }
 
