@@ -16,7 +16,7 @@
 #include "IGUIEnvironment.h"
 #include "ICursorControl.h"
 
-#include <glproxy/OpenGL.h>
+#include <OpenGL/OpenGL.h>
 #include <map>
 
 #ifndef __OBJC__

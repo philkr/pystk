@@ -211,10 +211,10 @@ define out. */
 
 //! Define _IRR_OPENGL_USE_EXTPOINTER_ if the OpenGL renderer should use OpenGL extensions via function pointers.
 /** On some systems there is no support for the dynamic extension of OpenGL
-	via function pointers such that this has to be undef'ed. */
+        via function pointers such that this has to be undef'ed. */
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 #if !defined(_IRR_OSX_PLATFORM_) && !defined(_IRR_SOLARIS_PLATFORM_)
-// #define _IRR_OPENGL_USE_EXTPOINTER_
+#define _IRR_OPENGL_USE_EXTPOINTER_
 #endif
 #endif
 

@@ -9,23 +9,23 @@
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 
 #ifdef _IRR_WINDOWS_API_
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-	#include <glproxy/gl.h>
-	#include "glext.h"
+        #define WIN32_LEAN_AND_MEAN
+        #include <windows.h>
+        #include <GL/gl.h>
+        #include "glext.h"
 #else
 #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
 	#define GL_GLEXT_LEGACY 1
 #else
-	#define GL_GLEXT_PROTOTYPES 1
+        #define GL_GLEXT_PROTOTYPES 1
 #endif
 #if defined(_IRR_OSX_PLATFORM_)
-	#include <glproxy/gl.h>
+        #include <OpenGL/gl.h>
 #else
-	#include <glproxy/gl.h>
+        #include <GL/gl.h>
 #endif
 #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-	#include "glext.h"
+        #include "glext.h"
 #endif
 #endif
 

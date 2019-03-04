@@ -23,12 +23,18 @@
 #define GLEW_STATIC
 
 extern "C" {
-#include "glproxy/gl.h"
+#if !defined(USE_GLES2)
+#   include <GL/glew.h>
+// This is a workaround for mesa drivers that now use __gl_glext_h_ instead of
+// __glext_h_ in header file which is not defined in current glew version
+#   define __gl_glext_h_
+#endif
 }
 #include <cinttypes>
 
 #if defined(__APPLE__)
-#    include <glproxy/gl.h>
+#    include <OpenGL/gl.h>
+#    include <OpenGL/gl3.h>
 #    define OGL32CTX
 #    ifdef GL_ARB_instanced_arrays
 #        ifdef glVertexAttribDivisor
@@ -41,7 +47,9 @@ extern "C" {
 #    endif
 #elif defined(USE_GLES2)
 #    define __gl2_h_
-#    include <glproxy/gl.h>
+#    include <GLES3/gl3.h>
+#    include <GLES3/gl3ext.h>
+#    include <GLES2/gl2ext.h>
 #    define glVertexAttribDivisorARB glVertexAttribDivisor
 #elif defined(WIN32)
 #    define WIN32_LEAN_AND_MEAN
@@ -49,7 +57,8 @@ extern "C" {
 #else
 #define GL_GLEXT_PROTOTYPES
 #define DEBUG_OUTPUT_DECLARED
-#    include <glproxy/gl.h>
+#    include <GL/gl.h>
+#    include <GL/glext.h>
 #endif
 
 #if defined(USE_GLES2)
