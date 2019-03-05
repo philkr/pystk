@@ -152,6 +152,22 @@ namespace video
 		genericDriverInit(params.WindowSize, params.Stencilbuffer);
 	}
 #endif
+
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+	COGLES2Driver::COGLES2Driver(const SIrrlichtCreationParameters& params, 
+				  io::IFileSystem* io, CIrrDeviceOffScreen* device)
+		: CNullDriver(io, params.WindowSize), COGLES2ExtensionHandler(),
+		BridgeCalls(0), CurrentRenderMode(ERM_NONE), ResetRenderStates(true),
+		Transformation3DChanged(true), AntiAlias(params.AntiAlias),
+		RenderTargetTexture(0), CurrentRendertargetSize(0, 0), 
+		ColorFormat(ECF_R8G8B8), EglContext(0), EglContextExternal(false), 
+		Params(params)
+	{
+		EglContext = device->getEGLContext();
+		EglContextExternal = true;
+		genericDriverInit(params.WindowSize, params.Stencilbuffer);
+	}
+#endif
 				  
 
 	//! destructor
@@ -2916,6 +2932,22 @@ namespace video
 #ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
 	IVideoDriver* createOGLES2Driver(const SIrrlichtCreationParameters& params, 
 			io::IFileSystem* io, CIrrDeviceWayland* device)
+	{
+#ifdef _IRR_COMPILE_WITH_OGLES2_
+		return new COGLES2Driver(params, io, device);
+#else
+		return 0;
+#endif // _IRR_COMPILE_WITH_OGLES2_
+	}
+		
+#endif
+
+// -----------------------------------
+// OFFSCREEN VERSION
+// -----------------------------------
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+	IVideoDriver* createOGLES2Driver(const SIrrlichtCreationParameters& params, 
+			io::IFileSystem* io, CIrrDeviceOffScreen* device)
 	{
 #ifdef _IRR_COMPILE_WITH_OGLES2_
 		return new COGLES2Driver(params, io, device);

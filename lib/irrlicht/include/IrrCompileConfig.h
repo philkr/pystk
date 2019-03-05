@@ -49,7 +49,6 @@
 #undef _IRR_COMPILE_WITH_SDL_DEVICE_
 #endif
 
-
 //! WIN32 for Windows32
 //! WIN64 for Windows64
 // The windows platform and API support SDL and WINDOW device
@@ -127,6 +126,12 @@
 #ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
 #define _IRR_COMPILE_WITH_EGL_
 #endif
+
+#ifndef NO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#define _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#define _IRR_COMPILE_WITH_EGL_
+#endif
+
 
 //! Define _IRR_COMPILE_WITH_JOYSTICK_SUPPORT_ if you want joystick events.
 #define _IRR_COMPILE_WITH_JOYSTICK_EVENTS_

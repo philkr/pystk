@@ -27,20 +27,21 @@ if(NOT SERVER_ONLY)
             message(FATAL_ERROR "XRANDR not found.")
         endif()
     endif()
+    
+    find_package(EGL)
+	if(EGL_FOUND)
+		include_directories(${EGL_INCLUDE_DIR})
+	else()
+		add_definitions(-DNO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
+	endif()
 
-    if(USE_GLES2 OR ENABLE_WAYLAND_DEVICE)
-        find_package(EGL)
-        
-        if(EGL_FOUND)
-            include_directories(${EGL_INCLUDE_DIR})
-        else()
-            if(USE_GLES2)
-                message(FATAL_ERROR "EGL not found.")
-            elseif(ENABLE_WAYLAND_DEVICE)
-                message(WARNING "EGL not found. Disable wayland support.")
-                set(ENABLE_WAYLAND_DEVICE OFF)
-            endif()
-        endif()
+    if((USE_GLES2 OR ENABLE_WAYLAND_DEVICE) AND NOT EGL_FOUND)
+		if(USE_GLES2)
+			message(FATAL_ERROR "EGL not found.")
+		elseif(ENABLE_WAYLAND_DEVICE)
+			message(WARNING "EGL not found. Disable wayland support.")
+			set(ENABLE_WAYLAND_DEVICE OFF)
+		endif()
     endif()
 
     if(ENABLE_WAYLAND_DEVICE)
@@ -159,6 +160,7 @@ source/Irrlicht/CImageWriterJPG.cpp
 source/Irrlicht/CImageWriterPNG.cpp
 source/Irrlicht/CIrrDeviceAndroid.cpp
 source/Irrlicht/CIrrDeviceLinux.cpp
+source/Irrlicht/CIrrDeviceOffScreen.cpp
 source/Irrlicht/CIrrDeviceSDL.cpp
 source/Irrlicht/CIrrDeviceStub.cpp
 source/Irrlicht/CIrrDeviceWayland.cpp
@@ -291,6 +293,7 @@ source/Irrlicht/CImageWriterJPG.h
 source/Irrlicht/CImageWriterPNG.h
 source/Irrlicht/CIrrDeviceAndroid.h
 source/Irrlicht/CIrrDeviceLinux.h
+source/Irrlicht/CIrrDeviceOffScreen.h
 source/Irrlicht/CIrrDeviceSDL.h
 source/Irrlicht/CIrrDeviceStub.h
 source/Irrlicht/CIrrDeviceWayland.h
@@ -606,7 +609,7 @@ if(NOT SERVER_ONLY)
         target_link_libraries(stkirrlicht ${X11_X11_LIB} ${X11_Xrandr_LIB})
     endif()
         
-    if(USE_GLES2 OR ENABLE_WAYLAND_DEVICE)
+    if(EGL_FOUND)
         target_link_libraries(stkirrlicht ${EGL_LIBRARY})
     endif()
     

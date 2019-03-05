@@ -30,6 +30,10 @@
 #include "CIrrDeviceLinux.h"
 #endif
 
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#include "CIrrDeviceOffScreen.h"
+#endif
+
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 #include "CIrrDeviceSDL.h"
 #endif
@@ -86,6 +90,12 @@ namespace irr
 		if (strcmp(irr_device_type, "wayland") == 0)
 		{
 			device_type = EIDT_WAYLAND;
+		}
+#endif
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+		if (strcmp(irr_device_type, "offscreen") == 0)
+		{
+			device_type = EIDT_OFFSCREEN;
 		}
 #endif
 #ifdef _IRR_COMPILE_WITH_X11_DEVICE_
@@ -155,6 +165,11 @@ namespace irr
 #ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_
 		if (creation_params.DeviceType == EIDT_ANDROID || (!dev && creation_params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceAndroid(creation_params);
+#endif
+
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+		if (creation_params.DeviceType == EIDT_OFFSCREEN || (!dev && creation_params.DeviceType == EIDT_BEST))
+			dev = new CIrrDeviceOffScreen(creation_params);
 #endif
 
 		if (dev && !dev->getVideoDriver() && creation_params.DriverType != video::EDT_NULL)
