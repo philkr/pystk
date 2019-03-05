@@ -175,6 +175,48 @@ void initGL()
         
     is_gl_init = true;
     // For Mesa extension reporting
+#if !defined(USE_GLES2)
+#ifndef WIN32
+    glewExperimental = GL_TRUE;
+#endif
+    GLenum err = glewInit();
+    
+    if (err == GLEW_ERROR_NO_GLX_DISPLAY)
+    {
+        Log::info("GLEW", "Glew couldn't open glx display.");
+    }
+    else if (err != GLEW_OK)
+    {
+        Log::fatal("GLEW", "Glew initialization failed with error %s", glewGetErrorString(err));
+    }
+#else
+#ifdef ARB_DEBUG_OUTPUT
+    glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKKHRPROC)eglGetProcAddress("glDebugMessageCallbackKHR");
+#endif
+#endif
+
+#ifdef ARB_DEBUG_OUTPUT
+    if (glDebugMessageCallbackARB)
+        glDebugMessageCallbackARB((GLDEBUGPROCARB)debugCallback, NULL);
+#endif
+
+#ifndef ANDROID
+    if (SP::sp_apitrace && hasGLExtension("GL_KHR_debug"))
+    {
+#ifdef USE_GLES2
+        glDebugMessageControl = (void(GL_APIENTRY*)(GLenum, GLenum, GLenum, GLsizei,
+            const GLuint*, GLboolean))eglGetProcAddress("glDebugMessageControlKHR");
+        glDebugMessageInsert = (void(GL_APIENTRY*)(GLenum, GLenum, GLuint, GLenum,
+            GLsizei, const char*))eglGetProcAddress("glDebugMessageInsertKHR");
+        assert(glDebugMessageControl && glDebugMessageInsert);
+#endif
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+    }
+    else
+    {
+        SP::sp_apitrace = false;
+    }
+#endif
 }
 
 ScopedGPUTimer::ScopedGPUTimer(GPUTimer &t) : timer(t)

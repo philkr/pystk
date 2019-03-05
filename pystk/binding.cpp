@@ -99,7 +99,7 @@ PYBIND11_MODULE(pystk, m) {
 	{
 		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
 		
-		cls.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 4}); }, "Color image of the kart");
+		cls.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 3}); }, "Color image of the kart");
 		cls.def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart");
 		
 	}

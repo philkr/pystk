@@ -133,7 +133,7 @@
 
 const PySTKConfig & PySTKConfig::hd() {
 	static PySTKConfig config = {600,400,
-		false, true, true, false, true, 
+		false, true, true, true, true, 
 		2,
 		true,
 		true,
@@ -201,15 +201,15 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		// Read the color and depth image
 		data->width = W;
 		data->height = H;
-		data->color_buf_.resize(W*H*4);
+		data->color_buf_.resize(W*H*3);
 		data->depth_buf_.resize(W*H);
 		
-		glPixelZoom(1,-1);
-		
 		rtts->getFBO(FBO_COLORS).bind();
+		
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		glReadPixels(0, 0, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data->color_buf_.data());
+		
+		glReadPixels(0, 0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->color_buf_.data());
 		glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, data->depth_buf_.data());
 		
 		// TODO: Read other buffers
@@ -217,7 +217,7 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		
 		
 		// Flip all buffers (thank you OpenGL)
-		yflip(data->color_buf_.data(), H, W*4);
+		yflip(data->color_buf_.data(), H, W*3);
 		yflip(data->depth_buf_.data(), H, W);
 	}
 	
@@ -332,6 +332,7 @@ bool PySuperTuxKart::step(float dt) {
 		
 		// TODO: ShaderBasedRenderer::render
 	}
+// 	irr_driver->getRTTs();
 	render(dt);
 	uint64_t t2 = StkTime::getRealTimeMs();
 	input_manager->update(dt);
