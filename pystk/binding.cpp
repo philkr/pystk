@@ -58,7 +58,11 @@ py::memoryview view(const T * v, const std::vector<ssize_t> & shape) {
 
 PYBIND11_MODULE(pystk, m) {
 	m.doc() = "Python SuperTuxKart interface";
-
+	
+	// Make offscreen rendering default
+	setenv("IRR_DEVICE_TYPE", "offscreen", 0);
+		
+	
 	{
 		py::class_<PySTKConfig, std::shared_ptr<PySTKConfig>> cls(m, "Config", "SuperTuxKart configuration.");
 	
