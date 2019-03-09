@@ -82,4 +82,8 @@ set(BASE_SRCS
     src/psaux/psaux.c
     src/psnames/psmodule.c)
 
-ADD_LIBRARY(freetype SHARED ${BASE_SRCS} )
+if (APPLE)
+  SET(BASE_SRCS ${BASE_SRCS} src/base/ftmac.c)
+endif()
+
+ADD_LIBRARY(freetype ${BASE_SRCS} )

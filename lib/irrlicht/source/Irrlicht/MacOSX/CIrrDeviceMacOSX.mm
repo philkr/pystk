@@ -9,9 +9,9 @@
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
-#ifndef __MAC_10_6
+// #ifndef __MAC_10_6
 #import <Carbon/Carbon.h>
-#endif
+// #endif
 
 #include "CIrrDeviceMacOSX.h"
 #include "IEventReceiver.h"

@@ -34,6 +34,10 @@
 #include "CIrrDeviceOffScreen.h"
 #endif
 
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+#include "MacOSX/CIrrDeviceOffScreenMacOSX.h"
+#endif
+
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
 #include "CIrrDeviceSDL.h"
 #endif
@@ -92,7 +96,7 @@ namespace irr
 			device_type = EIDT_WAYLAND;
 		}
 #endif
-#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#if defined(_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_) || defined(_IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_)
 		if (strcmp(irr_device_type, "offscreen") == 0)
 		{
 			device_type = EIDT_OFFSCREEN;
@@ -171,6 +175,11 @@ namespace irr
 		if (creation_params.DeviceType == EIDT_OFFSCREEN || (!dev && creation_params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceOffScreen(creation_params);
 #endif
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+		if (creation_params.DeviceType == EIDT_OFFSCREEN || (!dev && creation_params.DeviceType == EIDT_BEST))
+			dev = new CIrrDeviceOffScreenMacOSX(creation_params);
+#endif
+
 
 		if (dev && !dev->getVideoDriver() && creation_params.DriverType != video::EDT_NULL)
 		{

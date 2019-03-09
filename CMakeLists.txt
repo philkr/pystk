@@ -276,6 +276,7 @@ if(NOT SERVER_ONLY)
 
 endif()
 
+MESSAGE(FATAL "FT: '${FREETYPE_LIBRARIES}'")
 
 add_executable(supertuxkart src/main.cpp )
 target_link_libraries(supertuxkart stk)
@@ -285,6 +286,13 @@ target_link_libraries(pystk PRIVATE pybind11::module stk)
 set_target_properties(pystk PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                        SUFFIX "${PYTHON_MODULE_EXTENSION}")
 add_custom_command(TARGET pystk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pystk> ${PROJECT_SOURCE_DIR}/examples/ )
+
+
+
+if(APPLE)
+   target_link_libraries(pystk PRIVATE "-framework CoreFoundation -framework Cocoa")
+   target_link_libraries(supertuxkart "-framework CoreFoundation -framework Cocoa")
+endif()
 
 # ==== Checking if data folder exists ====
 if(NOT IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data)

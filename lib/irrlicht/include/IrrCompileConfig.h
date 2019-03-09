@@ -80,6 +80,8 @@
 #define MACOSX // legacy support
 #endif
 #define _IRR_OSX_PLATFORM_ // we only support OSX on these systems
+#define _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+#define GL_SILENCE_DEPRECATION
 
 #if defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) || defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
 #define _IRR_IPHONE_PLATFORM_

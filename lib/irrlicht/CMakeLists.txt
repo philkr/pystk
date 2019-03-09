@@ -584,6 +584,7 @@ if(APPLE)
         ${IRRLICHT_SOURCES}
         source/Irrlicht/MacOSX/AppDelegate.mm
         source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm
+        source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp
         source/Irrlicht/MacOSX/OSXClipboard.mm)
 
     #list(APPEND CMAKE_C_SOURCE_FILE_EXTENSIONS mm)
@@ -597,11 +598,16 @@ if(APPLE)
 
     set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3 -fno-rtti")
     set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES LANGUAGE C)
+    
 endif()
 
 add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 
 target_link_libraries(stkirrlicht ${ZLIB_LIBRARY})
+
+if(APPLE)
+    target_link_libraries(stkirrlicht "-framework CoreFoundation")
+endif()
 
 if(NOT SERVER_ONLY)
     target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY})
