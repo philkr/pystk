@@ -33,7 +33,7 @@
 #include <SColor.h>
 #include "IrrlichtDevice.h"
 #include "ISkinnedMesh.h"
-#include "graphics/abstract_renderer.hpp"
+#include "graphics/shader_based_renderer.hpp"
 #include "graphics/gl_headers.hpp"
 #include "graphics/wind.hpp"
 #include "io/file_manager.hpp"
@@ -67,7 +67,7 @@ using namespace irr;
 
 enum TypeRTT : unsigned int;
 class AbstractKart;
-class AbstractRenderer;
+class ShaderBasedRenderer;
 class Camera;
 class FrameBuffer;
 class LightNode;
@@ -96,7 +96,7 @@ private:
     /** Irrlicht race font. */
     gui::IGUIFont              *m_race_font;
     /** Renderer. */
-    AbstractRenderer           *m_renderer;
+    ShaderBasedRenderer        *m_renderer;
     
     /** Wind. */
     Wind                 *m_wind;

@@ -639,13 +639,13 @@ void IrrDriver::initDevice()
 #endif
 
 #ifndef SERVER_ONLY
-    if (CVS->isGLSL())
+    if (!CVS->isGLSL())
     {
-        m_renderer = new ShaderBasedRenderer();
-        preloadShaders();
+        Log::fatal("irr_driver",
+               "GLSL not supported by driver");
     }
-    else
-        m_renderer = new FixedPipelineRenderer();
+	m_renderer = new ShaderBasedRenderer();
+	preloadShaders();
 #endif
 
     if (UserConfigParams::m_shadows_resolution != 0 &&

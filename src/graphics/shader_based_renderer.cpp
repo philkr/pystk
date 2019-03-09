@@ -259,7 +259,11 @@ void ShaderBasedRenderer::renderSceneDeferred(scene::ICameraSceneNode * const ca
         float clear_color_empty[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
         glClearBufferfv(GL_COLOR, 0, clear_color_empty);
         glClearBufferfv(GL_COLOR, 1, clear_color_empty);
-        glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+
+        GLuint CI[4] = { 0 };
+        glClearBufferuiv(GL_COLOR, 2, CI);
+        
         ScopedGPUTimer Timer(irr_driver->getGPUTimer(Q_SOLID_PASS));
         SP::draw(SP::RP_1ST, SP::DCT_NORMAL);
     }
@@ -444,6 +448,10 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        
+        GLuint CI[4] = { 0 };
+        glClearBufferuiv(GL_COLOR, 2, CI);
+        
     }
 
     {
@@ -709,7 +717,7 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
 
     World *world = World::getWorld(); // Never NULL.
     Track *track = Track::getCurrentTrack();
-    
+
     RaceGUIBase *rg = world->getRaceGUI();
     if (rg) rg->update(dt);
 

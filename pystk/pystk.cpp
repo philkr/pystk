@@ -203,22 +203,27 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		data->height = H;
 		data->color_buf_.resize(W*H*3);
 		data->depth_buf_.resize(W*H);
+		data->instance_buf_.resize(W*H);
 		
 		rtts->getFBO(FBO_COLORS).bind();
 		
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		// Read color and depth
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		
+
 		glReadPixels(0, 0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->color_buf_.data());
 		glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, data->depth_buf_.data());
 		
-		// TODO: Read other buffers
-		
+		// Read the labels
+		glReadBuffer(GL_COLOR_ATTACHMENT2);
+		glReadPixels(0, 0, W, H, GL_RED_INTEGER, GL_UNSIGNED_INT, data->instance_buf_.data());
 		
 		
 		// Flip all buffers (thank you OpenGL)
 		yflip(data->color_buf_.data(), H, W*3);
 		yflip(data->depth_buf_.data(), H, W);
+		yflip(data->instance_buf_.data(), H, W);
 	}
 	
 }

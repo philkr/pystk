@@ -51,6 +51,8 @@ private:
 
     std::vector<SP::Armature> m_all_armatures;
 
+	int m_type = 0;
+
 public:
     // ------------------------------------------------------------------------
     SPMesh();
@@ -159,7 +161,10 @@ public:
     void addSPMeshBuffer(SPMeshBuffer* spmb)      { m_buffer.push_back(spmb); }
     // ------------------------------------------------------------------------
     SPMeshBuffer* getSPMeshBuffer(u32 nr) const;
-
+    // ------------------------------------------------------------------------
+    virtual void setType(int type);
+    virtual int getType() const { return m_type; }
+    
 };
 
 }

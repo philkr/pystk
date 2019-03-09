@@ -21,6 +21,7 @@
 
 #include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
+#include "graphics/glwrap.hpp"
 #include "graphics/frame_buffer_layer.hpp"
 #include "utils/log.hpp"
 
@@ -115,6 +116,7 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
     {
         m_render_target_textures[RTT_COLOR] = generateRTT(res, rgba_internal_format, rgba_format, type);
     }
+    m_render_target_textures[RTT_LABEL] = generateRTT(res, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT);
     if (CVS->isDeferredEnabled())
     {
         m_render_target_textures[RTT_NORMAL_AND_DEPTH] = generateRTT(res, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
@@ -167,6 +169,8 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
     if (!use_default_fbo_only)
     {
         somevector.push_back(m_render_target_textures[RTT_COLOR]);
+        somevector.push_back(0);
+        somevector.push_back(m_render_target_textures[RTT_LABEL]);
         m_frame_buffers[FBO_COLORS] = new FrameBuffer(somevector, m_depth_stencil_tex, res.Width, res.Height);
     }
 
@@ -179,6 +183,7 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
         somevector.clear();
         somevector.push_back(m_render_target_textures[RTT_SP_DIFF_COLOR]);
         somevector.push_back(m_render_target_textures[RTT_NORMAL_AND_DEPTH]);
+        somevector.push_back(m_render_target_textures[RTT_LABEL]);
         m_frame_buffers[FBO_SP] = new FrameBuffer(somevector, m_depth_stencil_tex, res.Width, res.Height);
 
         somevector.clear();
@@ -276,7 +281,7 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
             somevector.clear();
             somevector.push_back(m_render_target_textures[RTT_LENS_256]);
             m_frame_buffers[FBO_LENS_256] = new FrameBuffer(somevector, shadowsize2.Width, shadowsize2.Height);
-
+ 
             somevector.clear();
             somevector.push_back(m_render_target_textures[RTT_BLOOM_128]);
             m_frame_buffers[FBO_BLOOM_128] = new FrameBuffer(somevector, shadowsize3.Width, shadowsize3.Height);

@@ -34,7 +34,7 @@ extern "C" {
 
 #if defined(__APPLE__)
 #    include <OpenGL/gl.h>
-#    include <OpenGL/gl3.h>
+//#    include <OpenGL/gl3.h>
 #    define OGL32CTX
 #    ifdef GL_ARB_instanced_arrays
 #        ifdef glVertexAttribDivisor

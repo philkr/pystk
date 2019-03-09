@@ -59,8 +59,11 @@ public:
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i,
                 GL_TEXTURE_2D, rtts[i], 0);
         }
-        assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
-            GL_FRAMEBUFFER_COMPLETE_EXT);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+            Log::warn("FrameBuffer", ("Failed to create framebuffer " + std::to_string(status)).c_str());
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     // ------------------------------------------------------------------------
     FrameBuffer(const std::vector<GLuint> &rtts, GLuint depth_stencil,
@@ -80,8 +83,11 @@ public:
         }
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
             GL_TEXTURE_2D, depth_stencil, 0);
-        assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) ==
-            GL_FRAMEBUFFER_COMPLETE_EXT);
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+            Log::warn("FrameBuffer", ("Failed to create framebuffer " + std::to_string(status)).c_str());
+        };
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     // ------------------------------------------------------------------------
     ~FrameBuffer()

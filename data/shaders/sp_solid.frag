@@ -6,6 +6,7 @@ in vec2 uv;
 
 layout(location = 0) out vec4 o_diffuse_color;
 layout(location = 1) out vec4 o_normal_color;
+layout(location = 2) out int  o_label;
 
 #stk_include "utils/encode_normal.frag"
 #stk_include "utils/rgb_conversion.frag"
@@ -42,5 +43,5 @@ void main(void)
 #else
     o_diffuse_color = vec4(final_color, 1.0);
 #endif
-
+	o_label = 1;
 }

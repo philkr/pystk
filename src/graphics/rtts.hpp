@@ -93,6 +93,8 @@ enum TypeRTT : unsigned int
     RTT_BLOOM_128,
     RTT_TMP_128,
     RTT_LENS_128,
+    
+    RTT_LABEL,
 
     RTT_COUNT
 };

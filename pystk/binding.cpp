@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include "pystk.hpp"
+#include "utils/log.hpp"
 
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -64,6 +65,18 @@ PYBIND11_MODULE(pystk, m) {
 		
 	
 	{
+		py::enum_<Log::LogLevel>(m, "LogLevel")
+		.value("debug", Log::LL_DEBUG)
+		.value("verbose", Log::LL_VERBOSE)
+		.value("info", Log::LL_INFO)
+		.value("warn", Log::LL_WARN)
+		.value("eror", Log::LL_ERROR)
+		.value("fatal", Log::LL_FATAL);
+		
+		m.def("set_log_level", Log::setLogLevel);
+	}
+	
+	{
 		py::class_<PySTKConfig, std::shared_ptr<PySTKConfig>> cls(m, "Config", "SuperTuxKart configuration.");
 	
 		py::enum_<PySTKConfig::RaceMode>(cls, "RaceMode")
@@ -105,7 +118,7 @@ PYBIND11_MODULE(pystk, m) {
 		
 		cls.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 3}); }, "Color image of the kart");
 		cls.def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart");
-		
+		cls.def_property_readonly("instance", [](const PySTKRenderData & rd) { return py::ro_view(rd.instance_buf_.data(), {rd.height, rd.width}); }, "Instance labels");
 	}
 	
 	m.def("nRunning", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
