@@ -43,7 +43,7 @@ struct PySTKRenderData {
 	int width, height;
 	std::vector<uint8_t> color_buf_;
 	std::vector<float> depth_buf_;
-	std::vector<uint32_t> instance_buf_;
+	std::vector<int32_t> instance_buf_;
 };
 
 

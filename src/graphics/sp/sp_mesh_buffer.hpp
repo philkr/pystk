@@ -346,8 +346,7 @@ public:
     }
     // ------------------------------------------------------------------------
     
-    virtual void setType(int type) { m_type = type; }
-    virtual int getType() const { return m_type; }
+    virtual void setLabel(int label);
     
     // ------------------------------------------------------------------------
     virtual void recalculateBoundingBox()

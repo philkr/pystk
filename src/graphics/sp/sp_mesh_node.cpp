@@ -26,6 +26,7 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/material.hpp"
 #include "graphics/render_info.hpp"
+#include "utils/objecttype.h"
 
 #include "../../../lib/irrlicht/source/Irrlicht/CBoneSceneNode.h"
 #include <algorithm>
@@ -43,6 +44,7 @@ SPMeshNode::SPMeshNode(IAnimatedMesh* mesh, ISceneNode* parent,
           : CAnimatedMeshSceneNode(mesh, parent, mgr, id, position, rotation,
                                    scale)
 {
+	object_id_ = newObjectId(debug_name);
     m_glow_color = video::SColorf(0.0f, 0.0f, 0.0f);
     m_mesh = NULL;
     m_first_render_info = render_info;

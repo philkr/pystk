@@ -177,7 +177,7 @@ void SPMesh::finalize()
         {
             m_buffer[i]->enableSkinningData();
         }
-        m_buffer[i]->setType(m_type);
+        m_buffer[i]->setLabel(m_label);
     }
 
     auto itr = m_buffer.begin();
@@ -205,10 +205,10 @@ void SPMesh::finalize()
     }
 
 }   // finalize
-void SPMesh::setType(int type) {
+void SPMesh::setLabel(int label) {
 	for( auto b: m_buffer )
-		b->setType(type);
-	m_type = type;
+		b->setLabel(label);
+	m_label = label;
 }
 
 }

@@ -792,17 +792,17 @@ void addObject(SPMeshNode* node)
     {
         return;
     }
-
-    if (node->getSPM() == NULL)
+	SPMesh * mesh = node->getSPM();
+    if (mesh == NULL)
     {
         return;
     }
 
     const core::matrix4& model_matrix = node->getAbsoluteTransformation();
     bool added_for_skinning = false;
-    for (unsigned m = 0; m < node->getSPM()->getMeshBufferCount(); m++)
+    for (unsigned m = 0; m < mesh->getMeshBufferCount(); m++)
     {
-        SPMeshBuffer* mb = node->getSPM()->getSPMeshBuffer(m);
+        SPMeshBuffer* mb = mesh->getSPMeshBuffer(m);
         SPShader* shader = node->getShader(m);
         if (shader == NULL)
         {
@@ -886,7 +886,7 @@ void addObject(SPMeshNode* node)
         SPInstancedData id = SPInstancedData
             (node->getAbsoluteTransformation(), node->getTextureMatrix(m)[0],
             node->getTextureMatrix(m)[1], hue,
-            (short)node->getSkinningOffset());
+            (short)node->getSkinningOffset(), node->objectId());
 
         for (int dc_type = 0; dc_type < (handle_shadow ? 5 : 1); dc_type++)
         {

@@ -129,6 +129,7 @@
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
+#include "utils/objecttype.h"
 #include "util.hpp"
 
 const PySTKConfig & PySTKConfig::hd() {
@@ -197,6 +198,7 @@ void PySTKRenderTarget::render(irr::scene::ICameraSceneNode* camera, float dt) {
 void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 	RTT * rtts = rt_->getRTTs();
 	if (rtts && data) {
+		
 		unsigned int W = rtts->getWidth(), H = rtts->getHeight();
 		// Read the color and depth image
 		data->width = W;
@@ -205,7 +207,7 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		data->depth_buf_.resize(W*H);
 		data->instance_buf_.resize(W*H);
 		
-		rtts->getFBO(FBO_COLORS).bind();
+		rtts->getFBO(FBO_COLOR_AND_LABEL).bind();
 		
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -217,7 +219,7 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		
 		// Read the labels
 		glReadBuffer(GL_COLOR_ATTACHMENT2);
-		glReadPixels(0, 0, W, H, GL_RED_INTEGER, GL_UNSIGNED_INT, data->instance_buf_.data());
+		glReadPixels(0, 0, W, H, GL_RED_INTEGER, GL_INT, data->instance_buf_.data());
 		
 		
 		// Flip all buffers (thank you OpenGL)
@@ -261,6 +263,8 @@ PySuperTuxKart::PySuperTuxKart(const PySTKConfig & config) {
 	if (n_running > 0)
 		throw std::invalid_argument("Cannot run more than one supertux instance per process!");
 	n_running++;
+	
+	resetObjectId();
 	
 	setupConfig(config);
 	
@@ -326,7 +330,7 @@ bool PySuperTuxKart::step(float dt) {
 	uint64_t t0 = StkTime::getRealTimeMs();
 	if (World::getWorld())
 		World::getWorld()->updateGraphics(dt);
-	uint64_t t1 = StkTime::getRealTimeMs();
+// 	uint64_t t1 = StkTime::getRealTimeMs();
 	
 	// irr_driver->update alternative
 	if (1) {
@@ -337,7 +341,7 @@ bool PySuperTuxKart::step(float dt) {
 		
 		// TODO: ShaderBasedRenderer::render
 	}
-// 	irr_driver->getRTTs();
+	uint64_t t1 = StkTime::getRealTimeMs();
 	render(dt);
 	uint64_t t2 = StkTime::getRealTimeMs();
 	input_manager->update(dt);

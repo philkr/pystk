@@ -3,6 +3,7 @@ in float hue_change;
 in vec4 color;
 in vec3 normal;
 in vec2 uv;
+flat in int label;
 
 layout(location = 0) out vec4 o_diffuse_color;
 layout(location = 1) out vec4 o_normal_color;
@@ -43,5 +44,5 @@ void main(void)
 #else
     o_diffuse_color = vec4(final_color, 1.0);
 #endif
-	o_label = 1;
+	o_label = label;
 }

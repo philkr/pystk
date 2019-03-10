@@ -27,6 +27,7 @@ class FrameBufferLayer;
 enum TypeFBO
 {
     FBO_COLORS,
+    FBO_COLOR_AND_LABEL,
     FBO_NORMAL_AND_DEPTHS,
     FBO_SP,
     FBO_RGBA_1,

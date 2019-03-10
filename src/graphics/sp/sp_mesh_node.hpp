@@ -70,6 +70,8 @@ private:
         m_joint_nodes.clear();
         m_skinning_matrices.clear();
     }
+    
+    int object_id_ = 0;
 
 public:
     // ------------------------------------------------------------------------
@@ -159,6 +161,8 @@ public:
         assert(mb_id < m_texture_matrices.size());
         m_texture_matrices[mb_id] = tm;
     }
+    
+    int objectId() const { return object_id_; }
 };
 
 }

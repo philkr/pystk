@@ -438,7 +438,7 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
 
     if (forceRTT)
     {
-        m_rtts->getFBO(FBO_COLORS).bind();
+        m_rtts->getFBO(FBO_COLOR_AND_LABEL).bind();
         video::SColor clearColor(0, 150, 150, 150);
         if (World::getWorld() != NULL)
             clearColor = irr_driver->getClearColor();
@@ -449,11 +449,9 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         
-        GLuint CI[4] = { 0 };
-        glClearBufferuiv(GL_COLOR, 2, CI);
-        
+        GLint CI[4] = { -1 };
+        glClearBufferiv(GL_COLOR, 2, CI);
     }
-
     {
         glDepthMask(GL_TRUE);
         glEnable(GL_DEPTH_TEST);
@@ -461,6 +459,8 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
         ScopedGPUTimer Timer(irr_driver->getGPUTimer(Q_SOLID_PASS));
         SP::draw(SP::RP_1ST, SP::DCT_NORMAL);
     }
+	if (forceRTT)
+		m_rtts->getFBO(FBO_COLORS).bind();
 
     {
         PROFILER_PUSH_CPU_MARKER("- Skybox", 0xFF, 0x00, 0xFF);
@@ -498,6 +498,7 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
         glDepthMask(GL_FALSE);
     }
     glBindVertexArray(0);
+// 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 } //renderScene
 
@@ -806,25 +807,25 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
         PROFILER_POP_CPU_MARKER();
     }  // for i<getNumKarts
 
-    {
-        ScopedGPUTimer Timer(irr_driver->getGPUTimer(Q_GUI));
-        PROFILER_PUSH_CPU_MARKER("GUIEngine", 0x75, 0x75, 0x75);
-        // Either render the gui, or the global elements of the race gui.
-        GUIEngine::render(dt, is_loading);
-        if (irr_driver->getRenderNetworkDebug() && !is_loading)
-            irr_driver->renderNetworkDebug();
-        PROFILER_POP_CPU_MARKER();
-    }
-
-    // Render the profiler
-    if(UserConfigParams::m_profiler_enabled)
-    {
-        PROFILER_DRAW();
-    }
-
-#ifdef DEBUG
-    drawDebugMeshes();
-#endif
+//     {
+//         ScopedGPUTimer Timer(irr_driver->getGPUTimer(Q_GUI));
+//         PROFILER_PUSH_CPU_MARKER("GUIEngine", 0x75, 0x75, 0x75);
+//         // Either render the gui, or the global elements of the race gui.
+//         GUIEngine::render(dt, is_loading);
+//         if (irr_driver->getRenderNetworkDebug() && !is_loading)
+//             irr_driver->renderNetworkDebug();
+//         PROFILER_POP_CPU_MARKER();
+//     }
+// 
+//     // Render the profiler
+//     if(UserConfigParams::m_profiler_enabled)
+//     {
+//         PROFILER_DRAW();
+//     }
+// 
+// #ifdef DEBUG
+//     drawDebugMeshes();
+// #endif
 
     PROFILER_PUSH_CPU_MARKER("EndScene", 0x45, 0x75, 0x45);
     irr_driver->getVideoDriver()->endScene();
@@ -867,7 +868,7 @@ void ShaderBasedRenderer::renderToTexture(GL3RenderTarget *render_target,
     else
     {
         renderScene(camera, dt, false, true);
-        render_target->setFrameBuffer(&m_rtts->getFBO(FBO_COLORS));
+        render_target->setFrameBuffer(&m_rtts->getFBO(FBO_COLOR_AND_LABEL));
     }
 
     // reset

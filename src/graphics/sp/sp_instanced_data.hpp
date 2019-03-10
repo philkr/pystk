@@ -25,24 +25,25 @@
 
 using namespace irr;
 
+#define SP_ID_SIZE 48
+
 namespace SP
 {
-
 class SPInstancedData
 {
 private:
-    char m_data[44];
+    char m_data[SP_ID_SIZE];
 
 public:
     // ------------------------------------------------------------------------
     SPInstancedData()
     {
-        memset(m_data, 0, 44);
+        memset(m_data, 0, SP_ID_SIZE);
     }
     // ------------------------------------------------------------------------
     SPInstancedData(const core::matrix4& model_mat,
                     float texture_trans_x, float texture_trans_y, float hue,
-                    short skinning_offset)
+                    short skinning_offset, int id)
     {
         using namespace MiniGLM;
         float position[3] = { model_mat[12], model_mat[13], model_mat[14] };
@@ -78,6 +79,7 @@ public:
         memcpy(m_data + 40, &skinning_offset, 2);
         short hue_packed = short(core::clamp(int(hue * 100.0f), 0, 100));
         memcpy(m_data + 42, &hue_packed, 2);
+        memcpy(m_data + 44, &id, 4);
     }
     // ------------------------------------------------------------------------
     const void* getData() const                              { return m_data; }
