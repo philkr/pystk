@@ -1,4 +1,5 @@
 #include "objecttype.h"
+#include "utils/log.hpp"
 #include <iostream>
 
 ObjectType getOT(const std::string & debug_name) {
@@ -13,7 +14,7 @@ ObjectType getOT(const std::string & debug_name) {
 	if (debug_name.find("kart")  != std::string::npos) return OT_KART;
 // 	if (debug_name.find("water") != std::string::npos) return OT_KART;
 	
-	std::cout << "Unknown object type : '"<<debug_name<<"'!"<<std::endl;
+	Log::warn("ObjectType", ("Unknown object type  '" + debug_name + "'!").c_str());
 	return OT_NONE;
 }
 int last_object_id[NUM_OT] = {0};

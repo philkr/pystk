@@ -62,7 +62,18 @@ PYBIND11_MODULE(pystk, m) {
 	
 	// Make offscreen rendering default
 	setenv("IRR_DEVICE_TYPE", "offscreen", 0);
-		
+	
+	// Adjust the log level
+	Log::setLogLevel(Log::LL_FATAL);
+	if (getenv("PYSTK_LOG_LEVEL")) {
+		std::string ll = getenv("PYSTK_LOG_LEVEL");
+		if (ll == "debug") Log::setLogLevel(Log::LL_DEBUG);
+		if (ll == "verbose") Log::setLogLevel(Log::LL_VERBOSE);
+		if (ll == "info") Log::setLogLevel(Log::LL_INFO);
+		if (ll == "warn") Log::setLogLevel(Log::LL_WARN);
+		if (ll == "eror") Log::setLogLevel(Log::LL_ERROR);
+		if (ll == "fatal") Log::setLogLevel(Log::LL_FATAL);
+	}
 	
 	{
 		py::enum_<Log::LogLevel>(m, "LogLevel")
@@ -114,11 +125,22 @@ PYBIND11_MODULE(pystk, m) {
 	}
 
 	{
-		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
+		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> >(m, "RenderData", "SuperTuxKart rendering output")
+		.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 3}); }, "Color image of the kart")
+		.def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart")
+		.def_property_readonly("instance", [](const PySTKRenderData & rd) { return py::ro_view(rd.instance_buf_.data(), {rd.height, rd.width}); }, "Instance labels");
+	}
+
+	{
+		py::class_<PySTKAction, std::shared_ptr<PySTKAction> >(m, "Action", "SuperTuxKart action")
+		.def(py::init<float,float,bool,bool,bool,bool>(), py::arg("steer") = 0, py::arg("acceleration") = 0, py::arg("nitro") = false, py::arg("drift") = false, py::arg("rescue") = false, py::arg("fire") = false)
 		
-		cls.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 3}); }, "Color image of the kart");
-		cls.def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart");
-		cls.def_property_readonly("instance", [](const PySTKRenderData & rd) { return py::ro_view(rd.instance_buf_.data(), {rd.height, rd.width}); }, "Instance labels");
+		.def_readwrite("steer", &PySTKAction::steering_angle, "Steering angle, normalize to -1..1")
+		.def_readwrite("acceleration", &PySTKAction::acceleration, "Acceleration, normalize to -1..1, where negative values are braking.")
+		.def_readwrite("nitro", &PySTKAction::nitro, "Use nitro.")
+		.def_readwrite("drift", &PySTKAction::drift, "Drift while turning.")
+		.def_readwrite("rescue", &PySTKAction::rescue, "Call the bird.")
+		.def_readwrite("fire", &PySTKAction::fire, "Fire the current pickup item");
 	}
 	
 	m.def("nRunning", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");

@@ -46,6 +46,14 @@ struct PySTKRenderData {
 	std::vector<int32_t> instance_buf_;
 };
 
+struct PySTKAction {
+	float steering_angle = 0;
+	float acceleration = 0;
+	bool nitro = false;
+	bool drift = false;
+	bool rescue = false;
+	bool fire = false;
+};
 
 class PySuperTuxKart {
 protected: // Static methods
