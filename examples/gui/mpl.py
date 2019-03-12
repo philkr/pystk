@@ -38,17 +38,17 @@ class MplUI(BaseUI):
         # disable the default keys
         self._fig.canvas.mpl_disconnect(self._fig.canvas.manager.key_press_handler_id)
 
-    def _update_action(self):
+    def _set_action(self):
         super()._update_action(self._ks)
 
     def _key_press(self, e):
         self._ks.add(e.key)
-        self._update_action()
+        self._set_action()
         return True
 
     def _key_release(self, e):
         self._ks.remove(e.key)
-        self._update_action()
+        self._set_action()
         return True
 
     def show(self, render_data: pystk.RenderData):
