@@ -2,7 +2,7 @@ import pystk
 import matplotlib.pyplot as plt
 from time import time
 import numpy as np
-import gui
+from pystk import gui
 
 # pystk.set_log_level(pystk.LogLevel.warn)
 
