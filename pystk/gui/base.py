@@ -18,7 +18,7 @@ class VT(Flag):
 
     @classmethod
     def default(cls):
-        return cls.all()
+        return cls.IMAGE
 
 
 class_color = np.array([
@@ -62,9 +62,12 @@ def instance_seg(instance):
 class BaseUI:
     visualization_type: VT
     current_action: pystk.Action
+    visible: bool
 
     def __init__(self, visualization_type: VT):
         self.visualization_type = visualization_type
+        self.current_action = pystk.Action()
+        self.visible = False
 
     @staticmethod
     def _format_data(render_data: pystk.RenderData) -> Dict[VT, np.array]:
@@ -76,8 +79,9 @@ class BaseUI:
         return r
 
     def _update_action(self, key_state: Set[str]):
-        self.current_action.acceleration = int('w' in self._ks or 'up' in self._ks) - int('s' in self._ks or 'down' in self._ks)
-        self.current_action.steer = int('a' in self._ks or 'left' in self._ks) - int('d' in self._ks or 'right' in self._ks)
+        self.current_action.acceleration = int('w' in self._ks or 'up' in self._ks)
+        self.current_action.brake = 's' in self._ks or 'down' in self._ks
+        self.current_action.steer = int('d' in self._ks or 'right' in self._ks) - int('a' in self._ks or 'left' in self._ks)
         # TODO: Complete
 
     def show(self, render_data: pystk.RenderData):

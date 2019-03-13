@@ -81,6 +81,7 @@
 #include "items/network_item_manager.hpp"
 #include "items/powerup_manager.hpp"
 #include "items/projectile_manager.hpp"
+#include "karts/abstract_kart.hpp"
 #include "karts/combined_characteristic.hpp"
 #include "karts/controller/ai_base_lap_controller.hpp"
 #include "karts/kart_model.hpp"
@@ -132,8 +133,8 @@
 #include "utils/objecttype.h"
 #include "util.hpp"
 
-const PySTKConfig & PySTKConfig::hd() {
-	static PySTKConfig config = {600,400,
+const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
+	static PySTKGraphicsConfig config = {600,400,
 		false, true, true, true, true, 
 		2,
 		true,
@@ -146,8 +147,8 @@ const PySTKConfig & PySTKConfig::hd() {
 	};
 	return config;
 }
-const PySTKConfig & PySTKConfig::sd() {
-	static PySTKConfig config = {600,400,
+const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
+	static PySTKGraphicsConfig config = {600,400,
 		false, false, false, false, false,
 		2,
 		true,
@@ -160,8 +161,8 @@ const PySTKConfig & PySTKConfig::sd() {
 	};
 	return config;
 }
-const PySTKConfig & PySTKConfig::ld() {
-	static PySTKConfig config = {600,400,
+const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
+	static PySTKGraphicsConfig config = {600,400,
 		false, false, false, false, false,
 		0,
 		false,
@@ -230,10 +231,31 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 	
 }
 
+
+void PySTKAction::set(KartControl * control) const {
+	control->setAccel(acceleration);
+	control->setBrake(brake);
+	control->setFire(fire);
+	control->setNitro(nitro);
+	control->setRescue(rescue);
+	control->setSteer(steering_angle);
+	control->setSkidControl(drift ? (steering_angle > 0 ? KartControl::SC_RIGHT : KartControl::SC_LEFT) : KartControl::SC_NONE);
+}
+void PySTKAction::get(const KartControl * control) {
+	acceleration = control->getAccel();
+	brake = control->getBrake();
+	fire = control->getFire();
+	nitro = control->getNitro();
+	rescue = control->getRescue();
+	steering_angle = control->getSteer();
+	drift = control->getSkidControl() != KartControl::SC_NONE;
+}
+
 int PySuperTuxKart::n_running = 0;
-void PySuperTuxKart::init() {
+void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
 	initUserConfig();
 	stk_config->load(file_manager->getAsset("stk_config.xml"));
+	initGraphicsConfig(config);
 	initRest();
 }
 void PySuperTuxKart::clean() {
@@ -259,7 +281,7 @@ void PySuperTuxKart::clean() {
 	delete file_manager;
 }
 int PySuperTuxKart::nRunning() { return n_running; }
-PySuperTuxKart::PySuperTuxKart(const PySTKConfig & config) {
+PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
 	if (n_running > 0)
 		throw std::invalid_argument("Cannot run more than one supertux instance per process!");
 	n_running++;
@@ -271,6 +293,16 @@ PySuperTuxKart::PySuperTuxKart(const PySTKConfig & config) {
 	load();
 	
 	render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
+}
+std::vector<std::string> PySuperTuxKart::listTracks() {
+	if (track_manager)
+		return track_manager->getAllTrackIdentifiers();
+	return std::vector<std::string>();
+}
+std::vector<std::string> PySuperTuxKart::listKarts() {
+	if (kart_properties_manager)
+		return kart_properties_manager->getAllAvailableKarts();
+	return std::vector<std::string>();
 }
 PySuperTuxKart::~PySuperTuxKart() {
 	n_running--;
@@ -326,27 +358,32 @@ void PySuperTuxKart::render(float dt) {
     }
 }
 
-bool PySuperTuxKart::step(float dt) {
+bool PySuperTuxKart::step(const PySTKAction & a) {
+	KartControl & control = World::getWorld()->getPlayerKart(0)->getControls();
+	a.set(&control);
+	return step();
+}
+bool PySuperTuxKart::step() {
 	uint64_t t0 = StkTime::getRealTimeMs();
 	if (World::getWorld())
-		World::getWorld()->updateGraphics(dt);
+		World::getWorld()->updateGraphics(config_.step_size);
 // 	uint64_t t1 = StkTime::getRealTimeMs();
 	
 	// irr_driver->update alternative
 	if (1) {
-		irr_driver->update(dt);
+		irr_driver->update(config_.step_size);
 	} else {
-		PropertyAnimator::get()->update(dt);
+		PropertyAnimator::get()->update(config_.step_size);
 		SP::SPTextureManager::get()->checkForGLCommand();
 		
 		// TODO: ShaderBasedRenderer::render
 	}
 	uint64_t t1 = StkTime::getRealTimeMs();
-	render(dt);
+	render(config_.step_size);
 	uint64_t t2 = StkTime::getRealTimeMs();
-	input_manager->update(dt);
+	input_manager->update(config_.step_size);
 	uint64_t t3 = StkTime::getRealTimeMs();
-	GUIEngine::update(dt);
+	GUIEngine::update(config_.step_size);
 	uint64_t t4 = StkTime::getRealTimeMs();
 	
 	if (World::getWorld())
@@ -459,37 +496,21 @@ void PySuperTuxKart::setupRaceStart()
     input_manager->getDeviceManager()->setAssignMode(ASSIGN);
 }   // setupRaceStart
 
-static RaceManager::MinorRaceModeType translate_mode(PySTKConfig::RaceMode mode) {
+static RaceManager::MinorRaceModeType translate_mode(PySTKRaceConfig::RaceMode mode) {
 	switch (mode) {
-		case PySTKConfig::NORMAL_RACE: return RaceManager::MINOR_MODE_NORMAL_RACE;
-		case PySTKConfig::TIME_TRIAL: return RaceManager::MINOR_MODE_TIME_TRIAL;
-		case PySTKConfig::FOLLOW_LEADER: return RaceManager::MINOR_MODE_FOLLOW_LEADER;
-		case PySTKConfig::THREE_STRIKES: return RaceManager::MINOR_MODE_3_STRIKES;
-		case PySTKConfig::FREE_FOR_ALL: return RaceManager::MINOR_MODE_FREE_FOR_ALL;
-		case PySTKConfig::CAPTURE_THE_FLAG: return RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
-		case PySTKConfig::SOCCER: return RaceManager::MINOR_MODE_SOCCER;
+		case PySTKRaceConfig::NORMAL_RACE: return RaceManager::MINOR_MODE_NORMAL_RACE;
+		case PySTKRaceConfig::TIME_TRIAL: return RaceManager::MINOR_MODE_TIME_TRIAL;
+		case PySTKRaceConfig::FOLLOW_LEADER: return RaceManager::MINOR_MODE_FOLLOW_LEADER;
+		case PySTKRaceConfig::THREE_STRIKES: return RaceManager::MINOR_MODE_3_STRIKES;
+		case PySTKRaceConfig::FREE_FOR_ALL: return RaceManager::MINOR_MODE_FREE_FOR_ALL;
+		case PySTKRaceConfig::CAPTURE_THE_FLAG: return RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
+		case PySTKRaceConfig::SOCCER: return RaceManager::MINOR_MODE_SOCCER;
 	}
 	return RaceManager::MINOR_MODE_NORMAL_RACE;
 }
 
-void PySuperTuxKart::setupConfig(const PySTKConfig & config) {
-	UserConfigParams::m_fullscreen = false;
-	UserConfigParams::m_prev_width  = UserConfigParams::m_width  = config.screen_width;
-	UserConfigParams::m_prev_height = UserConfigParams::m_height = config.screen_height;
-	UserConfigParams::m_glow = config.glow;
-	UserConfigParams::m_bloom = config.bloom;
-	UserConfigParams::m_light_shaft = config.light_shaft;
-	UserConfigParams::m_dynamic_lights = config.dynamic_lights;
-	UserConfigParams::m_dof = config.dof;
-	UserConfigParams::m_particles_effects = config.particles_effects;
-	UserConfigParams::m_animated_characters = config.animated_characters;
-	UserConfigParams::m_motionblur = config.motionblur;
-	UserConfigParams::m_animated_characters = config.animated_characters;
-	UserConfigParams::m_mlaa = config.mlaa;
-	UserConfigParams::m_texture_compression=  config.texture_compression;
-	UserConfigParams::m_ssao = config.ssao;
-	UserConfigParams::m_degraded_IBL = config.degraded_IBL;
-	UserConfigParams::m_high_definition_textures = config.high_definition_textures;
+void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
+	config_ = config;
 	
 	race_manager->setDifficulty(RaceManager::Difficulty(config.difficulty));
 	race_manager->setMinorMode(translate_mode(config.mode));
@@ -529,6 +550,27 @@ void PySuperTuxKart::setupConfig(const PySTKConfig & config) {
 // 	race_manager->setDefaultAIKartList(l);
 // 	race_manager->setNumKarts( UserConfigParams::m_default_num_karts );
 }
+
+void PySuperTuxKart::initGraphicsConfig(const PySTKGraphicsConfig & config) {
+	UserConfigParams::m_fullscreen = false;
+	UserConfigParams::m_prev_width  = UserConfigParams::m_width  = config.screen_width;
+	UserConfigParams::m_prev_height = UserConfigParams::m_height = config.screen_height;
+	UserConfigParams::m_glow = config.glow;
+	UserConfigParams::m_bloom = config.bloom;
+	UserConfigParams::m_light_shaft = config.light_shaft;
+	UserConfigParams::m_dynamic_lights = config.dynamic_lights;
+	UserConfigParams::m_dof = config.dof;
+	UserConfigParams::m_particles_effects = config.particles_effects;
+	UserConfigParams::m_animated_characters = config.animated_characters;
+	UserConfigParams::m_motionblur = config.motionblur;
+	UserConfigParams::m_animated_characters = config.animated_characters;
+	UserConfigParams::m_mlaa = config.mlaa;
+	UserConfigParams::m_texture_compression=  config.texture_compression;
+	UserConfigParams::m_ssao = config.ssao;
+	UserConfigParams::m_degraded_IBL = config.degraded_IBL;
+	UserConfigParams::m_high_definition_textures = config.high_definition_textures;
+}
+
 
 //=============================================================================
 /** Initialises the minimum number of managers to get access to user_config.
@@ -655,42 +697,9 @@ void PySuperTuxKart::initRest()
         UserConfigParams::m_last_track.revertToDefaults();
 
     race_manager->setTrack(UserConfigParams::m_last_track);
+	kart_properties_manager -> loadAllKarts(false);
 
 }   // initRest
-/*
-// ----------------------------------------------------------------------------
-int main(int argc, char *argv[] )
-{
-	PySuperTuxKart::init();
-	{
-		PySTKConfig config = sd_config; //hd_config;
-		PySuperTuxKart kart(config);
-		kart.start();
-		for (int i=0; i<100; i++) kart.step(0.1);
-		kart.stop();
-	}
-	{
-		PySTKConfig config = ld_config;
-		PySuperTuxKart kart(config);
-		kart.start();
-		for (int i=0; i<100; i++) kart.step(0.1);
-		kart.stop();
-	}
-	
-	
-	PySuperTuxKart::clean();
-    return 0 ;
-}   // main
-
-// ============================================================================
-#ifdef WIN32
-//routine for running under windows
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                     LPTSTR lpCmdLine, int nCmdShow)
-{
-    return main(__argc, __argv);
-}
-#endif*/
 
 //=============================================================================
 /** Frees all manager and their associated memory.

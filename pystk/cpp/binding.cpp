@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <memory>
+#include <string>
+#include <sstream>
 #include <vector>
 #include "pystk.hpp"
 #include "utils/log.hpp"
@@ -88,40 +90,46 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	}
 	
 	{
-		py::class_<PySTKConfig, std::shared_ptr<PySTKConfig>> cls(m, "Config", "SuperTuxKart configuration.");
+		py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
 	
-		py::enum_<PySTKConfig::RaceMode>(cls, "RaceMode")
-			.value("NORMAL_RACE", PySTKConfig::RaceMode::NORMAL_RACE)
-			.value("TIME_TRIAL", PySTKConfig::RaceMode::TIME_TRIAL)
-			.value("FOLLOW_LEADER", PySTKConfig::RaceMode::FOLLOW_LEADER)
-			.value("THREE_STRIKES", PySTKConfig::RaceMode::THREE_STRIKES)
-			.value("FREE_FOR_ALL", PySTKConfig::RaceMode::FREE_FOR_ALL)
-			.value("CAPTURE_THE_FLAG", PySTKConfig::RaceMode::CAPTURE_THE_FLAG)
-			.value("SOCCER", PySTKConfig::RaceMode::SOCCER);
+		cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width);
+		cls.def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height);
+		cls.def_readwrite("glow", &PySTKGraphicsConfig::glow );
+		cls.def_readwrite("dof", &PySTKGraphicsConfig::dof );
+		cls.def_readwrite("particles_effects", &PySTKGraphicsConfig::particles_effects );
+		cls.def_readwrite("animated_characters", &PySTKGraphicsConfig::animated_characters );
+		cls.def_readwrite("motionblur", &PySTKGraphicsConfig::motionblur );
+		cls.def_readwrite("mlaa", &PySTKGraphicsConfig::mlaa );
+		cls.def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression );
+		cls.def_readwrite("ssao", &PySTKGraphicsConfig::ssao );
+		cls.def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL );
+		cls.def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures );
+		
+		cls.def_static("hd", &PySTKGraphicsConfig::hd,"High-definitaiton graphics settings");
+		cls.def_static("sd", &PySTKGraphicsConfig::sd,"Standard-definition graphics settings");
+		cls.def_static("ld", &PySTKGraphicsConfig::ld,"Low-definition graphics settings");
+	}
 	
-		cls.def_readwrite("screen_width", &PySTKConfig::screen_width);
-		cls.def_readwrite("screen_height", &PySTKConfig::screen_height);
-		cls.def_readwrite("glow ", &PySTKConfig::glow );
-		cls.def_readwrite("dof ", &PySTKConfig::dof );
-		cls.def_readwrite("particles_effects ", &PySTKConfig::particles_effects );
-		cls.def_readwrite("animated_characters ", &PySTKConfig::animated_characters );
-		cls.def_readwrite("motionblur ", &PySTKConfig::motionblur );
-		cls.def_readwrite("mlaa ", &PySTKConfig::mlaa );
-		cls.def_readwrite("texture_compression ", &PySTKConfig::texture_compression );
-		cls.def_readwrite("ssao ", &PySTKConfig::ssao );
-		cls.def_readwrite("degraded_IBL ", &PySTKConfig::degraded_IBL );
-		cls.def_readwrite("high_definition_textures ", &PySTKConfig::high_definition_textures );
+	{
+		py::class_<PySTKRaceConfig, std::shared_ptr<PySTKRaceConfig>> cls(m, "RaceConfig", "SuperTuxKart race configuration.");
+	
+		py::enum_<PySTKRaceConfig::RaceMode>(cls, "RaceMode")
+			.value("NORMAL_RACE", PySTKRaceConfig::RaceMode::NORMAL_RACE)
+			.value("TIME_TRIAL", PySTKRaceConfig::RaceMode::TIME_TRIAL)
+			.value("FOLLOW_LEADER", PySTKRaceConfig::RaceMode::FOLLOW_LEADER)
+			.value("THREE_STRIKES", PySTKRaceConfig::RaceMode::THREE_STRIKES)
+			.value("FREE_FOR_ALL", PySTKRaceConfig::RaceMode::FREE_FOR_ALL)
+			.value("CAPTURE_THE_FLAG", PySTKRaceConfig::RaceMode::CAPTURE_THE_FLAG)
+			.value("SOCCER", PySTKRaceConfig::RaceMode::SOCCER);
 		
-		cls.def_readwrite("difficulty ", &PySTKConfig::difficulty );
-		cls.def_readwrite("mode ", &PySTKConfig::mode );
-		cls.def_readwrite("kart", &PySTKConfig::kart);
-		cls.def_readwrite("track", &PySTKConfig::track);
-		cls.def_readwrite("laps ", &PySTKConfig::laps );
-		cls.def_readwrite("seed ", &PySTKConfig::seed );
-		
-		cls.def_static("hd", &PySTKConfig::hd,"High-definitaiton graphics settings");
-		cls.def_static("sd", &PySTKConfig::sd,"Standard-definition graphics settings");
-		cls.def_static("ld", &PySTKConfig::ld,"Low-definition graphics settings");
+		cls.def(py::init());
+		cls.def_readwrite("difficulty", &PySTKRaceConfig::difficulty );
+		cls.def_readwrite("mode", &PySTKRaceConfig::mode );
+		cls.def_readwrite("kart", &PySTKRaceConfig::kart);
+		cls.def_readwrite("track", &PySTKRaceConfig::track);
+		cls.def_readwrite("laps", &PySTKRaceConfig::laps );
+		cls.def_readwrite("seed", &PySTKRaceConfig::seed );
+		cls.def_readwrite("step_size", &PySTKRaceConfig::step_size );
 	}
 
 	{
@@ -136,30 +144,31 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def(py::init<float,float,bool,bool,bool,bool>(), py::arg("steer") = 0, py::arg("acceleration") = 0, py::arg("nitro") = false, py::arg("drift") = false, py::arg("rescue") = false, py::arg("fire") = false)
 		
 		.def_readwrite("steer", &PySTKAction::steering_angle, "Steering angle, normalize to -1..1")
-		.def_readwrite("acceleration", &PySTKAction::acceleration, "Acceleration, normalize to -1..1, where negative values are braking.")
+		.def_readwrite("acceleration", &PySTKAction::acceleration, "Acceleration, normalize to 0..1.")
+		.def_readwrite("brake", &PySTKAction::brake, "Hit the brakes.")
 		.def_readwrite("nitro", &PySTKAction::nitro, "Use nitro.")
 		.def_readwrite("drift", &PySTKAction::drift, "Drift while turning.")
 		.def_readwrite("rescue", &PySTKAction::rescue, "Call the bird.")
-		.def_readwrite("fire", &PySTKAction::fire, "Fire the current pickup item");
+		.def_readwrite("fire", &PySTKAction::fire, "Fire the current pickup item")
+		.def("__str__", [](const PySTKAction & a) -> std::string { return ((std::stringstream&)(std::stringstream() << "<Action S:" << a.steering_angle << "  A:" << a.acceleration << "  b:" << (int) a.brake << "  n:" << (int) a.nitro << "  d:" << (int) a.drift << "  r:" << (int) a.rescue << "  f:" << (int) a.fire << " >")).str();});
 	}
 	
 	m.def("nRunning", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
 	{
 		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> > cls(m, "SuperTuxKart", "SuperTuxKart instance");
-		cls.def(py::init<const PySTKConfig &>(),py::arg("config"));
+		cls.def(py::init<const PySTKRaceConfig &>(),py::arg("config"));
 		cls.def("start", &PySuperTuxKart::start,"");
-		cls.def("step", (bool (PySuperTuxKart::*)(float)) &PySuperTuxKart::step,"step with arguments float",py::arg("dt"));
+		cls.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &)) &PySuperTuxKart::step,"Take a step with an action");
+		cls.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step,"Take a step without chaning the action");
 		cls.def("stop", &PySuperTuxKart::stop,"");
 		cls.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
 	}
 	
-	// Initialize SuperTuxKart
-	PySuperTuxKart::init();
+	m.def("list_tracks", &PySuperTuxKart::listTracks);
+	m.def("list_karts", &PySuperTuxKart::listKarts);
 	
-	// This segfaults, no cleanup
-// 	auto atexit = py::module::import("atexit");
-// 		atexit.attr("register")(py::cpp_function([]() {
-// 			PySuperTuxKart::clean();
-// 	}));
+	// Initialize SuperTuxKart
+	m.def("init", &PySuperTuxKart::init);
+	m.def("clean", &PySuperTuxKart::clean);
 }
 

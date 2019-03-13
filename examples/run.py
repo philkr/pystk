@@ -6,59 +6,45 @@ from pystk import gui
 
 # pystk.set_log_level(pystk.LogLevel.warn)
 
-config = pystk.Config.sd()
+config = pystk.GraphicsConfig.sd()
 config.screen_width = 400
 config.screen_height = 300
+pystk.init(config)
+
+config = pystk.RaceConfig()
+if args.kart is not None:
+	config.kart = args.kart
+if args.track is not None:
+	config.track = args.track
+if args.step_size is not None:
+	config.step_size = args.step_size
+
 k = pystk.SuperTuxKart(config)
 
 k.start()
-k.step(0.1)
 
-ui = gui.UI(hide_menu=False)
+ui = gui.UI()
 
-# I = k.render_data[0].image
-# D = k.render_data[0].depth
-# L = k.render_data[0].instance
-# L = np.array(L)
-#
-# fig = plt.figure()
-# axI = fig.add_subplot(2, 2, 1)
-# axD = fig.add_subplot(2, 2, 2)
-# axS = fig.add_subplot(2, 2, 3)
-# axL = fig.add_subplot(2, 2, 4)
-#
-# fig.canvas.draw()
-#
-# hI = axI.imshow(I)
-# hD = axD.imshow(D)
-# hS = axS.imshow(L >> 24)
-# hL = axL.imshow((L << 8) >> 8)
-#
-# axI.axis('off')
-# axD.axis('off')
+t0 = time()
+n = 0
+while ui.visible:
+	k.step(ui.current_action)
+	ui.show(k.render_data[0])
+	n += 1
+	if n > 100:
+		print('FPS = ', 100. / (time() - t0))
+		n = 0
+		t0 = time()
+
+k.stop()
+pystk.clean()
 
 t0 = time()
 
-for i in range(100):
-	k.step(0.01)
-	ui.show(k.render_data[0])
+for i in range(1000):
+	k.step()
 
-	# I = k.render_data[0].image
-	# D = k.render_data[0].depth
-	# L = k.render_data[0].instance
-	# L = np.array(L)
-	#
-	# hI.set_data(I)
-	# hD.set_data(D)
-	# hL.set_data((L << 8) >> 8)
-	# hS.set_data(L >> 24)
-	#
-	# fig.canvas.draw()
-	# fig.canvas.flush_events()
-	#
-	# plt.pause(1e-8)
-
-print(100./(time()-t0), 'FPS')
+print(1000./(time()-t0), 'FPS')
 
 #t0 = time()
 
