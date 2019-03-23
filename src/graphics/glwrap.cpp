@@ -183,7 +183,7 @@ void initGL()
     
     if (err == GLEW_ERROR_NO_GLX_DISPLAY)
     {
-        Log::info("GLEW", "Glew couldn't open glx display.");
+//         Log::info("GLEW", "Glew couldn't open glx display.");
     }
     else if (err != GLEW_OK)
     {

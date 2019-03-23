@@ -253,12 +253,16 @@ void PySTKAction::get(const KartControl * control) {
 
 int PySuperTuxKart::n_running = 0;
 void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
+	if (n_running > 0)
+		throw std::invalid_argument("Cannot init while supertuxkart is running!");
 	initUserConfig();
 	stk_config->load(file_manager->getAsset("stk_config.xml"));
 	initGraphicsConfig(config);
 	initRest();
 }
 void PySuperTuxKart::clean() {
+	if (n_running > 0)
+		throw std::invalid_argument("Cannot clean up while supertuxkart is running!");
 	if (input_manager) {
 		delete input_manager;
 		input_manager = NULL;
@@ -279,6 +283,7 @@ void PySuperTuxKart::clean() {
 	}
 #endif
 	delete file_manager;
+	file_manager = NULL;
 }
 int PySuperTuxKart::nRunning() { return n_running; }
 PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
@@ -708,6 +713,7 @@ void PySuperTuxKart::cleanSuperTuxKart()
 {
 
     delete main_loop;
+	main_loop = nullptr;
 
     if(Online::RequestManager::isRunning())
         Online::RequestManager::get()->stopNetworkThread();
@@ -718,27 +724,42 @@ void PySuperTuxKart::cleanSuperTuxKart()
     AchievementsManager::destroy();
     Referee::cleanup();
     if(race_manager)            delete race_manager;
+	race_manager = nullptr;
     if(grand_prix_manager)      delete grand_prix_manager;
+	grand_prix_manager = nullptr;
     if(highscore_manager)       delete highscore_manager;
+	highscore_manager = nullptr;
     if(attachment_manager)      delete attachment_manager;
+	attachment_manager = nullptr;
     ItemManager::removeTextures();
     if(powerup_manager)         delete powerup_manager;
+	powerup_manager = nullptr;
     if(projectile_manager)      delete projectile_manager;
+	projectile_manager = nullptr;
     if(kart_properties_manager) delete kart_properties_manager;
+	kart_properties_manager = nullptr;
     if(track_manager)           delete track_manager;
+	track_manager = nullptr;
     if(material_manager)        delete material_manager;
+	material_manager = nullptr;
     if(history)                 delete history;
+	history = nullptr;
+	
     ReplayPlay::destroy();
     ReplayRecorder::destroy();
-    delete ParticleKindManager::get();
+    ParticleKindManager::destroy();
     PlayerManager::destroy();
     if(unlock_manager)          delete unlock_manager;
+	unlock_manager = nullptr;
     Online::ProfileManager::destroy();
     GUIEngine::DialogQueue::deallocate();
     GUIEngine::clear();
     GUIEngine::cleanUp();
     GUIEngine::clearScreenCache();
     if(font_manager)            delete font_manager;
+	font_manager = nullptr;
+    
+    StkTime::destroy();
 
     // Now finish shutting down objects which a separate thread. The
     // RequestManager has been signaled to shut down as early as possible,
@@ -789,14 +810,18 @@ void PySuperTuxKart::cleanSuperTuxKart()
 void PySuperTuxKart::cleanUserConfig()
 {
     if(stk_config)              delete stk_config;
+	stk_config = nullptr;
     if(translations)            delete translations;
+	translations = nullptr;
     if (user_config)
     {
         // In case that abort is triggered before user_config exists
         if (UserConfigParams::m_crashed) UserConfigParams::m_crashed = false;
         user_config->saveConfig();
         delete user_config;
+		user_config = nullptr;
     }
 
     if(irr_driver)              delete irr_driver;
+	irr_driver = nullptr;
 }   // cleanUserConfig

@@ -63,6 +63,7 @@ if args.play:
             t0 = time()
 
     k.stop()
+    del k
     pystk.clean()
 
 if args.benchmark:
@@ -89,4 +90,5 @@ if args.benchmark:
         print(100. / (time()-t0))
 
         k.stop()
+        del k
         pystk.clean()

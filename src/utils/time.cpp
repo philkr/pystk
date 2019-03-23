@@ -39,6 +39,13 @@ void StkTime::init()
     m_timer->grab();
 }   // init
 
+void StkTime::destroy()
+{
+    assert(m_timer);
+	m_timer->drop();
+    m_timer = nullptr;
+}   // clean
+
 // ----------------------------------------------------------------------------
 
 /** Converts the time in this object to a human readable string. */

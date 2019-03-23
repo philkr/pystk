@@ -153,7 +153,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def("__str__", [](const PySTKAction & a) -> std::string { return ((std::stringstream&)(std::stringstream() << "<Action S:" << a.steering_angle << "  A:" << a.acceleration << "  b:" << (int) a.brake << "  n:" << (int) a.nitro << "  d:" << (int) a.drift << "  r:" << (int) a.rescue << "  f:" << (int) a.fire << " >")).str();});
 	}
 	
-	m.def("nRunning", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
+	m.def("n_running", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
 	{
 		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> > cls(m, "SuperTuxKart", "SuperTuxKart instance");
 		cls.def(py::init<const PySTKRaceConfig &>(),py::arg("config"));
