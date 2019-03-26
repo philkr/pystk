@@ -1943,6 +1943,24 @@ void IrrDriver::update(float dt, bool is_loading)
 #endif
 }   // update
 
+void IrrDriver::minimalUpdate(float dt) {
+    m_wind->update();
+
+    PropertyAnimator::get()->update(dt);
+#ifndef SERVER_ONLY
+    if (CVS->isGLSL())
+    {
+        SP::SPTextureManager::get()->checkForGLCommand();
+    }
+#endif
+
+    if (World::getWorld())
+    {
+#ifndef SERVER_ONLY
+        m_renderer->minimalRender(dt);
+#endif
+    }
+}
 // ----------------------------------------------------------------------------
 void IrrDriver::renderNetworkDebug()
 {

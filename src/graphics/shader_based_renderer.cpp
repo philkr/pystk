@@ -834,6 +834,17 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
     m_post_processing->update(dt);
 } //render
 
+
+void ShaderBasedRenderer::minimalRender(float dt) {
+    m_post_processing->begin();
+	
+	PROFILER_PUSH_CPU_MARKER("Update scene", 0x0, 0xFF, 0x0);
+	static_cast<scene::CSceneManager *>(irr_driver->getSceneManager())->OnAnimate(os::Timer::getTime());
+	PROFILER_POP_CPU_MARKER();
+	
+    m_post_processing->update(dt);
+}
+
 // ----------------------------------------------------------------------------
 std::unique_ptr<RenderTarget> ShaderBasedRenderer::createRenderTarget(const irr::core::dimension2du &dimension,
                                                                       const std::string &name)
@@ -851,6 +862,7 @@ void ShaderBasedRenderer::renderToTexture(GL3RenderTarget *render_target,
     SP::sp_cur_player = 0;
     SP::sp_cur_buf_id[0] = 0;
     assert(m_rtts != NULL);
+    Track *track = Track::getCurrentTrack();
 
     irr_driver->getSceneManager()->setActiveCamera(camera);
     static_cast<scene::CSceneManager *>(irr_driver->getSceneManager())
@@ -859,15 +871,28 @@ void ShaderBasedRenderer::renderToTexture(GL3RenderTarget *render_target,
     if (CVS->isARBUniformBufferObjectUsable())
         uploadLightingData();
 
-    if (CVS->isDeferredEnabled())
+    if (CVS->isDeferredEnabled() && Physics::getInstance()->isInit() /* workaround for some bug that renders the minimap before Physics is created*/)
     {
-        renderSceneDeferred(camera, dt, false, true);
-        render_target->setFrameBuffer(m_post_processing
-            ->render(camera, false, m_rtts));
+        m_post_processing->begin();
+        renderSceneDeferred(camera, dt, track->hasShadows(), true);
+		FrameBuffer *fbo = m_post_processing->render(camera, true, m_rtts);
+		if (irr_driver->getSSAOViz())
+		{
+			m_rtts->getFBO(FBO_COLORS).bind();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			m_post_processing->renderPassThrough(m_rtts->getFBO(FBO_HALF1_R).getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
+		}
+		else
+		{
+			m_rtts->getFBO(FBO_COLORS).bind();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			m_post_processing->renderPassThrough(fbo->getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
+		}
+        render_target->setFrameBuffer(&m_rtts->getFBO(FBO_COLOR_AND_LABEL));
     }
     else
     {
-        renderScene(camera, dt, false, true);
+        renderScene(camera, dt, track->hasShadows(), true);
         render_target->setFrameBuffer(&m_rtts->getFBO(FBO_COLOR_AND_LABEL));
     }
 

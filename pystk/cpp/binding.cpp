@@ -104,6 +104,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		cls.def_readwrite("ssao", &PySTKGraphicsConfig::ssao );
 		cls.def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL );
 		cls.def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures );
+		cls.def_readwrite("render_window", &PySTKGraphicsConfig::render_window );
 		
 		cls.def_static("hd", &PySTKGraphicsConfig::hd,"High-definitaiton graphics settings");
 		cls.def_static("sd", &PySTKGraphicsConfig::sd,"Standard-definition graphics settings");

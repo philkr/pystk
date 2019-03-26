@@ -22,7 +22,7 @@ if args.list_tracks:
         print(' * \'%s\''%l)
     print()
 
-if args.list_tracks:
+if args.list_karts:
     pystk.init(pystk.GraphicsConfig.ld())
     karts = pystk.list_karts()
     pystk.clean()
@@ -33,8 +33,8 @@ if args.list_tracks:
 
 if args.play:
     config = pystk.GraphicsConfig.sd()
-    config.screen_width = 400
-    config.screen_height = 300
+    config.screen_width = 200
+    config.screen_height = 150
     pystk.init(config)
 
     config = pystk.RaceConfig()
@@ -68,8 +68,8 @@ if args.play:
 
 if args.benchmark:
     for config in [pystk.GraphicsConfig.ld(),pystk.GraphicsConfig.sd(),pystk.GraphicsConfig.hd()]:
-        config.screen_width = 400
-        config.screen_height = 300
+        config.screen_width = 200
+        config.screen_height = 150
         pystk.init(config)
 
         config = pystk.RaceConfig()
@@ -85,9 +85,9 @@ if args.benchmark:
         k.start()
 
         t0 = time()
-        for it in range(100):
+        for it in range(1000):
             k.step()
-        print(100. / (time()-t0))
+        print(1000. / (time()-t0))
 
         k.stop()
         del k

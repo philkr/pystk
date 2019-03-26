@@ -252,6 +252,7 @@ void PySTKAction::get(const KartControl * control) {
 }
 
 int PySuperTuxKart::n_running = 0;
+bool PySuperTuxKart::render_window = 0;
 void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
 	if (n_running > 0)
 		throw std::invalid_argument("Cannot init while supertuxkart is running!");
@@ -263,10 +264,6 @@ void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
 void PySuperTuxKart::clean() {
 	if (n_running > 0)
 		throw std::invalid_argument("Cannot clean up while supertuxkart is running!");
-	if (input_manager) {
-		delete input_manager;
-		input_manager = NULL;
-	}
 	cleanSuperTuxKart();
 	Log::flushBuffers();
 
@@ -310,6 +307,22 @@ std::vector<std::string> PySuperTuxKart::listKarts() {
 	return std::vector<std::string>();
 }
 PySuperTuxKart::~PySuperTuxKart() {
+	if (input_manager) {
+		delete input_manager;
+		input_manager = NULL;
+	}
+	
+	AchievementsManager::destroy();
+	
+	
+    delete main_loop;
+	main_loop = nullptr;
+    Referee::cleanup();
+
+    if(unlock_manager)          delete unlock_manager;
+	unlock_manager = nullptr;
+	
+	
 	n_running--;
 	StateManager::get()->resetActivePlayers();
 }
@@ -353,6 +366,7 @@ void PySuperTuxKart::render(float dt) {
     {
 		// Render all views
 		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
+			Camera::getCamera(i)->activate(false);
 			render_targets_[i]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
 		}
 		while (render_data_.size() < render_targets_.size()) render_data_.push_back( std::make_shared<PySTKRenderData>() );
@@ -375,13 +389,10 @@ bool PySuperTuxKart::step() {
 // 	uint64_t t1 = StkTime::getRealTimeMs();
 	
 	// irr_driver->update alternative
-	if (1) {
+	if (render_window) {
 		irr_driver->update(config_.step_size);
 	} else {
-		PropertyAnimator::get()->update(config_.step_size);
-		SP::SPTextureManager::get()->checkForGLCommand();
-		
-		// TODO: ShaderBasedRenderer::render
+		irr_driver->minimalUpdate(config_.step_size);
 	}
 	uint64_t t1 = StkTime::getRealTimeMs();
 	render(config_.step_size);
@@ -574,6 +585,7 @@ void PySuperTuxKart::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 	UserConfigParams::m_ssao = config.ssao;
 	UserConfigParams::m_degraded_IBL = config.degraded_IBL;
 	UserConfigParams::m_high_definition_textures = config.high_definition_textures;
+	render_window = config.render_window;
 }
 
 
@@ -711,18 +723,12 @@ void PySuperTuxKart::initRest()
  */
 void PySuperTuxKart::cleanSuperTuxKart()
 {
-
-    delete main_loop;
-	main_loop = nullptr;
-
     if(Online::RequestManager::isRunning())
         Online::RequestManager::get()->stopNetworkThread();
 
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
     irr_driver->updateConfigIfRelevant();
-    AchievementsManager::destroy();
-    Referee::cleanup();
     if(race_manager)            delete race_manager;
 	race_manager = nullptr;
     if(grand_prix_manager)      delete grand_prix_manager;
@@ -749,8 +755,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     ReplayRecorder::destroy();
     ParticleKindManager::destroy();
     PlayerManager::destroy();
-    if(unlock_manager)          delete unlock_manager;
-	unlock_manager = nullptr;
     Online::ProfileManager::destroy();
     GUIEngine::DialogQueue::deallocate();
     GUIEngine::clear();

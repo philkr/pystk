@@ -14,6 +14,7 @@ struct PySTKGraphicsConfig {
 	bool ssao = true;
 	bool degraded_IBL = true;
 	int high_definition_textures = 2 | 1;
+	bool render_window = false; // Render the main game window
 	
 	static const PySTKGraphicsConfig & hd();
 	static const PySTKGraphicsConfig & sd();
@@ -64,6 +65,7 @@ struct PySTKAction {
 class PySuperTuxKart {
 protected: // Static methods
 	static int n_running;
+	static bool render_window;
 	static void initRest();
 	static void initUserConfig();
 	static void initGraphicsConfig(const PySTKGraphicsConfig & config);
@@ -87,6 +89,8 @@ protected:
 	PySTKRaceConfig config_;
 
 public:
+	PySuperTuxKart(const PySuperTuxKart &) = delete;
+	PySuperTuxKart& operator=(const PySuperTuxKart &) = delete;
 	PySuperTuxKart(const PySTKRaceConfig & config);
 	~PySuperTuxKart();
 	void start();

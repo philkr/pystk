@@ -142,7 +142,7 @@ private:
     STKDynamicsWorld                *m_dynamics_world;
 
     /** Used in physics debugging to draw the physics world. */
-    IrrDebugDrawer                  *m_debug_drawer;
+    IrrDebugDrawer                  *m_debug_drawer = NULL;
 
     btCollisionDispatcher           *m_dispatcher;
     btBroadphaseInterface           *m_axis_sweep;
@@ -159,6 +159,7 @@ private:
     friend class AbstractSingleton<Physics>;
 
 public:
+    bool  isInit() { return m_debug_drawer; }
     void  init             (const Vec3 &min_world, const Vec3 &max_world);
     void  addKart          (const AbstractKart *k);
     void  addBody          (btRigidBody* b) {m_dynamics_world->addRigidBody(b);}
