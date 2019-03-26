@@ -193,6 +193,9 @@ bool ContextManagerEGL::initDisplay()
     case CEGL_PLATFORM_X11:
         platform = EGL_PLATFORM_X11;
         break;
+    case CEGL_PLATFORM_DEVICE:
+        platform = EGL_PLATFORM_DEVICE;
+        break;
     case CEGL_PLATFORM_DEFAULT:
         break;
     }
@@ -218,6 +221,7 @@ bool ContextManagerEGL::initDisplay()
         return false;
     }
 
+m_egl_display = eglGetPlatformDisplay(platform, EGL_DEFAULT_DISPLAY, NULL);
     int egl_version_major = 0;
     int egl_version_minor = 0;
 
