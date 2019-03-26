@@ -1,5 +1,13 @@
 import matplotlib
-matplotlib.use("Qt5Agg")
+gui_env = ['MacOSX', 'Qt5Agg','TKAgg','GTKAgg','Qt4Agg','WXAgg']
+for gui in gui_env:
+    try:
+        matplotlib.use(gui,warn=False, force=True)
+        import matplotlib.pyplot as plt
+        break
+    except ImportError:
+        continue
+
 from .base import *
 import matplotlib.pyplot as plt
 from typing import Dict, Set
