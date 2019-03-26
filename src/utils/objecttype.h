@@ -16,12 +16,14 @@ enum ObjectType {
 };
 
 const int OBJECT_TYPE_SHIFT = 24;
+typedef uint32_t ObjectID;
 
 ObjectType getOT(const std::string & debug_name);
-int newObjectId(ObjectType ot);
-int newObjectId(const std::string & debug_name);
+ObjectID makeObjectID(ObjectType ot, uint32_t i);
+ObjectID newObjectId(ObjectType ot);
+ObjectID newObjectId(const std::string & debug_name);
 void resetObjectId();
-std::string unknownDebugName(int i);
+std::string unknownDebugName(uint32_t i);
 
 #endif // OBJECTTYPE_H
 

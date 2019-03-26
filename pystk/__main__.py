@@ -5,13 +5,13 @@ from time import time, sleep
 parser = argparse.ArgumentParser()
 parser.add_argument('-lt', '--list-tracks', action='store_true')
 parser.add_argument('-lk', '--list-karts', action='store_true')
+parser.add_argument('-v', '--visualization', type=str, choices=list(gui.VT.__members__), nargs='+', default='[IMAGE]')
 parser.add_argument('-p', '--play', action='store_true')
 parser.add_argument('-b', '--benchmark', action='store_true')
 parser.add_argument('-t', '--track')
 parser.add_argument('-k', '--kart')
 parser.add_argument('-s', '--step_size', type=float)
 args = parser.parse_args()
-
 
 if args.list_tracks:
     pystk.init(pystk.GraphicsConfig.ld())
@@ -49,7 +49,7 @@ if args.play:
 
     k.start()
 
-    ui = gui.UI()
+    ui = gui.UI([gui.VT[x] for x in args.visualization]) # eval FTW
 
     t0 = time()
     n = 0

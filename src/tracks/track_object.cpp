@@ -36,6 +36,7 @@
 #include "scriptengine/script_engine.hpp"
 #include "tracks/track.hpp"
 #include "tracks/model_definition_loader.hpp"
+#include "utils/objecttype.h"
 
 #include <IAnimatedMeshSceneNode.h>
 #include <ISceneManager.h>
@@ -81,6 +82,7 @@ TrackObject::TrackObject(const core::vector3df& xyz, const core::vector3df& hpr,
     m_soccer_ball     = false;
     m_initially_visible = false;
     m_type            = "";
+    m_render_info     = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_OBJECT));
 
     if (m_interaction != "ghost" && m_interaction != "none" &&
         physics_settings )
@@ -259,7 +261,8 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
                 const float hue = colorized->getRandomHue();
                 if (hue > 0.0f)
                 {
-                    m_render_info = std::make_shared<RenderInfo>(hue);
+                    if (m_render_info) m_render_info->setHue(hue);
+                    else m_render_info = std::make_shared<RenderInfo>(hue);
                 }
             }
         }

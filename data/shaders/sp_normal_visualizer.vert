@@ -20,14 +20,12 @@ layout(location = 8) in vec3 i_origin;
 layout(location = 9) in vec4 i_rotation;
 layout(location = 10) in vec4 i_scale;
 layout(location = 12) in ivec2 i_misc_data;
-layout(location = 13) in int i_label;
 
 #stk_include "utils/get_world_location.vert"
 
 out vec3 o_tangent;
 out vec3 o_bitangent;
 out vec3 o_normal;
-flat out int label;
 
 void main()
 {
@@ -105,6 +103,5 @@ void main()
     o_normal = normalize(rotateVector(i_rotation, skinned_normal.xyz));
     o_tangent = normalize(rotateVector(i_rotation, skinned_tangent.xyz));
     o_bitangent = cross(o_normal, o_tangent) * i_tangent.w;
-    label = i_label;
 
 }

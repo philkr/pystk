@@ -219,8 +219,8 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, data->depth_buf_.data());
 		
 		// Read the labels
-		glReadBuffer(GL_COLOR_ATTACHMENT2);
-		glReadPixels(0, 0, W, H, GL_RED_INTEGER, GL_INT, data->instance_buf_.data());
+		glReadBuffer(GL_COLOR_ATTACHMENT3);
+		glReadPixels(0, 0, W, H, GL_RED_INTEGER, GL_UNSIGNED_INT, data->instance_buf_.data());
 		
 		
 		// Flip all buffers (thank you OpenGL)

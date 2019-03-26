@@ -20,20 +20,23 @@ ObjectType getOT(const std::string & debug_name) {
 	return OT_UNKNOWN;
 	return OT_NONE;
 }
-static int last_object_id[NUM_OT] = {0};
-static std::unordered_map<std::string, int> unknown_ot;
+static uint32_t last_object_id[NUM_OT] = {0};
+static std::unordered_map<std::string, uint32_t> unknown_ot;
 static std::vector<std::string> unknown_ot_name;
 
-std::string unknownDebugName(int id) {
+std::string unknownDebugName(uint32_t id) {
 	if (id < unknown_ot_name.size())
 		return unknown_ot_name[id];
 	return "<invalid>";
 }
-int newObjectId(ObjectType ot) {
+ObjectID makeObjectID(ObjectType ot, uint32_t i) {
+	return ((uint32_t)ot << OBJECT_TYPE_SHIFT) + i;
+}
+ObjectID newObjectId(ObjectType ot) {
 	if (ot == OT_NONE) return 0;
 	return (++last_object_id[ot]) + (ot << OBJECT_TYPE_SHIFT);
 }
-int newObjectId(const std::string & debug_name) {
+ObjectID newObjectId(const std::string & debug_name) {
 	ObjectType ot = getOT(debug_name);
 	if (ot == OT_UNKNOWN) {
 		auto it = unknown_ot.find(debug_name);
@@ -41,7 +44,7 @@ int newObjectId(const std::string & debug_name) {
 			it = unknown_ot.insert({debug_name, unknown_ot_name.size()}).first;
 			unknown_ot_name.push_back(debug_name);
 		}
-		return it->second + (ot << OBJECT_TYPE_SHIFT);
+		return makeObjectID(ot, it->second);
 	}
 	return newObjectId(ot);
 }

@@ -115,7 +115,7 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
     if (!use_default_fbo_only)
     {
         m_render_target_textures[RTT_COLOR] = generateRTT(res, rgba_internal_format, rgba_format, type);
-		m_render_target_textures[RTT_LABEL] = generateRTT(res, GL_R32I, GL_RED_INTEGER, GL_INT);
+		m_render_target_textures[RTT_LABEL] = generateRTT(res, GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT);
     }
     if (CVS->isDeferredEnabled())
     {
@@ -171,6 +171,7 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
         somevector.push_back(m_render_target_textures[RTT_COLOR]);
         m_frame_buffers[FBO_COLORS] = new FrameBuffer(somevector, m_depth_stencil_tex, res.Width, res.Height);
         somevector.push_back(0);
+        somevector.push_back(0);
         somevector.push_back(m_render_target_textures[RTT_LABEL]);
         m_frame_buffers[FBO_COLOR_AND_LABEL] = new FrameBuffer(somevector, m_depth_stencil_tex, res.Width, res.Height);
     }
@@ -184,6 +185,7 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
         somevector.clear();
         somevector.push_back(m_render_target_textures[RTT_SP_DIFF_COLOR]);
         somevector.push_back(m_render_target_textures[RTT_NORMAL_AND_DEPTH]);
+        somevector.push_back(0);
         somevector.push_back(m_render_target_textures[RTT_LABEL]);
         m_frame_buffers[FBO_SP] = new FrameBuffer(somevector, m_depth_stencil_tex, res.Width, res.Height);
 

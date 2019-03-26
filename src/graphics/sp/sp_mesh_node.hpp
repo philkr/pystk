@@ -71,7 +71,7 @@ private:
         m_skinning_matrices.clear();
     }
     
-    int object_id_ = 0;
+    uint32_t object_id_ = 0;
 
 public:
     // ------------------------------------------------------------------------
@@ -162,7 +162,7 @@ public:
         m_texture_matrices[mb_id] = tm;
     }
     
-    int objectId() const { return object_id_; }
+    uint32_t objectId() const { return object_id_; }
 };
 
 }

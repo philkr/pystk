@@ -449,8 +449,8 @@ void ShaderBasedRenderer::renderScene(scene::ICameraSceneNode * const camnode,
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         
-        GLint CI[4] = { -1 };
-        glClearBufferiv(GL_COLOR, 2, CI);
+        GLuint CI[4] = { 0 };
+        glClearBufferuiv(GL_COLOR, 3, CI);
     }
     {
         glDepthMask(GL_TRUE);

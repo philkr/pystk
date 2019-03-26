@@ -51,12 +51,18 @@ def _c(i, m):
     return m[i % len(m)]
 
 
-def semantic_seg(instance):
-    return _c((np.array(instance) >> 24) + 1, class_color)
+def semantic_seg(instance, colorize: bool = True):
+    L = np.array(instance) >> 24
+    if colorize:
+        return _c(L, class_color)
+    return L
 
 
-def instance_seg(instance):
-    return _c((np.array(instance) + 1) % 0xffffff, instance_color)
+def instance_seg(instance, colorize: bool = True):
+    L = np.array(instance) % 0xffffff
+    if colorize:
+        return _c(L, instance_color)
+    return L
 
 
 class BaseUI:
@@ -70,12 +76,12 @@ class BaseUI:
         self.visible = False
 
     @staticmethod
-    def _format_data(render_data: pystk.RenderData) -> Dict[VT, np.array]:
+    def _format_data(render_data: pystk.RenderData, colorize: bool = True) -> Dict[VT, np.array]:
         r = dict()
         r[VT.IMAGE] = render_data.image
         r[VT.DEPTH] = render_data.depth
-        r[VT.INSTANCE] = semantic_seg(render_data.instance)
-        r[VT.SEMANTIC] = instance_seg(render_data.instance)
+        r[VT.INSTANCE] = semantic_seg(render_data.instance, colorize=colorize)
+        r[VT.SEMANTIC] = instance_seg(render_data.instance, colorize=colorize)
         return r
 
     def _update_action(self, key_state: Set[str]):

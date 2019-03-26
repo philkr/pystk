@@ -144,7 +144,7 @@ bool CIrrDeviceOffScreen::initEGL()
 
     if (!success)
         return false;
-	return true;
+    return true;
 }
 
 //! create the driver

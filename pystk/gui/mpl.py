@@ -13,6 +13,10 @@ import matplotlib.pyplot as plt
 from typing import Dict, Set
 import pystk
 
+cmap = {}
+cmap[VT.SEMANTIC] = matplotlib.colors.ListedColormap(class_color / 255., N=32)
+cmap[VT.INSTANCE] = matplotlib.colors.ListedColormap(instance_color / 255., N=1<<16)
+
 
 class MplUI(BaseUI):
     _ax: Dict[VT, plt.Axes]
@@ -69,11 +73,13 @@ class MplUI(BaseUI):
         return True
 
     def show(self, render_data: pystk.RenderData):
-        data = self._format_data(render_data)
+        data = self._format_data(render_data, colorize=False)
         for t, a in self._ax.items():
             d = data[t]
             if hasattr(a, '_im'):
                 a._im.set_data(d)
+            elif t in cmap:
+                a._im = a.imshow(d, interpolation='nearest', cmap=cmap[t])
             else:
                 a._im = a.imshow(d, interpolation='nearest')
 

@@ -65,7 +65,7 @@ namespace irr
 		virtual bool moveWindow(int x, int y) {return false;}
 
 		//! Get current window position.
-		virtual bool getWindowPosition(int* x, int* y) {return *x = *y = 0;}
+		virtual bool getWindowPosition(int* x, int* y) {return (*x = *y = 0);}
 
 		//! presents a surface in the client area
 		virtual bool present(video::IImage* surface, void* windowId = 0, core::rect<s32>* src=0 ) _IRR_OVERRIDE_;

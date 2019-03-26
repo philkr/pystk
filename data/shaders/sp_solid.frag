@@ -3,11 +3,11 @@ in float hue_change;
 in vec4 color;
 in vec3 normal;
 in vec2 uv;
-flat in int label;
+flat in uint label;
 
 layout(location = 0) out vec4 o_diffuse_color;
 layout(location = 1) out vec4 o_normal_color;
-layout(location = 2) out int  o_label;
+layout(location = 3) out uint o_label;
 
 #stk_include "utils/encode_normal.frag"
 #stk_include "utils/rgb_conversion.frag"

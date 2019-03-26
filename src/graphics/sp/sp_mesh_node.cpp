@@ -44,7 +44,10 @@ SPMeshNode::SPMeshNode(IAnimatedMesh* mesh, ISceneNode* parent,
           : CAnimatedMeshSceneNode(mesh, parent, mgr, id, position, rotation,
                                    scale)
 {
-	object_id_ = newObjectId(debug_name);
+    if (render_info && render_info->objectId() > 0)
+        object_id_ = render_info->objectId();
+    else
+        object_id_ = newObjectId(debug_name);
     m_glow_color = video::SColorf(0.0f, 0.0f, 0.0f);
     m_mesh = NULL;
     m_first_render_info = render_info;
