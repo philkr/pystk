@@ -11,6 +11,7 @@ enum ObjectType {
 	OT_BOMB,
 	OT_OBJECT,
 	OT_PROJECTILE,
+	OT_UNKNOWN,
 	NUM_OT
 };
 
@@ -20,6 +21,7 @@ ObjectType getOT(const std::string & debug_name);
 int newObjectId(ObjectType ot);
 int newObjectId(const std::string & debug_name);
 void resetObjectId();
+std::string unknownDebugName(int i);
 
 #endif // OBJECTTYPE_H
 

@@ -133,8 +133,6 @@ protected:
 
     void  updateHighscores  (int* best_highscore_rank);
     void  resetAllKarts     ();
-    Controller*
-          loadAIController  (AbstractKart *kart);
 
     virtual std::shared_ptr<AbstractKart> createKart
         (const std::string &kart_ident, int index, int local_player_id,
@@ -383,6 +381,9 @@ public:
         return std::make_pair(std::numeric_limits<uint32_t>::max(),
             std::numeric_limits<uint32_t>::max());
     }
+    
+    Controller*
+          loadAIController  (AbstractKart *kart);
 };   // World
 
 #endif

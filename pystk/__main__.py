@@ -54,7 +54,7 @@ if args.play:
     t0 = time()
     n = 0
     while ui.visible:
-        k.step(ui.current_action)
+        k.step(k.ai_action) # ui.current_action)
         ui.show(k.render_data[0])
         # Make sure we play in real time
         n += 1
@@ -86,7 +86,7 @@ if args.benchmark:
 
         t0 = time()
         for it in range(1000):
-            k.step()
+            k.step(k.ai_action)
             
         print(1000. / (time()-t0))
 

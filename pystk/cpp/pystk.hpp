@@ -38,6 +38,7 @@ struct PySTKRaceConfig {
 	int laps = 3;
 	int seed = 0;
 	float step_size = 0.1;
+	bool player_ai = true;
 };
 
 class PySTKRenderTarget;
@@ -50,6 +51,7 @@ struct PySTKRenderData {
 };
 
 class KartControl;
+class Controller;
 struct PySTKAction {
 	float steering_angle = 0;
 	float acceleration = 0;
@@ -88,6 +90,8 @@ protected:
 	std::vector<std::shared_ptr<PySTKRenderData> > render_data_;
 	PySTKRaceConfig config_;
 	float time_leftover_ = 0;
+	Controller * ai_controller_ = nullptr;
+	PySTKAction ai_action_;
 
 public:
 	PySuperTuxKart(const PySuperTuxKart &) = delete;
@@ -98,5 +102,6 @@ public:
 	bool step(const PySTKAction &);
 	bool step();
 	void stop();
+	const PySTKAction & ai_action() const { return ai_action_; }
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 };

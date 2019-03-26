@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include "pystk.hpp"
+#include "utils/objecttype.h"
 #include "utils/log.hpp"
 
 namespace py = pybind11;
@@ -90,6 +91,21 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	}
 	
 	{
+		py::enum_<ObjectType>(m, "ObjectType")
+		.value("kart", ObjectType::OT_KART)
+		.value("track", ObjectType::OT_TRACK)
+		.value("background", ObjectType::OT_BACKGROUND)
+		.value("pickup", ObjectType::OT_PICKUP)
+		.value("bomb", ObjectType::OT_BOMB)
+		.value("object", ObjectType::OT_OBJECT)
+		.value("projectile", ObjectType::OT_PROJECTILE)
+		.value("unknown", ObjectType::OT_UNKNOWN)
+		.value("N", ObjectType::NUM_OT);
+		m.def("unknown_debug_name", unknownDebugName);
+		m.attr("object_type_shift") = OBJECT_TYPE_SHIFT;
+	}
+	
+	{
 		py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
 	
 		cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width);
@@ -131,6 +147,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		cls.def_readwrite("laps", &PySTKRaceConfig::laps );
 		cls.def_readwrite("seed", &PySTKRaceConfig::seed );
 		cls.def_readwrite("step_size", &PySTKRaceConfig::step_size );
+		cls.def_readwrite("player_ai", &PySTKRaceConfig::player_ai );
 	}
 
 	{
@@ -162,6 +179,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		cls.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &)) &PySuperTuxKart::step,"Take a step with an action");
 		cls.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step,"Take a step without chaning the action");
 		cls.def("stop", &PySuperTuxKart::stop,"");
+		cls.def_property_readonly("ai_action", &PySuperTuxKart::ai_action, "The action the AI would have taken");
 		cls.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
 	}
 	

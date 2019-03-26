@@ -333,6 +333,10 @@ void PySuperTuxKart::start() {
 	race_manager->setupPlayerKartInfo();
 	race_manager->startNew(false);
 	time_leftover_ = 0.f;
+    if (config_.player_ai) {
+		AbstractKart * player_kart = World::getWorld()->getPlayerKart(0);
+		ai_controller_ = World::getWorld()->loadAIController(player_kart);
+	}
 }
 void PySuperTuxKart::stop() {
 	render_targets_.clear();
@@ -354,6 +358,9 @@ void PySuperTuxKart::stop() {
 		race_manager->clearNetworkGrandPrixResult();
 		race_manager->exitRace();
 	}
+	
+	if (ai_controller_) delete ai_controller_;
+	ai_controller_ = nullptr;
 }
 void PySuperTuxKart::render(float dt) {
 //     m_wind->update();
@@ -405,6 +412,14 @@ bool PySuperTuxKart::step() {
 		time_leftover_ -= stk_config->ticks2Time(ticks);
 		for(int i=0; i<ticks; i++)
 			World::getWorld()->updateWorld(1);
+		// Update the AI control
+		if (ai_controller_) {
+			KartControl control;
+			ai_controller_->setControls(&control);
+			ai_controller_->update(ticks);
+			ai_controller_->setControls(nullptr);
+			ai_action_.get(&control);
+		}
 	}
 
 	if (!irr_driver->getDevice()->run())
