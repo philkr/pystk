@@ -1,6 +1,6 @@
 import argparse
 from . import pystk_cpp as pystk, gui
-from time import time
+from time import time, sleep
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-lt', '--list-tracks', action='store_true')
@@ -56,11 +56,11 @@ if args.play:
     while ui.visible:
         k.step(ui.current_action)
         ui.show(k.render_data[0])
+        # Make sure we play in real time
         n += 1
-        if n>100:
-            print('FPS = ', 100./(time()-t0))
-            n = 0
-            t0 = time()
+        delta_d = n * config.step_size - (time() - t0)
+        if delta_d > 0:
+            sleep(delta_d)
 
     k.stop()
     del k
@@ -87,6 +87,7 @@ if args.benchmark:
         t0 = time()
         for it in range(1000):
             k.step()
+            
         print(1000. / (time()-t0))
 
         k.stop()

@@ -87,6 +87,7 @@ protected:
 	std::vector<std::unique_ptr<PySTKRenderTarget> > render_targets_;
 	std::vector<std::shared_ptr<PySTKRenderData> > render_data_;
 	PySTKRaceConfig config_;
+	float time_leftover_ = 0;
 
 public:
 	PySuperTuxKart(const PySuperTuxKart &) = delete;

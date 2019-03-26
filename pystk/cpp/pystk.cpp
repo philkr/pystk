@@ -332,6 +332,7 @@ void PySuperTuxKart::start() {
 	StateManager::get()->enterGameState();
 	race_manager->setupPlayerKartInfo();
 	race_manager->startNew(false);
+	time_leftover_ = 0.f;
 }
 void PySuperTuxKart::stop() {
 	render_targets_.clear();
@@ -383,33 +384,31 @@ bool PySuperTuxKart::step(const PySTKAction & a) {
 	return step();
 }
 bool PySuperTuxKart::step() {
-	uint64_t t0 = StkTime::getRealTimeMs();
+	const float dt = config_.step_size;
+
 	if (World::getWorld())
-		World::getWorld()->updateGraphics(config_.step_size);
-// 	uint64_t t1 = StkTime::getRealTimeMs();
+		World::getWorld()->updateGraphics(dt);
 	
 	// irr_driver->update alternative
 	if (render_window) {
-		irr_driver->update(config_.step_size);
+		irr_driver->update(dt);
 	} else {
-		irr_driver->minimalUpdate(config_.step_size);
+		irr_driver->minimalUpdate(dt);
 	}
-	uint64_t t1 = StkTime::getRealTimeMs();
-	render(config_.step_size);
-	uint64_t t2 = StkTime::getRealTimeMs();
-	input_manager->update(config_.step_size);
-	uint64_t t3 = StkTime::getRealTimeMs();
-	GUIEngine::update(config_.step_size);
-	uint64_t t4 = StkTime::getRealTimeMs();
+	render(dt);
+	input_manager->update(dt);
+	GUIEngine::update(dt);
 	
-	if (World::getWorld())
-        World::getWorld()->updateWorld(1);
-	uint64_t t5 = StkTime::getRealTimeMs();
-	
+	if (World::getWorld()) {
+		time_leftover_ += dt;
+		int ticks = stk_config->time2Ticks(time_leftover_);
+		time_leftover_ -= stk_config->ticks2Time(ticks);
+		for(int i=0; i<ticks; i++)
+			World::getWorld()->updateWorld(1);
+	}
+
 	if (!irr_driver->getDevice()->run())
 		return false;
-	uint64_t t6 = StkTime::getRealTimeMs();
-// 	printf("%lu %lu %lu %lu %lu %lu\n", t1-t0, t2-t1, t3-t2, t4-t3, t5-t4, t6-t5);
 	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
 }
 
@@ -563,6 +562,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 	
 	UserConfigParams::m_unlock_everything = 2;
 	
+// 	stk_config->setPhysicsFPS(30.);
 // 	race_manager->setDefaultAIKartList(l);
 // 	race_manager->setNumKarts( UserConfigParams::m_default_num_karts );
 }

@@ -264,6 +264,8 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the physics frame per seconds rate. */
     int getPhysicsFPS() const { return m_physics_fps; }
+    
+    void setPhysicsFPS(int fps) { m_physics_fps = fps; }
 }
 ;   // STKConfig
 
