@@ -107,7 +107,7 @@ void Profiler::init()
     m_thread_mapping.resize(MAX_THREADS);
 
     // Add this thread to the thread mapping
-    m_thread_mapping[0] = pthread_self();
+    m_thread_mapping[0] = std::this_thread::get_id();
     m_gpu_times.resize(Q_LAST * m_max_frames);
 }   // init
 
@@ -118,7 +118,7 @@ void Profiler::init()
  *  section. */
 int Profiler::getThreadID()
 {
-    pthread_t thread = pthread_self();
+    std::thread::id thread = std::this_thread::get_id();
     int i = 0;
     while(i < m_threads_used)
     {

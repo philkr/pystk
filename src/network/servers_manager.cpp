@@ -37,6 +37,8 @@
 #  undef _WIN32_WINNT
 #  define _WIN32_WINNT 0x600
 #  include <iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "ws2_32.lib")
 #else
 #  include <ifaddrs.h>
 #endif

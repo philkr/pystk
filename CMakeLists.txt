@@ -46,7 +46,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(DEPENDENCIES "${DEPENDENCIES}-64bit")
 endif()
 
-if(WIN32)
+if(WIN32 AND FALSE)
     if(NOT IS_DIRECTORY "${PROJECT_SOURCE_DIR}/${DEPENDENCIES}")
         set(DEPENDENCIES "dependencies")
         if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -57,10 +57,8 @@ if(WIN32)
     if(NOT IS_DIRECTORY "${PROJECT_SOURCE_DIR}/${DEPENDENCIES}")
         message(FATAL_ERROR "Dependencies directory not found.")
     endif()
-endif()
 
 # These variables enable MSVC to find libraries located in "dependencies"
-if(WIN32)
     set(ENV{PATH} "$ENV{PATH};${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/include")
     set(ENV{LIB} ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib)
     set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/${DEPENDENCIES})
@@ -72,11 +70,6 @@ endif()
 if(USE_GLES2)
     add_definitions(-DUSE_GLES2)
     add_definitions(-D_IRR_COMPILE_WITH_OGLES2_ -DNO_IRR_COMPILE_WITH_OPENGL_)
-endif()
-
-if(SERVER_ONLY)
-    add_definitions(-DSERVER_ONLY)
-    add_definitions(-DNO_IRR_COMPILE_WITH_X11_ -DNO_IRR_COMPILE_WITH_OPENGL_ -DNO_IRR_COMPILE_WITH_OSX_DEVICE_)
 endif()
 
 if(UNIX AND NOT APPLE)
@@ -139,13 +132,6 @@ if (NOT SERVER_ONLY)
 	set(JPEG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/lib/jpeglib/")
 	set(JPEG_LIBRARY jpeglib)
 	
-# 	add_subdirectory("${PROJECT_SOURCE_DIR}/lib/libjpeg")
-# 	include_directories("${PROJECT_SOURCE_DIR}/lib/libjpeg")
-# 	set(JPEG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/lib/libjpeg/")
-# 	set(JPEG_LIBRARY turbojpeg)
-endif()
-
-if(NOT SERVER_ONLY)
     add_subdirectory("${PROJECT_SOURCE_DIR}/lib/graphics_utils")
     include_directories("${PROJECT_SOURCE_DIR}/lib/graphics_utils")
 
@@ -190,23 +176,11 @@ if(WIN32)
     endif()
 endif()
 
-if(MSVC)
-    # VS will automatically add NDEBUG for release mode, but only _DEBUG in debug mode.
-    # Since STK uses DEBUG, this is added for debug compilation only:
-    set_property(DIRECTORY PROPERTY COMPILE_DEFINITIONS_DEBUG DEBUG)
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DDEBUG)
 else()
-    # All non VS generators used create only a single compile mode, so
-    # compile flags can be simplye be added
-    if(CMAKE_BUILD_TYPE MATCHES Debug)
-        add_definitions(-DDEBUG)
-    else()
-        add_definitions(-DNDEBUG)
-    endif()
-endif()
-
-
-if(WIN32)
-    configure_file("${STK_SOURCE_DIR}/../tools/windows_installer/icon_rc.template" "${PROJECT_BINARY_DIR}/tmp/icon.rc")
+    add_definitions(-DNDEBUG)
 endif()
 
 # Provides list of source and header files (STK_SOURCES and STK_HEADERS)
@@ -230,13 +204,13 @@ if(APPLE)
 #         ${IOKIT_LIBRARY}
 #         ${COCOA_LIBRARY})
 else()
-    if(MSVC)
-        set(PTHREAD_NAMES pthreadVC2)
-    elseif(MINGW)
-        set(PTHREAD_NAMES "winpthread-1" "libwinpthread-1" "pthreadGC2")
-    endif()
-    find_library(PTHREAD_LIBRARY NAMES pthread ${PTHREAD_NAMES} PATHS ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib)
-    mark_as_advanced(PTHREAD_LIBRARY)
+#    if(MSVC)
+#        set(PTHREAD_NAMES pthreadVC2)
+#    elseif(MINGW)
+#        set(PTHREAD_NAMES "winpthread-1" "libwinpthread-1" "pthreadGC2")
+#    endif()
+#    find_library(PTHREAD_LIBRARY NAMES pthread ${PTHREAD_NAMES} PATHS ${PROJECT_SOURCE_DIR}/${DEPENDENCIES}/lib)
+#    mark_as_advanced(PTHREAD_LIBRARY)
 
     # Set data dir (absolute or relative to CMAKE_INSTALL_PREFIX)
     if(NOT STK_INSTALL_DATA_DIR_ABSOLUTE)
@@ -252,7 +226,7 @@ else()
 
     # Build the final executable
     add_library(stk ${STK_SOURCES} ${STK_RESOURCES} ${STK_HEADERS})
-    target_link_libraries(stk ${PTHREAD_LIBRARY})
+#    target_link_libraries(stk ${PTHREAD_LIBRARY})
 endif()
 
 # Common library dependencies

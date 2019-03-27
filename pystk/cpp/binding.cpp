@@ -64,8 +64,9 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	m.doc() = "Python SuperTuxKart interface";
 	
 	// Make offscreen rendering default
+#ifndef WIN32
 	setenv("IRR_DEVICE_TYPE", "offscreen", 0);
-	
+#endif
 	// Adjust the log level
 	Log::setLogLevel(Log::LL_FATAL);
 	if (getenv("PYSTK_LOG_LEVEL")) {

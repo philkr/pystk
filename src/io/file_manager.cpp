@@ -214,7 +214,6 @@ FileManager::FileManager()
                    "Set $SUPERTUXKART_DATADIR to point to the data directory.");
         // fatal will exit the application
     }
-
     addRootDirs(root_dir);
     addRootDirs(root_dir + "../stk-assets/");
 

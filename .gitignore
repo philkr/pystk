@@ -73,3 +73,7 @@ lib/libogg
 lib/libvorbis
 lib/openal
 lib/openssl
+/.vs
+pystk/*.pyd
+/stk-assets
+/CMakeSettings.json

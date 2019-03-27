@@ -92,9 +92,9 @@ PlayerProfile::PlayerProfile(const XMLNode* node)
     node->get("remember-password",  &m_remember_password);
     node->get("icon-filename",      &m_icon_filename    );
     node->get("default-kart-color", &m_default_kart_color);
-    #ifdef DEBUG
+#ifdef DEBUG
     m_magic_number = 0xABCD1234;
-    #endif
+#endif
 
 }   // PlayerProfile
 

@@ -23,7 +23,7 @@
 
 #include <string.h>
 
-#if defined(WIN32) && !defined(DEBUG) && !defined(__MINGW32__)
+#if 0 && defined(WIN32) && !defined(DEBUG) && !defined(__MINGW32__)
     // --------------------- Windows version -----------------
     #include <Windows.h>
     #include <DbgHelp.h>

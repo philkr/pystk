@@ -38,7 +38,7 @@
 #endif
 
 
-#include <pthread.h>
+#include <thread>
 #include <signal.h>
 
 Synchronised<FILE*>Network::m_log_file = NULL;

@@ -29,6 +29,7 @@
 
 #include <irrString.h>
 
+#include <memory>
 #include <string>
 #ifdef WIN32
 #  define WIN32_LEAN_AND_MEAN
@@ -36,7 +37,6 @@
 #endif
 
 #include <queue>
-#include <pthread.h>
 
 namespace Online
 {
@@ -94,42 +94,11 @@ namespace Online
             /** Time passed since the last poll request. */
             float                     m_time_since_poll;
 
-            /** The current requested being worked on. */
-            Online::Request *         m_current_request;
-
-            /** A conditional variable to wake up the main loop. */
-            pthread_cond_t            m_cond_request;
-
-            /** Signal an abort in case that a download is still happening. */
-            Synchronised<bool>        m_abort;
-
             /** The polling interval while a game is running. */
             float m_game_polling_interval;
 
             /** The polling interval while the menu is shown. */
             float m_menu_polling_interval;
-
-            /** Thread id of the thread running in this object. */
-            Synchronised<pthread_t *> m_thread_id;
-
-            /** The list of pointers to all requests that still need to be
-             *  handled. */
-            Synchronised< std::priority_queue <
-                                                Online::Request*,
-                                                std::vector<Online::Request*>,
-                                                Online::Request::Compare
-                                               >
-                        >  m_request_queue;
-
-            /** The list of pointers to all requests that are already executed
-             *  by the networking thread, but still need to be processed by the
-             *  main thread. */
-            Synchronised< std::queue<Online::Request*> >    m_result_queue;
-
-            void addResult(Online::Request *request);
-            void handleResultQueue();
-
-            static void *mainLoop(void *obj);
 
             RequestManager(); //const std::string &url
             ~RequestManager();
@@ -159,7 +128,7 @@ namespace Online
             void startNetworkThread();
             void stopNetworkThread();
 
-            bool getAbort() { return m_abort.getAtomic(); }
+            bool getAbort() { return true; }
             void update(float dt);
 
             // ----------------------------------------------------------------
