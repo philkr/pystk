@@ -792,7 +792,7 @@ void addObject(SPMeshNode* node)
     {
         return;
     }
-	SPMesh * mesh = node->getSPM();
+    SPMesh * mesh = node->getSPM();
     if (mesh == NULL)
     {
         return;
@@ -1324,6 +1324,14 @@ void draw(RenderPass rp, DrawCallType dct)
         {
             continue;
         }
+        // Only enable used color attachments (without this garbage will be
+        // written into unused attachments)
+        std::vector<GLenum> dbuf;
+        for( auto o: p.first->output(rp) ) {
+            if (o.location >= dbuf.size()) dbuf.resize(o.location+1, GL_NONE);
+            dbuf[o.location] = GL_COLOR_ATTACHMENT0+o.location;
+        }
+        glDrawBuffers(dbuf.size(), dbuf.data());
         p.first->use(rp);
         static std::vector<SPUniformAssigner*> shader_uniforms;
         p.first->setUniformsPerObject(static_cast<SPPerObjectUniform*>

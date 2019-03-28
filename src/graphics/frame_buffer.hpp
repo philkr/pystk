@@ -111,8 +111,7 @@ public:
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
         glViewport(0, 0, (int)m_width, (int)m_height);
-        GLenum bufs[] = { GL_NONE, GL_NONE, GL_NONE, GL_NONE };
-        glDrawBuffers((int)m_render_targets.size(), bufs);
+        glDrawBuffers(0, NULL);
     }
     // ------------------------------------------------------------------------
     const std::vector<GLuint>& getRTT() const      { return m_render_targets; }

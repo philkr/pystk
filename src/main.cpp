@@ -1522,6 +1522,8 @@ int main(int argc, char *argv[] )
 
         handleCmdLinePreliminary();
 
+        stk_config->load(file_manager->getAsset("stk_config.xml"));
+
         if (!ProfileWorld::isNoGraphics())
             profiler.init();
         initRest();

@@ -117,7 +117,19 @@ void SPShader::linkShaderFiles(RenderPass rp)
         }
         glDeleteProgram(m_program[rp]);
         m_program[rp] = 0;
-    }
+    } else {
+        m_outputs[rp].clear();
+        GLint num_frag_outputs = 0;
+        glGetProgramInterfaceiv(m_program[rp], GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_frag_outputs);
+        for( int i=0; i<num_frag_outputs; i++ ) {
+            int identifier_length;
+            char identifier[128];            //Where GL will write the variable name
+            glGetProgramResourceName(m_program[rp], GL_PROGRAM_OUTPUT, i, 128, &identifier_length, identifier);
+            GLuint location = glGetProgramResourceLocation(m_program[rp], GL_PROGRAM_OUTPUT, identifier);
+            GLuint index = glGetProgramResourceLocationIndex(m_program[rp], GL_PROGRAM_OUTPUT, identifier);
+            m_outputs[rp].push_back({std::string(identifier), location, index});
+        }
+    } 
 #endif
 }   // linkShaderFiles
 

@@ -59,8 +59,7 @@ public:
         assert(i < m_fbo_layer.size());
         glBindFramebuffer(GL_FRAMEBUFFER, m_fbo_layer[i]);
         glViewport(0, 0, (int)m_width, (int)m_height);
-        GLenum bufs[] = { GL_NONE, GL_NONE, GL_NONE };
-        glDrawBuffers((int)m_render_targets.size(), bufs);
+        glDrawBuffers(0, NULL);
     }
     // ------------------------------------------------------------------------
     unsigned getLayerCount() const     { return (unsigned)m_fbo_layer.size(); }

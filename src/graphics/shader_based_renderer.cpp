@@ -262,7 +262,7 @@ void ShaderBasedRenderer::renderSceneDeferred(scene::ICameraSceneNode * const ca
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
         GLuint CI[4] = { 0 };
-        glClearBufferuiv(GL_COLOR, 2, CI);
+        glClearBufferuiv(GL_COLOR, 3, CI);
         
         ScopedGPUTimer Timer(irr_driver->getGPUTimer(Q_SOLID_PASS));
         SP::draw(SP::RP_1ST, SP::DCT_NORMAL);
@@ -863,6 +863,7 @@ void ShaderBasedRenderer::renderToTexture(GL3RenderTarget *render_target,
     SP::sp_cur_buf_id[0] = 0;
     assert(m_rtts != NULL);
     Track *track = Track::getCurrentTrack();
+	m_rtts->getFBO(FBO_COLORS).bind();
 
     irr_driver->getSceneManager()->setActiveCamera(camera);
     static_cast<scene::CSceneManager *>(irr_driver->getSceneManager())
@@ -878,13 +879,11 @@ void ShaderBasedRenderer::renderToTexture(GL3RenderTarget *render_target,
 		FrameBuffer *fbo = m_post_processing->render(camera, true, m_rtts);
 		if (irr_driver->getSSAOViz())
 		{
-			m_rtts->getFBO(FBO_COLORS).bind();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			m_post_processing->renderPassThrough(m_rtts->getFBO(FBO_HALF1_R).getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
 		}
 		else
 		{
-			m_rtts->getFBO(FBO_COLORS).bind();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			m_post_processing->renderPassThrough(fbo->getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
 		}

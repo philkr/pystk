@@ -5,7 +5,7 @@ from time import time, sleep
 parser = argparse.ArgumentParser()
 parser.add_argument('-lt', '--list-tracks', action='store_true')
 parser.add_argument('-lk', '--list-karts', action='store_true')
-parser.add_argument('-v', '--visualization', type=str, choices=list(gui.VT.__members__), nargs='+', default='[IMAGE]')
+parser.add_argument('-v', '--visualization', type=str, choices=list(gui.VT.__members__), nargs='+', default=['IMAGE'])
 parser.add_argument('-p', '--play', action='store_true')
 parser.add_argument('-b', '--benchmark', action='store_true')
 parser.add_argument('-t', '--track')
