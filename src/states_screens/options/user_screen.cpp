@@ -17,7 +17,6 @@
 
 #include "states_screens/options/user_screen.hpp"
 
-#include "addons/news_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -28,8 +27,6 @@
 #include "guiengine/widgets/label_widget.hpp"
 #include "guiengine/widgets/list_widget.hpp"
 #include "guiengine/widgets/text_box_widget.hpp"
-#include "online/link_helper.hpp"
-#include "online/request_manager.hpp"
 #include "states_screens/dialogs/message_dialog.hpp"
 #include "states_screens/dialogs/kart_color_slider_dialog.hpp"
 #include "states_screens/dialogs/recovery_dialog.hpp"
@@ -40,7 +37,6 @@
 #include "states_screens/options/options_screen_language.hpp"
 #include "states_screens/options/options_screen_ui.hpp"
 #include "states_screens/options/options_screen_video.hpp"
-#include "states_screens/online/register_screen.hpp"
 #include "states_screens/state_manager.hpp"
 
 
@@ -144,7 +140,7 @@ void BaseUserScreen::init()
         const PlayerProfile *player = PlayerManager::get()->getPlayer(n);
         if (player->isGuestAccount()) continue;
         std::string s = StringUtils::toString(n);
-        m_players->addItem(player->getName(), s, player->getIconFilename(), 0,
+        m_players->addItem(player->getName(), s, "", 0,
                            IconButtonWidget::ICON_PATH_TYPE_ABSOLUTE);
         if(player == PlayerManager::getCurrentPlayer())
             current_player_index = n;
@@ -246,34 +242,9 @@ void BaseUserScreen::selectUser(int index)
     getWidget<CheckBoxWidget>("remember-user")->setState(
         profile->rememberPassword());
 
-    // Last game was not online, so make the offline settings the default
-    // (i.e. unckeck online checkbox, and make entry fields invisible).
-    if (!profile->wasOnlineLastTime() || profile->getLastOnlineName() == "")
-    {
-        if (!m_new_registered_data)
-            m_online_cb->setState(false);
-        makeEntryFieldsVisible();
-        return;
-    }
-
-    // Now last use was with online --> Display the saved data
-    if (UserConfigParams::m_internet_status == Online::RequestManager::IPERM_NOT_ALLOWED)
+    if (!m_new_registered_data)
         m_online_cb->setState(false);
-    else
-        m_online_cb->setState(true);
-
     makeEntryFieldsVisible();
-    m_username_tb->setActive(profile->getLastOnlineName().size() == 0);
-
-    // And make the password invisible if the session is saved (i.e
-    // the user does not need to enter a password).
-    if (profile->hasSavedSession())
-    {
-        m_password_tb->setVisible(false);
-        getWidget<LabelWidget>("label_password")->setVisible(false);
-        getWidget<ButtonWidget>("password_reset")->setVisible(false);
-    }
-
 }   // selectUser
 
 // ----------------------------------------------------------------------------
@@ -287,7 +258,7 @@ void BaseUserScreen::makeEntryFieldsVisible()
     getWidget<LabelWidget>("label_guest")->setVisible(online);
     getWidget<CheckBoxWidget>("guest")->setVisible(online);
 #endif
-    bool online = m_online_cb->getState();
+    bool online = false;
     getWidget<LabelWidget>("label_username")->setVisible(online);
     m_username_tb->setVisible(online);
     getWidget<LabelWidget>("label_remember")->setVisible(online);
@@ -297,23 +268,10 @@ void BaseUserScreen::makeEntryFieldsVisible()
     // Don't show the password fields if the player wants to be online
     // and either is the current player and logged in (no need to enter a
     // password then) or has a saved session.
-    if(player && online  &&
-        (player->hasSavedSession() || 
-          (player==PlayerManager::getCurrentPlayer() && player->isLoggedIn() ) 
-        ) 
-      )
-    {
-        // If we show the online login fields, but the player has a
-        // saved session, don't show the password field.
-        getWidget<LabelWidget>("label_password")->setVisible(false);
-        m_password_tb->setVisible(false);
-        getWidget<ButtonWidget>("password_reset")->setVisible(false);
-    }
-    else
     {
         getWidget<LabelWidget>("label_password")->setVisible(online);
         m_password_tb->setVisible(online);
-        getWidget<ButtonWidget>("password_reset")->setVisible(Online::LinkHelper::isSupported() && online);
+        getWidget<ButtonWidget>("password_reset")->setVisible(online);
         // Is user has no online name, make sure the user can enter one
         if (player->getLastOnlineName().empty())
             m_username_tb->setActive(true);
@@ -355,53 +313,8 @@ void BaseUserScreen::eventCallback(Widget* widget,
         // give the player the choice to enable this option.
         if (m_online_cb->getState())
         {
-            if (UserConfigParams::m_internet_status ==
-                                       Online::RequestManager::IPERM_NOT_ALLOWED)
-            {
-                irr::core::stringw message =
-                    _("Internet access is disabled. Do you want to enable it?");
-
-                class ConfirmInternet : public MessageDialog::IConfirmDialogListener
-                {
-                    BaseUserScreen *m_parent_screen;
-                private:
-                    GUIEngine::CheckBoxWidget *m_cb;
-                public:
-                    virtual void onConfirm()
-                    {
-                        UserConfigParams::m_internet_status =
-                            Online::RequestManager::IPERM_ALLOWED;
-#ifndef SERVER_ONLY
-                        NewsManager::get()->init(false);
-#endif
-                        m_parent_screen->makeEntryFieldsVisible();
-                        ModalDialog::dismiss();
-                    }   // onConfirm
-                    virtual void onCancel()
-                    {
-                        m_cb->setState(false);
-                        m_parent_screen->makeEntryFieldsVisible();
-                        ModalDialog::dismiss();
-                    }   // onCancel
-                    // ------------------------------------------------------------
-                    ConfirmInternet(BaseUserScreen *parent, GUIEngine::CheckBoxWidget *online_cb)
-                    {
-                        m_parent_screen = parent;
-                        m_cb = online_cb;
-                    }
-                };   // ConfirmInternet
-
-
-                new MessageDialog(message, MessageDialog::MESSAGE_DIALOG_CONFIRM,
-                      new ConfirmInternet(this, m_online_cb), true);
-            }
         }
         makeEntryFieldsVisible();
-    }
-    else if (name == "password_reset")
-    {
-        // Open password reset page
-        Online::LinkHelper::openURL(stk_config->m_password_reset_url);
     }
     else if (name == "options")
     {
@@ -411,34 +324,10 @@ void BaseUserScreen::eventCallback(Widget* widget,
         {
             login();
         }   // button==ok
-        else if (button == "new_user")
-        {
-            RegisterScreen::getInstance()->push();
-            RegisterScreen::getInstance()->setParent(this);
-            // Make sure the new user will have an empty online name field
-            // that can also be edited.
-            m_username_tb->setText("");
-            m_username_tb->setActive(true);
-        }
         else if (button == "cancel")
         {
             // EscapePressed will pop this screen.
             StateManager::get()->escapePressed();
-        }
-        else if (button == "recover")
-        {
-            new RecoveryDialog();
-        }
-        else if (button == "rename")
-        {
-            PlayerProfile *cp = getSelectedPlayer();
-            RegisterScreen::getInstance()->setRename(cp);
-            RegisterScreen::getInstance()->push();
-            RegisterScreen::getInstance()->setParent(this);
-            m_new_registered_data = false;
-            m_auto_login          = false;
-            // Init will automatically be called, which
-            // refreshes the player list
         }
         else if (button == "default_kart_color")
         {
@@ -482,86 +371,6 @@ void BaseUserScreen::closeScreen()
  */
 void BaseUserScreen::login()
 {
-    // If an error occurs, the callback informing this screen about the
-    // problem will activate the widget again.
-    m_options_widget->setActive(false);
-    m_state = STATE_NONE;
-
-    PlayerProfile *player = getSelectedPlayer();
-    PlayerProfile *current = PlayerManager::getCurrentPlayer();
-    core::stringw  new_username = m_username_tb->getText();
-    // If a different player is connecting, or the same local player with
-    // a different online account, log out the current player.
-    if(current && current->isLoggedIn() &&
-        (player!=current ||
-        current->getLastOnlineName(true/*ignoreRTL*/)!=new_username) )
-    {
-        m_sign_out_name = current->getLastOnlineName(true/*ignoreRTL*/);
-        current->requestSignOut();
-        m_state = (UserScreenState)(m_state | STATE_LOGOUT);
-
-        // If the online user name was changed, reset the save data
-        // for this user (otherwise later the saved session will be
-        // resumed, not logging the user with the new account).
-        if(player==current &&
-            current->getLastOnlineName(true/*ignoreRTL*/)!=new_username)
-            current->clearSession();
-    }
-    PlayerManager::get()->setCurrentPlayer(player);
-    assert(player);
-
-    // If no online login requested, log the player out (if necessary)
-    // and go to the main menu screen (though logout needs to finish first)
-    if(!m_online_cb->getState())
-    {
-        if(player->isLoggedIn())
-        {
-            m_sign_out_name =player->getLastOnlineName(true/*ignoreRTL*/);
-            player->requestSignOut();
-            m_state =(UserScreenState)(m_state| STATE_LOGOUT);
-        }
-
-        player->setWasOnlineLastTime(false);
-        if(m_state==STATE_NONE)
-        {
-            closeScreen();
-        }
-        return;
-    }
-
-    // Player wants to be online, and is already online - nothing to do
-    if(player->isLoggedIn())
-    {
-        player->setWasOnlineLastTime(true);
-        closeScreen();
-        return;
-    }
-    m_state = (UserScreenState) (m_state | STATE_LOGIN);
-    // Now we need to start a login request to the server
-    // This implies that this screen will wait till the server responds, so
-    // that error messages ('invalid password') can be shown, and the user
-    // can decide what to do about them.
-    if (player->hasSavedSession())
-    {
-        m_sign_in_name = player->getLastOnlineName(true/*ignoreRTL*/);
-        // Online login with saved token
-        player->requestSavedSession();
-    }
-    else
-    {
-        // Online login with password --> we need a valid password
-        if (m_password_tb->getText() == "")
-        {
-            m_info_widget->setText(_("You need to enter a password."), true);
-
-            m_options_widget->setActive(true);
-            return;
-        }
-        m_sign_in_name = m_username_tb->getText();
-        player->requestSignIn(m_username_tb->getText(),
-                               m_password_tb->getText());
-    }   // !hasSavedSession
-
 }   // login
 
 // ----------------------------------------------------------------------------

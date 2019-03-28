@@ -19,7 +19,6 @@
 
 #include "tracks/track.hpp"
 
-#include "addons/addon.hpp"
 #include "challenges/challenge_status.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
@@ -51,7 +50,6 @@
 #include "io/xml_node.hpp"
 #include "items/item.hpp"
 #include "items/item_manager.hpp"
-#include "items/network_item_manager.hpp"
 #include "items/powerup_manager.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/kart_properties.hpp"
@@ -59,7 +57,6 @@
 #include "modes/linear_world.hpp"
 #include "modes/easter_egg_hunt.hpp"
 #include "modes/profile_world.hpp"
-#include "network/network_config.hpp"
 #include "physics/physical_object.hpp"
 #include "physics/physics.hpp"
 #include "physics/triangle_mesh.hpp"
@@ -115,13 +112,7 @@ Track::Track(const std::string &filename)
     // If this is an addon track, add "addon_" to the identifier - just in
     // case that an addon track has the same directory name (and therefore
     // identifier) as an included track.
-    if(Addon::isAddon(filename))
-    {
-        m_ident = Addon::createAddonId(m_ident);
-        m_is_addon = true;
-    }
-    else
-        m_is_addon = false;
+    m_is_addon = false;
 
     // The directory should always have a '/' at the end, but getBasename
     // above returns "" if a "/" is at the end, so we add the "/" here.
@@ -697,8 +688,7 @@ void Track::loadArenaGraph(const XMLNode &node)
         const unsigned pk = race_manager->getNumPlayers();
         for (unsigned i = 0; i < pk; i++)
         {
-            if (!race_manager->getKartInfo(i).isNetworkPlayer() &&
-                race_manager->getKartInfo(i).getKartTeam() ==
+            if (race_manager->getKartInfo(i).getKartTeam() ==
                 KART_TEAM_BLUE)
             {
                 m_minimap_invert_x_z = true;
@@ -1852,9 +1842,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
         loadArenaGraph(*root);
     main_loop->renderGUI(3340);
 
-    if (NetworkConfig::get()->isNetworking())
-        NetworkItemManager::create();
-    else
     {
         // Seed random engine locally
         uint32_t seed = (uint32_t)StkTime::getTimeSinceEpoch();
@@ -2141,12 +2128,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     delete root;
     main_loop->renderGUI(5800);
 
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient())
-    {
-        static_cast<NetworkItemManager*>(NetworkItemManager::get())
-            ->initClientConfirmState();
-    }
     main_loop->renderGUI(5900);
 
     if (UserConfigParams::m_track_debug && Graph::get() && !m_is_cutscene)
@@ -2229,8 +2210,7 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
         {
             int geo_level = 0;
             node->get("geometry-level", &geo_level);
-            if (UserConfigParams::m_geometry_level + geo_level - 2 > 0 &&
-                !NetworkConfig::get()->isNetworking())
+            if (UserConfigParams::m_geometry_level + geo_level - 2 > 0)
                 continue;
             m_track_object_manager->add(*node, parent, model_def_loader, parent_library);
         }

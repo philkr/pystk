@@ -31,13 +31,7 @@
 #include "input/input_manager.hpp"
 #include "modes/profile_world.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
-#include "network/protocols/game_protocol.hpp"
-#include "network/protocol_manager.hpp"
-#include "network/race_event_manager.hpp"
 #include "network/rewind_manager.hpp"
-#include "network/stk_host.hpp"
-#include "online/request_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
 #include "states_screens/state_manager.hpp"
@@ -159,8 +153,7 @@ float MainLoop::getLimitedDt()
         // when the computer can't keep it up, slow down the shown time instead
         // But this can not be done in networking, otherwise the game time on
         // client and server will not be in synch anymore
-        if ((!NetworkConfig::get()->isNetworking() || !World::getWorld()) &&
-            !m_allow_large_dt)
+        if (!m_allow_large_dt)
         {
             /* time 3 internal substeps take */
             const float MAX_ELAPSED_TIME = 3.0f*1.0f / 60.0f*1000.0f;
@@ -205,11 +198,7 @@ void MainLoop::updateRace(int ticks, bool fast_forward)
     if (!World::getWorld())  return;   // No race on atm - i.e. we are in menu
 
     // The race event manager will update world in case of an online race
-    if ( RaceEventManager::getInstance() && 
-         RaceEventManager::getInstance()->isRunning() )
-        RaceEventManager::getInstance()->update(ticks, fast_forward);
-    else
-        World::getWorld()->updateWorld(ticks);
+    World::getWorld()->updateWorld(ticks);
 }   // updateRace
 
 //-----------------------------------------------------------------------------
@@ -339,28 +328,8 @@ void MainLoop::run()
 
         // Shutdown next frame if shutdown request is sent while loading the
         // world
-        if ((STKHost::existHost() && STKHost::get()->requestedShutdown()) ||
-            m_request_abort)
+        if (m_request_abort)
         {
-            bool exist_host = STKHost::existHost();
-            core::stringw msg = _("Server connection timed out.");
-
-            if (!m_request_abort)
-            {
-                if (!ProfileWorld::isNoGraphics())
-                {
-                    if (!STKHost::get()->getErrorMessage().empty())
-                    {
-                        msg = STKHost::get()->getErrorMessage();
-                    }
-                }
-            }
-
-            if (exist_host == true)
-            {
-                STKHost::get()->shutdown();
-            }
-
 #ifndef SERVER_ONLY
             if (CVS->isGLSL())
             {
@@ -381,18 +350,6 @@ void MainLoop::run()
             {
                 race_manager->clearNetworkGrandPrixResult();
                 race_manager->exitRace();
-            }
-
-            if (exist_host == true)
-            {
-                if (!ProfileWorld::isNoGraphics())
-                {
-                    StateManager::get()->resetAndSetStack(
-                        NetworkConfig::get()->getResetScreens().data());
-                    MessageQueue::add(MessageQueue::MT_ERROR, msg);
-                }
-                
-                NetworkConfig::get()->unsetNetworking();
             }
 
             if (m_request_abort)
@@ -422,9 +379,6 @@ void MainLoop::run()
                 PROFILER_POP_CPU_MARKER();
             }
             // Some protocols in network will use RequestManager
-            PROFILER_PUSH_CPU_MARKER("Database polling update", 0x00, 0x7F, 0x7F);
-            Online::RequestManager::get()->update(frame_duration);
-            PROFILER_POP_CPU_MARKER();
 
             m_ticks_adjustment.lock();
             if (m_ticks_adjustment.getData() != 0)
@@ -453,9 +407,7 @@ void MainLoop::run()
 
             // Avoid hang when some function in world takes too long time or
             // when leave / come back from android home button
-            bool fast_forward = NetworkConfig::get()->isNetworking() &&
-                NetworkConfig::get()->isClient() &&
-                num_steps > stk_config->time2Ticks(1.0f);
+            bool fast_forward = false;
             for (int i = 0; i < num_steps; i++)
             {
                 if (World::getWorld() && history->replayHistory())
@@ -463,14 +415,6 @@ void MainLoop::run()
                     history->updateReplay(
                                        World::getWorld()->getTicksSinceStart());
                 }
-
-                PROFILER_PUSH_CPU_MARKER("Protocol manager update",
-                                         0x7F, 0x00, 0x7F);
-                if (auto pm = ProtocolManager::lock())
-                {
-                    pm->update(1);
-                }
-                PROFILER_POP_CPU_MARKER();
 
                 PROFILER_PUSH_CPU_MARKER("Update race", 0, 255, 255);
                 if (World::getWorld())
@@ -515,11 +459,6 @@ void MainLoop::run()
                     m_request_abort = true;
                 }
             }
-
-            if (auto gp = GameProtocol::lock())
-            {
-                gp->sendActions();
-            }
         }
         PROFILER_POP_CPU_MARKER();   // MainLoop pop
         PROFILER_SYNC_FRAME();
@@ -548,11 +487,6 @@ void MainLoop::renderGUI(int phase, int loop_index, int loop_size)
 #ifdef SERVER_ONLY
     return;
 #else
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isServer()         )
-    {
-        return;
-    }
     // Rendering past phase 7000 causes the minimap to not work
     // on higher graphical settings
     if (phase > 7000)

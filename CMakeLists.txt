@@ -21,7 +21,7 @@ endif()
 option(SERVER_ONLY "Create a server only (i.e. no graphics or sound)" OFF)
 option(CHECK_ASSETS "Check if assets are installed in ../stk-assets" ON)
 option(USE_SYSTEM_ANGELSCRIPT "Use system angelscript instead of built-in angelscript. If you enable this option, make sure to use a compatible version." OFF)
-option(USE_SYSTEM_ENET "Use system ENET instead of the built-in version, when available." ON)
+# option(USE_SYSTEM_ENET "Use system ENET instead of the built-in version, when available." ON)
 
 set(STK_SOURCE_DIR "src")
 set(STK_DATA_DIR "${PROJECT_SOURCE_DIR}/data")
@@ -93,18 +93,18 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/lib/freetype")
 include_directories(${FREETYPE_INCLUDES})
 
 # Find system ENet library or build it if missing
-if((UNIX AND NOT APPLE) AND USE_SYSTEM_ENET)
-    pkg_check_modules(ENET libenet>=1.3.4)
-endif()
-
-if(ENET_FOUND)
-    include_directories(${ENET_INCLUDE_DIRS})
-else()
-    # Fallback to built-in version
-    add_subdirectory("${PROJECT_SOURCE_DIR}/lib/enet")
-    include_directories("${PROJECT_SOURCE_DIR}/lib/enet/include")
-    set(ENET_LIBRARIES "enet")
-endif()
+# if((UNIX AND NOT APPLE) AND USE_SYSTEM_ENET)
+#     pkg_check_modules(ENET libenet>=1.3.4)
+# endif()
+# 
+# if(ENET_FOUND)
+#     include_directories(${ENET_INCLUDE_DIRS})
+# else()
+#     # Fallback to built-in version
+#     add_subdirectory("${PROJECT_SOURCE_DIR}/lib/enet")
+#     include_directories("${PROJECT_SOURCE_DIR}/lib/enet/include")
+#     set(ENET_LIBRARIES "enet")
+# endif()
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glew")
 include_directories("${PROJECT_SOURCE_DIR}/lib/glew/include")
@@ -234,7 +234,7 @@ target_link_libraries(stk
     bulletdynamics
     bulletcollision
     bulletmath
-    ${ENET_LIBRARIES}
+#     ${ENET_LIBRARIES}
     stkirrlicht
     ${Angelscript_LIBRARIES}
     )

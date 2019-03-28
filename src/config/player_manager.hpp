@@ -98,21 +98,21 @@ public:
     const PlayerProfile *getPlayerById(unsigned int id);
     void enforceCurrentPlayer();
     unsigned int getNumNonGuestPlayers() const;
-    static void setUserDetails(Online::HTTPRequest *request,
-                               const std::string &action,
-                               const std::string &php_name = "");
-    static unsigned int getCurrentOnlineId();
-    static bool isCurrentLoggedIn();
-    static Online::OnlineProfile* getCurrentOnlineProfile();
+//     static void setUserDetails(Online::HTTPRequest *request,
+//                                const std::string &action,
+//                                const std::string &php_name = "");
+//     static unsigned int getCurrentOnlineId();
+//     static bool isCurrentLoggedIn();
+//     static Online::OnlineProfile* getCurrentOnlineProfile();
 
-    static PlayerProfile::OnlineState getCurrentOnlineState();
-    static const irr::core::stringw& getCurrentOnlineUserName();
-    static void requestOnlinePoll();
-    static void resumeSavedSession();
-    static void onSTKQuit();
-    static void requestSignOut();
-    static void requestSignIn(const irr::core::stringw &username,
-                              const irr::core::stringw &password);
+//     static PlayerProfile::OnlineState getCurrentOnlineState();
+//     static const irr::core::stringw& getCurrentOnlineUserName();
+//     static void requestOnlinePoll();
+//     static void resumeSavedSession();
+//     static void onSTKQuit();
+//     static void requestSignOut();
+//     static void requestSignIn(const irr::core::stringw &username,
+//                               const irr::core::stringw &password);
 
     // ------------------------------------------------------------------------
     /** Returns the current player. */

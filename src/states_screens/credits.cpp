@@ -29,7 +29,6 @@ using irr::core::stringc;
 #include "guiengine/screen.hpp"
 #include "guiengine/widget.hpp"
 #include "io/file_manager.hpp"
-#include "online/link_helper.hpp"
 #include "states_screens/state_manager.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
@@ -209,10 +208,6 @@ void CreditsScreen::loadedFromFile()
         m_sections.swap( m_sections.size() - 1, m_sections.size() - 2 );
     }
 
-    if (!Online::LinkHelper::isSupported())
-    {
-        getWidget("donate")->setVisible(false);
-    }
 }   // loadedFromFile
 
 // ----------------------------------------------------------------------------
@@ -399,11 +394,6 @@ void CreditsScreen::eventCallback(GUIEngine::Widget* widget,
     if (name == "back")
     {
         StateManager::get()->escapePressed();
-    }
-    if (name == "donate")
-    {
-        // Open donation page
-        Online::LinkHelper::openURL(stk_config->m_donate_url);
     }
 }
 

@@ -38,7 +38,6 @@
 #include "karts/explosion_animation.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/capture_the_flag.hpp"
-#include "network/network_config.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
 
@@ -329,19 +328,6 @@ void Swatter::squashThingsAround()
     const bool has_created_explosion_animation =
         success && closest_kart->getKartAnimation() != NULL;
 
-    // Locally add a event to replay the squash during rewind
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient() &&
-        closest_kart->getKartAnimation() == NULL)
-    {
-        RewindManager::get()->addRewindInfoEventFunction(new
-            RewindInfoEventFunction(World::getWorld()->getTicksSinceStart(),
-            /*undo_function*/[](){},
-            /*replay_function*/[closest_kart, duration, slowdown]()
-            {
-                closest_kart->setSquash(duration, slowdown);
-            }));
-    }
 
     if (success)
     {

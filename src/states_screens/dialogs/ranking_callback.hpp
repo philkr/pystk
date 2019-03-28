@@ -21,7 +21,6 @@
 
 #include "config/player_manager.hpp"
 #include "guiengine/widgets/label_widget.hpp"
-#include "online/xml_request.hpp"
 
 #include <memory>
 
@@ -33,65 +32,6 @@ protected:
                              GUIEngine::LabelWidget* info,
                              std::shared_ptr<bool> done)
     {
-        // --------------------------------------------------------------------
-        class UpdatePlayerRankingRequest : public Online::XMLRequest
-        {
-        private:
-            std::weak_ptr<bool> m_done;
-
-            core::stringw m_name;
-
-            GUIEngine::LabelWidget* m_info;
-            // ----------------------------------------------------------------
-            /** Callback for the request to update rank of a player. Shows his
-            *   rank and score.
-            */
-            virtual void callback()
-            {
-                auto done = m_done.lock();
-                // Dialog deleted
-                if (!done)
-                    return;
-                // I18N: In the network player dialog, indiciating a network
-                // player has no ranking
-                core::stringw result = _("%s has no ranking yet.", m_name);
-                if (isSuccess())
-                {
-                    int rank = -1;
-                    float score = 0.0f;
-                    getXMLData()->get("rank", &rank);
-                    getXMLData()->get("scores", &score);
-                    if (rank > 0)
-                    {
-                        // I18N: In the network player dialog show rank and
-                        // score of a player
-                        result = _("%s is number %d in the rankings with a score of %f.",
-                            m_name, rank, score);
-                    }
-                }
-                *done = true;
-                m_info->setText(result, false);
-
-            }   // callback
-        public:
-            UpdatePlayerRankingRequest(const core::stringw& name,
-                                       uint32_t online_id,
-                                       GUIEngine::LabelWidget* info,
-                                       std::shared_ptr<bool> done)
-                : XMLRequest(true)
-            {
-                m_name = name;
-                m_info = info;
-                m_done = done;
-            }
-        };   // UpdatePlayerRankingRequest
-
-        // --------------------------------------------------------------------
-        UpdatePlayerRankingRequest* request =
-            new UpdatePlayerRankingRequest(name, online_id, info, done);
-        PlayerManager::setUserDetails(request, "get-ranking");
-        request->addParameter("id", online_id);
-        request->queue();
     }
 };
 #endif

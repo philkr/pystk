@@ -18,10 +18,7 @@
 #include "modes/free_for_all.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
-#include "network/protocols/game_events_protocol.hpp"
-#include "network/stk_host.hpp"
 #include "tracks/track.hpp"
 
 #include <algorithm>
@@ -93,10 +90,6 @@ void FreeForAll::countdownReachedZero()
  */
 bool FreeForAll::kartHit(int kart_id, int hitter)
 {
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient())
-        return false;
-
     if (isRaceOver())
         return false;
 
@@ -117,18 +110,6 @@ void FreeForAll::handleScoreInServer(int kart_id, int hitter)
     else
         new_score = ++m_scores[hitter];
 
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isServer())
-    {
-        NetworkString p(PROTOCOL_GAME_EVENTS);
-        p.setSynchronous(true);
-        p.addUInt8(GameEventsProtocol::GE_BATTLE_KART_SCORE);
-        if (kart_id == hitter || hitter == -1)
-            p.addUInt8((uint8_t)kart_id).addUInt16((int16_t)new_score);
-        else
-            p.addUInt8((uint8_t)hitter).addUInt16((int16_t)new_score);
-        STKHost::get()->sendPacketToAllPeers(&p, true);
-    }
 }   // handleScoreInServer
 
 // ----------------------------------------------------------------------------
@@ -180,10 +161,6 @@ void FreeForAll::update(int ticks)
  */
 bool FreeForAll::isRaceOver()
 {
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient())
-        return false;
-
     if (!getKartAtPosition(1))
         return false;
     int top_id = getKartAtPosition(1)->getWorldKartId();

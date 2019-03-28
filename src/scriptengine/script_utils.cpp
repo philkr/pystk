@@ -22,7 +22,6 @@
 #include "input/device_manager.hpp"
 #include "input/input_device.hpp"
 #include "input/input_manager.hpp"
-#include "network/network_config.hpp"
 #include "scriptengine/aswrappedcall.hpp"
 #include "scriptengine/script_engine.hpp"
 #include "states_screens/dialogs/tutorial_message_dialog.hpp"
@@ -158,7 +157,7 @@ namespace Scripting
 
         bool isNetworking()
         {
-            return NetworkConfig::get()->isNetworking();
+            return false;
         }
 
         /** @}*/

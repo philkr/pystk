@@ -16,18 +16,3 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "network/remote_kart_info.hpp"
-#include "network/network_player_profile.hpp"
-
-// ----------------------------------------------------------------------------
-void RemoteKartInfo::copyFrom(std::shared_ptr<NetworkPlayerProfile> p,
-                              unsigned local_id)
-{
-    m_kart_name = p->getKartName();
-    m_user_name = p->getName();
-    m_local_player_id = local_id;
-    m_host_id = p->getHostId();
-    m_difficulty = p->getPerPlayerDifficulty();
-    m_default_kart_color = p->getPerPlayerDifficulty();
-    m_online_id = p->getOnlineId();
-    m_profile = p;
-}   // copyFrom

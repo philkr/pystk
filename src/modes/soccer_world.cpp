@@ -27,13 +27,9 @@
 #include "karts/kart_rewinder.hpp"
 #include "karts/rescue_animation.hpp"
 #include "karts/controller/local_player_controller.hpp"
-#include "karts/controller/network_player_controller.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
-#include "network/protocols/game_events_protocol.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
-#include "network/stk_host.hpp"
 #include "physics/physics.hpp"
 #include "states_screens/race_gui_base.hpp"
 #include "tracks/graph.hpp"
@@ -203,8 +199,7 @@ void SoccerWorld::update(int ticks)
     if (Track::getCurrentTrack()->hasNavMesh())
     {
         updateSectorForKarts();
-        if (!NetworkConfig::get()->isNetworking())
-            updateAIData();
+        updateAIData();
     }
 
     WorldWithRank::update(ticks);
@@ -222,10 +217,6 @@ void SoccerWorld::update(int ticks)
             kart->getBody()->proceedToTransform(m_goal_transforms[i]);
             kart->setTrans(m_goal_transforms[i]);
         }
-
-        if (NetworkConfig::get()->isNetworking() &&
-            NetworkConfig::get()->isClient())
-            return;
 
         m_goal_timer += ticks;
         if (m_goal_timer > stk_config->time2Ticks(3.0f))
@@ -248,9 +239,7 @@ void SoccerWorld::update(int ticks)
 //-----------------------------------------------------------------------------
 void SoccerWorld::onCheckGoalTriggered(bool first_goal)
 {
-    if (isRaceOver() || isStartPhase() ||
-        (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient()))
+    if (isRaceOver() || isStartPhase())
         return;
 
     setPhase(WorldStatus::GOAL_PHASE);
@@ -303,20 +292,6 @@ void SoccerWorld::onCheckGoalTriggered(bool first_goal)
             else
                 sd.m_time = getTime();
             m_blue_scorers.push_back(sd);
-        }
-        if (NetworkConfig::get()->isNetworking() &&
-            NetworkConfig::get()->isServer())
-        {
-            NetworkString p(PROTOCOL_GAME_EVENTS);
-            p.setSynchronous(true);
-            p.addUInt8(GameEventsProtocol::GE_PLAYER_GOAL)
-                .addUInt8((uint8_t)sd.m_id).addUInt8(sd.m_correct_goal)
-                .addUInt8(first_goal).addFloat(sd.m_time)
-                .addTime(World::getWorld()->getTicksSinceStart() +
-                stk_config->time2Ticks(3.0f))
-                .encodeString(sd.m_kart)
-                .encodeString(sd.m_player);
-            STKHost::get()->sendPacketToAllPeers(&p, true);
         }
     }
     for (unsigned i = 0; i < m_karts.size(); i++)
@@ -527,36 +502,17 @@ void SoccerWorld::updateBallPosition(int ticks)
             // Reset the ball and karts if out of navmesh after 2 seconds
             if (m_ball_invalid_timer >= stk_config->time2Ticks(2.0f))
             {
-                if (NetworkConfig::get()->isNetworking() &&
-                    NetworkConfig::get()->isServer())
-                {
-                    // Reset the ball 2 seconds in the future to make sure it's
-                    // after all clients time
-                    m_reset_ball_ticks =
-                        World::getWorld()->getTicksSinceStart() +
-                        stk_config->time2Ticks(2.0f);
-
-                    NetworkString p(PROTOCOL_GAME_EVENTS);
-                    p.setSynchronous(true);
-                    p.addUInt8(GameEventsProtocol::GE_RESET_BALL)
-                        .addTime(m_reset_ball_ticks);
-                    STKHost::get()->sendPacketToAllPeers(&p, true);
-                }
-                else if (!NetworkConfig::get()->isNetworking())
-                {
-                    m_ball_invalid_timer = 0;
-                    resetKartsToSelfGoals();
-                    if (UserConfigParams::m_arena_ai_stats)
-                        getKart(8)->flyUp();
-                }
+                m_ball_invalid_timer = 0;
+                resetKartsToSelfGoals();
+                if (UserConfigParams::m_arena_ai_stats)
+                    getKart(8)->flyUp();
             }
         }
         else
             m_ball_invalid_timer = 0;
         if (m_reset_ball_ticks == World::getWorld()->getTicksSinceStart())
         {
-            assert(NetworkConfig::get()->isNetworking() &&
-                NetworkConfig::get()->isServer());
+            assert(false);
             resetKartsToSelfGoals();
             m_reset_ball_ticks = -1;
         }

@@ -24,10 +24,7 @@
 #include "guiengine/modaldialog.hpp"
 #include "karts/abstract_kart.hpp"
 #include "modes/profile_world.hpp"
-#include "network/network_config.hpp"
-#include "network/protocols/client_lobby.hpp"
 #include "network/rewind_manager.hpp"
-#include "network/race_event_manager.hpp"
 #include "tracks/track.hpp"
 
 #include <irrlicht.h>
@@ -115,11 +112,6 @@ void WorldStatus::setClockMode(const ClockType mode, const float initial_time)
  */
 void WorldStatus::enterRaceOverState()
 {
-    // Waiting for server result info
-    auto cl = LobbyProtocol::get<ClientLobby>();
-    if (cl && !cl->receivedServerResult())
-        return;
-
     // Don't enter race over if it's already race over
     if (m_phase == DELAY_FINISH_PHASE || m_phase == RESULT_DISPLAY_PHASE ||
         m_phase == FINISH_PHASE)
@@ -175,7 +167,6 @@ void WorldStatus::updateTime(int ticks)
             m_auxiliary_ticks++;
 
             if (UserConfigParams::m_artist_debug_mode &&
-                !NetworkConfig::get()->isNetworking() &&
                 race_manager->getNumberOfKarts() -
                 race_manager->getNumSpareTireKarts() == 1 &&
                 race_manager->getTrackName() != "tutorial")
@@ -195,56 +186,14 @@ void WorldStatus::updateTime(int ticks)
             // to confirm that they have started the race before starting
             // itself. In a normal race, this phase is skipped and the race
             // starts immediately.
-            if (NetworkConfig::get()->isNetworking())
-            {
-                m_phase = WAIT_FOR_SERVER_PHASE;
-                // In networked races, inform the start game protocol that
-                // the world has been setup
-                if (!m_live_join_world)
-                {
-                    auto lobby = LobbyProtocol::get<LobbyProtocol>();
-                    assert(lobby);
-                    lobby->finishedLoadingWorld();
-                }
-            }
-            else
-            {
-                m_phase = READY_PHASE;
-            }
+            m_phase = READY_PHASE;
             return;   // Don't increase time
         case WAIT_FOR_SERVER_PHASE:
         {
-            if (m_live_join_world)
-            {
-                m_auxiliary_ticks++;
-                // Add 3 seconds delay before telling server finish loading
-                // world, so previous (if any) disconnected player has left
-                // fully
-                if (m_auxiliary_ticks == stk_config->time2Ticks(3.0f))
-                {
-                    auto cl = LobbyProtocol::get<ClientLobby>();
-                    assert(cl);
-                    cl->finishedLoadingWorld();
-#ifndef ANDROID
-                    static bool helper_msg_shown = false;
-                    if (!helper_msg_shown && cl->isSpectator())
-                    {
-                        helper_msg_shown = true;
-                        cl->addSpectateHelperMessage();
-                    }
-#endif
-                }
-                return;
-            }
             return;   // Don't increase time
         }
         case SERVER_READY_PHASE:
         {
-            auto lobby = LobbyProtocol::get<LobbyProtocol>();
-            if (lobby && lobby->isRacing())
-            {
-                m_phase = READY_PHASE;
-            }
             return;   // Don't increase time
         }
         case READY_PHASE:
@@ -259,7 +208,6 @@ void WorldStatus::updateTime(int ticks)
             // In artist debug mode, when without opponents, skip the
             // ready/set/go counter faster
             if (UserConfigParams::m_artist_debug_mode     &&
-                !NetworkConfig::get()->isNetworking()     &&
                 race_manager->getNumberOfKarts() -
                 race_manager->getNumSpareTireKarts() == 1 &&
                 race_manager->getTrackName() != "tutorial")
@@ -280,7 +228,6 @@ void WorldStatus::updateTime(int ticks)
                 // skip the ready/set/go counter faster
                 m_start_music_ticks =
                     UserConfigParams::m_artist_debug_mode &&
-                    !NetworkConfig::get()->isNetworking()     &&
                     race_manager->getNumberOfKarts() -
                     race_manager->getNumSpareTireKarts() == 1 &&
                     race_manager->getTrackName() != "tutorial" ?
@@ -296,7 +243,6 @@ void WorldStatus::updateTime(int ticks)
             // In artist debug mode, when without opponents, 
             // skip the ready/set/go counter faster
             if (UserConfigParams::m_artist_debug_mode &&
-                !NetworkConfig::get()->isNetworking() &&
                 race_manager->getNumberOfKarts() -
                 race_manager->getNumSpareTireKarts() == 1 &&
                 race_manager->getTrackName() != "tutorial")
@@ -455,8 +401,7 @@ void WorldStatus::pause(Phase phase)
     m_phase          = phase;
     IrrlichtDevice *device = irr_driver->getDevice();
 
-    if (!device->getTimer()->isStopped() &&
-        !NetworkConfig::get()->isNetworking())
+    if (!device->getTimer()->isStopped())
         device->getTimer()->stop();
 }   // pause
 
@@ -471,8 +416,7 @@ void WorldStatus::unpause()
     m_previous_phase = UNDEFINED_PHASE;
     IrrlichtDevice *device = irr_driver->getDevice();
 
-    if (device->getTimer()->isStopped() &&
-        !NetworkConfig::get()->isNetworking())
+    if (device->getTimer()->isStopped())
         device->getTimer()->start();
 }   // unpause
 

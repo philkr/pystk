@@ -26,7 +26,6 @@
 #include "karts/kart_model.hpp"
 #include "karts/skidding.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
 #include "physics/physics.hpp"
@@ -152,38 +151,6 @@ void AbstractKartAnimation::addNetworkAnimationChecker(bool reset_powerup)
             p->reset();
         }
     }
-
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient())
-    {
-        // Prevent access to deleted kart animation object
-        std::weak_ptr<int> cct = m_check_created_ticks;
-        Vec3 original_position;
-        AbstractKart* k = m_kart;
-        if (k)
-            original_position = k->getXYZ();
-        RewindManager::get()->addRewindInfoEventFunction(new
-            RewindInfoEventFunction(m_created_ticks,
-            /*undo_function*/[cct, k, original_position]()
-            {
-                auto cct_sp = cct.lock();
-                if (!cct_sp || !k)
-                    return;
-                k->setXYZ(original_position);
-            },
-            /*replay_function*/[p]()
-            {
-                if (p)
-                    p->reset();
-            },
-            /*delete_function*/[cct]()
-            {
-                auto cct_sp = cct.lock();
-                if (!cct_sp)
-                    return;
-                *cct_sp = World::getWorld()->getTicksSinceStart();
-            }));
-    }
 }   // addNetworkAnimationChecker
 
 // ----------------------------------------------------------------------------
@@ -213,33 +180,6 @@ void AbstractKartAnimation::
  */
 void AbstractKartAnimation::update(int ticks)
 {
-    // Scale the timer according to m_end_ticks told by server if
-    // necessary
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient() &&
-        World::getWorld()->getPhase() == World::RACE_PHASE &&
-        usePredefinedEndTransform() && m_end_ticks != -1)
-    {
-        int cur_end_ticks = World::getWorld()->getTicksSinceStart() +
-            m_timer;
-
-        const int difference = cur_end_ticks - m_end_ticks;
-        if (World::getWorld()->getTicksSinceStart() > m_end_ticks)
-        {
-            // Stop right now
-            m_timer = -1;
-        }
-        else if (difference > 0)
-        {
-            // Speed up
-            m_timer -= ticks;
-        }
-        else if (difference < 0)
-        {
-            // Slow down
-            return;
-        }
-    }
     // See if the timer expires, if so return the kart to normal game play
     m_timer -= ticks;
     if (m_timer < 0)

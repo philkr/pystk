@@ -59,9 +59,6 @@
 #include "main_loop.hpp"
 #include "modes/profile_world.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
-#include "network/stk_host.hpp"
-#include "network/stk_peer.hpp"
 #include "physics/physics.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "states_screens/dialogs/confirm_resolution_dialog.hpp"
@@ -1747,18 +1744,18 @@ void IrrDriver::displayFPS()
         prev_state = current_state;
     }
 
-    uint32_t ping = 0;
-    if (STKHost::existHost())
-        ping = STKHost::get()->getClientPingToServer();
-    if (no_trust)
-    {
-        no_trust--;
-
-        static video::SColor fpsColor = video::SColor(255, 0, 0, 0);
-        font->draw(StringUtils::insertValues (L"FPS: ... Ping: %dms", ping),
-            core::rect< s32 >(100,0,400,50), fpsColor, false);
-        return;
-    }
+//     uint32_t ping = 0;
+//     if (STKHost::existHost())
+//         ping = STKHost::get()->getClientPingToServer();
+//     if (no_trust)
+//     {
+//         no_trust--;
+// 
+//         static video::SColor fpsColor = video::SColor(255, 0, 0, 0);
+//         font->draw(StringUtils::insertValues (L"FPS: ... Ping: %dms", ping),
+//             core::rect< s32 >(100,0,400,50), fpsColor, false);
+//         return;
+//     }
 
     // Ask for current frames per second and last number of triangles
     // processed (trimed to thousands)
@@ -1777,23 +1774,22 @@ void IrrDriver::displayFPS()
     {
         fps_string = StringUtils::insertValues
                     (L"FPS: %d/%d/%d  - PolyCount: %d Solid, "
-                      "%d Shadows - LightDist : %d, Total skinning joints: %d, "
-                      "Ping: %dms",
+                      "%d Shadows - LightDist : %d, Total skinning joints: %d, ",
                     min, fps, max, SP::sp_solid_poly_count,
                     SP::sp_shadow_poly_count, m_last_light_bucket_distance,
-                    m_skinning_joint, ping);
+                    m_skinning_joint);
     }
     else
     {
         if (CVS->isGLSL())
         {
-            fps_string = _("FPS: %d/%d/%d - %d KTris, Ping: %dms", min, fps,
-                max, SP::sp_solid_poly_count / 1000, ping);
+            fps_string = _("FPS: %d/%d/%d - %d KTris", min, fps,
+                max, SP::sp_solid_poly_count / 1000);
         }
         else
         {
-            fps_string = _("FPS: %d/%d/%d - %d KTris, Ping: %dms", min, fps,
-                max, (int)roundf(kilotris), ping);
+            fps_string = _("FPS: %d/%d/%d - %d KTris", min, fps,
+                max, (int)roundf(kilotris));
         }
     }
 
@@ -1964,7 +1960,7 @@ void IrrDriver::minimalUpdate(float dt) {
 // ----------------------------------------------------------------------------
 void IrrDriver::renderNetworkDebug()
 {
-#ifndef SERVER_ONLY
+#if !defined(SERVER_ONLY) && 0
     if (!NetworkConfig::get()->isNetworking() ||
         NetworkConfig::get()->isServer() || !STKHost::existHost())
         return;

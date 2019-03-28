@@ -31,7 +31,6 @@
 #include "karts/controller/local_player_controller.hpp"
 #include "modes/soccer_world.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
 #include "karts/explosion_animation.hpp"
 #include "physics/btKart.hpp"
 #include "physics/irr_debug_drawer.hpp"

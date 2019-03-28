@@ -33,7 +33,6 @@ using namespace irr;
 #include "items/powerup.hpp"
 #include "karts/abstract_kart.hpp"
 #include "modes/world.hpp"
-#include "network/protocols/client_lobby.hpp"
 #include "states_screens/race_gui_base.hpp"
 
 
@@ -125,17 +124,7 @@ void RaceGUIMultitouch::init()
     if (m_device == NULL)
         return;
       
-    auto cl = LobbyProtocol::get<ClientLobby>();
-    
-    if (cl && cl->isSpectator())
-    {
-        createSpectatorGUI();
-        m_is_spectator_mode = true;
-    }
-    else
-    {
-        createRaceGUI();
-    }
+    createRaceGUI();
     
     m_steering_wheel_tex = irr_driver->getTexture(FileManager::GUI_ICON, 
                                                   "android/steering_wheel.png");
@@ -285,27 +274,6 @@ void RaceGUIMultitouch::onCustomButtonPress(unsigned int button_id,
 {
     if (!pressed)
         return;
-        
-    auto cl = LobbyProtocol::get<ClientLobby>();
-    
-    if (!cl || !cl->isSpectator())
-        return;
-
-    switch (button_id)
-    {
-    case 1:
-        cl->changeSpectateTarget(PA_STEER_LEFT, Input::MAX_VALUE,
-                                 Input::IT_KEYBOARD);
-        break;
-    case 2:
-        cl->changeSpectateTarget(PA_STEER_RIGHT, Input::MAX_VALUE,
-                                 Input::IT_KEYBOARD);
-        break;
-    case 3:
-        cl->changeSpectateTarget(PA_LOOK_BACK, Input::MAX_VALUE,
-                                 Input::IT_KEYBOARD);
-        break;
-    }
 }
 
 //-----------------------------------------------------------------------------

@@ -45,8 +45,6 @@
 #include "pystk.hpp"
 #include "main_loop.hpp"
 #include "achievements/achievements_manager.hpp"
-#include "addons/addons_manager.hpp"
-#include "addons/news_manager.hpp"
 #include "challenges/unlock_manager.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
@@ -78,7 +76,6 @@
 #include "io/file_manager.hpp"
 #include "items/attachment_manager.hpp"
 #include "items/item_manager.hpp"
-#include "items/network_item_manager.hpp"
 #include "items/powerup_manager.hpp"
 #include "items/projectile_manager.hpp"
 #include "karts/abstract_kart.hpp"
@@ -90,20 +87,9 @@
 #include "modes/cutscene_world.hpp"
 #include "modes/demo_world.hpp"
 #include "modes/profile_world.hpp"
-#include "network/protocols/connect_to_server.hpp"
-#include "network/protocols/client_lobby.hpp"
-#include "network/protocols/server_lobby.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
 #include "network/rewind_manager.hpp"
 #include "network/rewind_queue.hpp"
-#include "network/server.hpp"
-#include "network/server_config.hpp"
-#include "network/servers_manager.hpp"
-#include "network/stk_host.hpp"
-#include "network/stk_peer.hpp"
-#include "online/profile_manager.hpp"
-#include "online/request_manager.hpp"
 #include "race/grand_prix_manager.hpp"
 #include "race/highscore_manager.hpp"
 #include "race/history.hpp"
@@ -112,8 +98,6 @@
 #include "replay/replay_recorder.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "states_screens/main_menu_screen.hpp"
-#include "states_screens/online/networking_lobby.hpp"
-#include "states_screens/online/register_screen.hpp"
 #include "states_screens/state_manager.hpp"
 #include "states_screens/options/user_screen.hpp"
 #include "states_screens/dialogs/init_android_dialog.hpp"
@@ -657,26 +641,11 @@ void PySuperTuxKart::initRest()
     font_manager->loadFonts();
     GUIEngine::init(device, driver, StateManager::get());
 
-    // This only initialises the non-network part of the add-ons manager. The
-    // online section of the add-ons manager will be initialised from a
-    // separate thread running in network HTTP.
-#ifndef SERVER_ONLY
-    addons_manager = NULL;
-    if (!ProfileWorld::isNoGraphics())
-        addons_manager = new AddonsManager();
-#endif
-    Online::ProfileManager::create();
-
     // The request manager will start the login process in case of a saved
     // session, so we need to read the main data from the players.xml file.
     // The rest will be read later (since the rest needs the unlock- and
     // achievement managers to be created, which can only be created later).
     PlayerManager::create();
-    Online::RequestManager::get()->startNetworkThread();
-#ifndef SERVER_ONLY
-    if (!ProfileWorld::isNoGraphics())
-        NewsManager::get();   // this will create the news manager
-#endif
 
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
@@ -738,9 +707,6 @@ void PySuperTuxKart::initRest()
  */
 void PySuperTuxKart::cleanSuperTuxKart()
 {
-    if(Online::RequestManager::isRunning())
-        Online::RequestManager::get()->stopNetworkThread();
-
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
     irr_driver->updateConfigIfRelevant();
@@ -770,7 +736,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     ReplayRecorder::destroy();
     ParticleKindManager::destroy();
     PlayerManager::destroy();
-    Online::ProfileManager::destroy();
     GUIEngine::DialogQueue::deallocate();
     GUIEngine::clear();
     GUIEngine::cleanUp();
@@ -788,34 +753,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     // was deleted (in cleanUserConfig below), but before STK finishes and
     // the OS takes all threads down.
 
-#ifndef SERVER_ONLY
-    if (!ProfileWorld::isNoGraphics())
-    {
-        if (UserConfigParams::m_internet_status == Online::RequestManager::
-            IPERM_ALLOWED && !NewsManager::get()->waitForReadyToDeleted(2.0f))
-        {
-            Log::info("Thread", "News manager not stopping, exiting anyway.");
-        }
-        NewsManager::deallocate();
-    }
-#endif
-
-    if (Online::RequestManager::get()->waitForReadyToDeleted(5.0f))
-    {
-        Online::RequestManager::deallocate();
-    }
-    else
-    {
-        Log::warn("Thread", "Request Manager not aborting in time, proceeding without cleanup.");
-    }
-
-    // The add-ons manager might still be called from a currenty running request
-    // in the request manager, so it can not be deleted earlier.
-#ifndef SERVER_ONLY
-    if(addons_manager)  delete addons_manager;
-#endif
-
-    ServersManager::deallocate();
     cleanUserConfig();
 
     StateManager::deallocate();

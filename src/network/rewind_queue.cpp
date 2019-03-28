@@ -21,7 +21,6 @@
 #include "config/stk_config.hpp"
 #include "modes/world.hpp"
 #include "network/dummy_rewinder.hpp"
-#include "network/network_config.hpp"
 #include "network/rewinder.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
@@ -244,7 +243,7 @@ void RewindQueue::mergeNetworkData(int world_ticks, bool *needs_rewind,
         // duplicated states, which in the best case would then have
         // a negative effect for every player, when in fact only one
         // player might have a network hickup).
-        if (NetworkConfig::get()->isServer() && (*i)->getTicks() < world_ticks)
+        if ((*i)->getTicks() < world_ticks)
         {
             Log::warn("RewindQueue", "Server received at %d message from %d",
                       world_ticks, (*i)->getTicks());
@@ -255,28 +254,6 @@ void RewindQueue::mergeNetworkData(int world_ticks, bool *needs_rewind,
         }
 
         insertRewindInfo(*i);
-
-        // Check if a rewind is necessary, i.e. a message is received in the
-        // past of client (server never rewinds). Even if
-        // getTicks()==world_ticks (which should not happen in reality, since
-        // any server message should be in the client's past - but it can
-        // happen during debugging) we need to rewind to getTicks (in order
-        // to get the latest state).
-        if (NetworkConfig::get()->isClient() &&
-            (*i)->getTicks() <= world_ticks && (*i)->isState())
-        {
-            // We need rewind if we receive an event in the past. This will
-            // then trigger a rewind later. Note that we only rewind to the
-            // latest event that happened earlier than 'now' - if there is
-            // more than one event in the past, we rewind to the last event.
-            // Since we restore a state before the rewind, this state will
-            // either include the earlier event or the state will be before
-            // the earlier event, and the event will be replayed anyway. This
-            // makes it easy to handle lost event messages.
-            *needs_rewind = true;
-            if ((*i)->getTicks() > *rewind_ticks)
-                *rewind_ticks = (*i)->getTicks();
-        }   // if client and ticks < world_ticks
 
         if ((*i)->isState() && (*i)->getTicks() > latest_confirmed_state &&
             (*i)->isConfirmed())
@@ -293,22 +270,6 @@ void RewindQueue::mergeNetworkData(int world_ticks, bool *needs_rewind,
     {
         cleanupOldRewindInfo(latest_confirmed_state);
         m_latest_confirmed_state_time = latest_confirmed_state;
-    }
-
-    // If the computed rewind time is before the last confirmed
-    // state, instead rewind from the latest confirmed state.
-    // This should not be necessary anymore, but I'll leave it
-    // in just in case.
-    if (*needs_rewind && 
-        *rewind_ticks < m_latest_confirmed_state_time && 
-        NetworkConfig::get()->isClient())
-    {
-        Log::verbose("rewindqueue",
-                     "world %d rewindticks %d latest_confirmed %d",
-                     World::getWorld()->getTicksSinceStart(), *rewind_ticks,
-                     m_latest_confirmed_state_time);
-        *rewind_ticks = m_latest_confirmed_state_time;
-        *needs_rewind = m_latest_confirmed_state_time < world_ticks;
     }
 
 }   // mergeNetworkData

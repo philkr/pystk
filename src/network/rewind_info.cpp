@@ -18,10 +18,10 @@
 
 #include "network/rewind_info.hpp"
 
-#include "network/network_config.hpp"
 #include "network/rewinder.hpp"
 #include "network/rewind_manager.hpp"
 #include "items/projectile_manager.hpp"
+#include "utils/log.hpp"
 
 /** Constructor for a state: it only takes the size, and allocates a buffer
  *  for all state info.
@@ -40,7 +40,6 @@ RewindInfo::RewindInfo(int ticks, bool is_confirmed)
  */
 void RewindInfo::setTicks(int ticks)
 {
-    assert(NetworkConfig::get()->isServer());
     assert(m_ticks < ticks);
     m_ticks = ticks;
 }   // setTicks

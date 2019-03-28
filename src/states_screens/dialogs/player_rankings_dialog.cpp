@@ -24,7 +24,6 @@
 #include "guiengine/widgets/label_widget.hpp"
 #include "guiengine/widgets/list_widget.hpp"
 #include "guiengine/widgets/ribbon_widget.hpp"
-#include "online/online_profile.hpp"
 #include "states_screens/state_manager.hpp"
 #include "utils/translation.hpp"
 
@@ -33,7 +32,6 @@
 using namespace GUIEngine;
 using namespace irr;
 using namespace irr::gui;
-using namespace Online;
 
 // ============================================================================
 std::vector<std::tuple<int, core::stringw, float> >
@@ -75,44 +73,6 @@ void PlayerRankingsDialog::beforeAddingWidgets()
 // ----------------------------------------------------------------------------
 void PlayerRankingsDialog::updateTopTenList()
 {
-    // ------------------------------------------------------------------------
-    class UpdateTopTenRequest : public XMLRequest
-    {
-        /** Callback for the request to update top 10 players and update the
-         *  list.
-        */
-        virtual void callback()
-        {
-            if (isSuccess())
-            {
-                PlayerRankingsDialog* prd = dynamic_cast<PlayerRankingsDialog*>
-                    (getCurrent());
-                if (prd == NULL)
-                    return;
-                prd->m_rankings.clear();
-                const XMLNode* players = getXMLData()->getNode("players");
-                for (unsigned i = 0; i < players->getNumNodes(); i++)
-                {
-                    int rank;
-                    core::stringw user;
-                    float score;
-                    players->getNode(i)->get("rank", &rank);
-                    players->getNode(i)->get("username", &user);
-                    players->getNode(i)->get("scores", &score);
-                    prd->m_rankings.emplace_back(rank, user, score);
-                }
-                prd->fillTopTenList();
-            }
-        }   // callback
-    public:
-        UpdateTopTenRequest() : XMLRequest(true) {}
-    };   // UpdateTopTenRequest
-    // ------------------------------------------------------------------------
-
-    UpdateTopTenRequest *request = new UpdateTopTenRequest();
-    PlayerManager::setUserDetails(request, "top-players");
-    request->addParameter("ntop", 10);
-    request->queue();
 }   // updateTopTenList
 
 // -----------------------------------------------------------------------------

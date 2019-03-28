@@ -26,7 +26,6 @@
 #include "karts/kart_properties_manager.hpp"
 #include "states_screens/dialogs/ghost_replay_info_dialog.hpp"
 #include "states_screens/state_manager.hpp"
-#include "states_screens/online/tracks_screen.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
 #include "utils/translation.hpp"
@@ -473,7 +472,6 @@ void GhostReplaySelection::eventCallback(GUIEngine::Widget* widget,
     {
         race_manager->setRecordRace(true);
         race_manager->setMinorMode(m_active_mode);
-        TracksScreen::getInstance()->push();
     }
     else if (name == "replay_difficulty_toggle")
     {

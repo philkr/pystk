@@ -37,15 +37,12 @@
 #include "modes/demo_world.hpp"
 #include "modes/profile_world.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
-#include "network/protocols/client_lobby.hpp"
 #include "network/rewind_manager.hpp"
 #include "physics/physics.hpp"
 #include "race/history.hpp"
 #include "replay/replay_recorder.hpp"
 #include "states_screens/kart_selection.hpp"
 #include "states_screens/main_menu_screen.hpp"
-#include "states_screens/online/networking_lobby.hpp"
 #include "states_screens/options/options_screen_device.hpp"
 #include "states_screens/state_manager.hpp"
 #include "utils/debug.hpp"
@@ -713,35 +710,6 @@ void InputManager::dispatchInput(Input::InputType type, int deviceID,
         // when a device presses fire or rescue
         if (m_device_manager->getAssignMode() == DETECT_NEW)
         {
-            if (NetworkConfig::get()->isNetworking() &&
-                NetworkConfig::get()->isAddingNetworkPlayers())
-            {
-                // Ignore release event
-                if (value == 0)
-                    return;
-                InputDevice *device = NULL;
-                if (type == Input::IT_KEYBOARD)
-                {
-                    //Log::info("InputManager", "New Player Joining with Key %d", button);
-                    device = m_device_manager->getKeyboardFromBtnID(button);
-                }
-                else if (type == Input::IT_STICKBUTTON ||
-                        type == Input::IT_STICKMOTION    )
-                {
-                    device = m_device_manager->getGamePadFromIrrID(deviceID);
-                }
-                if (device && (action == PA_FIRE || action == PA_MENU_SELECT) &&
-                    !GUIEngine::ModalDialog::isADialogActive())
-                {
-                    GUIEngine::Screen* screen = GUIEngine::getCurrentScreen();
-                    NetworkingLobby* lobby = dynamic_cast<NetworkingLobby*>(screen);
-                    if (lobby!=NULL)
-                    {
-                        lobby->openSplitscreenDialog(device);
-                    }
-                    return;
-                }
-            }
 
             // Player is unjoining
             if ((player != NULL) && (action == PA_RESCUE ||
@@ -789,17 +757,11 @@ void InputManager::dispatchInput(Input::InputType type, int deviceID,
                         // associated with players
             }
         }
-
-        auto cl = LobbyProtocol::get<ClientLobby>();
-        bool is_nw_spectator = cl && cl->isSpectator() &&
-             StateManager::get()->getGameState() == GUIEngine::GAME &&
-             !GUIEngine::ModalDialog::isADialogActive();
-
         // ... when in-game
         if (StateManager::get()->getGameState() == GUIEngine::GAME &&
              !GUIEngine::ModalDialog::isADialogActive()            &&
              !GUIEngine::ScreenKeyboard::isActive()                &&
-             !race_manager->isWatchingReplay() && !is_nw_spectator)
+             !race_manager->isWatchingReplay())
         {
             if (player == NULL)
             {
@@ -839,7 +801,7 @@ void InputManager::dispatchInput(Input::InputType type, int deviceID,
             // When in master-only mode, we can safely assume that players
             // are set up, contrarly to early menus where we accept every
             // input because players are not set-up yet
-            if (m_master_player_only && player == NULL && !is_nw_spectator)
+            if (m_master_player_only && player == NULL)
             {
                 if (type == Input::IT_STICKMOTION ||
                     type == Input::IT_STICKBUTTON)
@@ -867,12 +829,6 @@ void InputManager::dispatchInput(Input::InputType type, int deviceID,
                 {
                     m_timer_in_use = true;
                     m_timer = 0.25;
-                }
-
-                if (is_nw_spectator)
-                {
-                    cl->changeSpectateTarget(action, abs(value), type);
-                    return;
                 }
 
                 // player may be NULL in early menus, before player setup has

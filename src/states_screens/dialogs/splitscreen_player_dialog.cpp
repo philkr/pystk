@@ -29,8 +29,6 @@
 #include "guiengine/widgets/label_widget.hpp"
 #include "guiengine/widgets/ribbon_widget.hpp"
 #include "guiengine/widgets/spinner_widget.hpp"
-#include "network/network_config.hpp"
-#include "states_screens/online/networking_lobby.hpp"
 #include "utils/translation.hpp"
 
 #include <IGUIEnvironment.h>
@@ -46,11 +44,8 @@ void SplitscreenPlayerDialog::beforeAddingWidgets()
          i++)
     {
         PlayerProfile* p = PlayerManager::get()->getPlayer(i);
-        if (!NetworkConfig::get()->playerExists(p))
-        {
-            m_profiles->addLabel(p->getName());
-            m_available_players.push_back(p);
-        }
+        m_profiles->addLabel(p->getName());
+        m_available_players.push_back(p);
     }
 
     m_message = getWidget<LabelWidget>("message-label");
@@ -67,11 +62,6 @@ void SplitscreenPlayerDialog::beforeAddingWidgets()
     assert(m_cancel != NULL);
     m_reset = getWidget<IconButtonWidget>("reset");
     assert(m_reset != NULL);
-
-    if (NetworkConfig::get()->getNetworkPlayers().size() == MAX_PLAYER_COUNT)
-    {
-        m_available_players.clear();
-    }
 
     m_options_widget->setFocusForPlayer(PLAYER_ID_GAME_MASTER);
     if (m_available_players.empty())
@@ -113,16 +103,6 @@ GUIEngine::EventPropagation
             PlayerProfile* p = m_available_players[pid];
             const PerPlayerDifficulty d = m_handicap->getState() ?
                 PLAYER_DIFFICULTY_HANDICAP : PLAYER_DIFFICULTY_NORMAL;
-            if (NetworkConfig::get()->addNetworkPlayer(m_device, p, d))
-            {
-                core::stringw name = p->getName();
-                if (d == PLAYER_DIFFICULTY_HANDICAP)
-                    name = _("%s (handicapped)", name);
-                NetworkingLobby::getInstance()->addSplitscreenPlayer(name);
-                m_self_destroy = true;
-                return GUIEngine::EVENT_BLOCK;
-            }
-            else
             {
                 //I18N: in splitscreen player dialog for network game
                 m_message->setErrorColor();
@@ -133,13 +113,6 @@ GUIEngine::EventPropagation
         }
         else if(selection == m_connect->m_properties[PROP_ID])
         {
-            if (!NetworkConfig::get()->getNetworkPlayers().empty())
-            {
-                NetworkConfig::get()->doneAddingNetworkPlayers();
-                NetworkingLobby::getInstance()->finishAddingPlayers();
-                m_self_destroy = true;
-                return GUIEngine::EVENT_BLOCK;
-            }
             //I18N: in splitscreen player dialog for network game
             m_message->setErrorColor();
             m_message->setText(
@@ -153,8 +126,6 @@ GUIEngine::EventPropagation
         }
         else if(selection == m_reset->m_properties[PROP_ID])
         {
-            NetworkConfig::get()->cleanNetworkPlayers();
-            NetworkingLobby::getInstance()->cleanAddedPlayers();
             m_self_destroy = true;
             return GUIEngine::EVENT_BLOCK;
         }

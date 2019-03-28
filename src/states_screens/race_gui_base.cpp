@@ -42,8 +42,6 @@
 #include "modes/capture_the_flag.hpp"
 #include "modes/linear_world.hpp"
 #include "modes/world.hpp"
-#include "network/protocols/client_lobby.hpp"
-#include "network/network_config.hpp"
 #include "states_screens/race_gui_multitouch.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
@@ -438,15 +436,10 @@ void RaceGUIBase::update(float dt)
             m_referee_height += dt*5.0f;
             m_referee->selectReadySetGo(2);
         }
-        else if (world->getPhase()==World::WAIT_FOR_SERVER_PHASE ||
-            (NetworkConfig::get()->isNetworking() &&
-            world->getPhase()==World::TRACK_INTRO_PHASE))
+        else if (world->getPhase()==World::WAIT_FOR_SERVER_PHASE)
         {
         }
-        else if ((!NetworkConfig::get()->isNetworking() &&
-            world->getPhase()==World::TRACK_INTRO_PHASE) ||
-            (NetworkConfig::get()->isNetworking() &&
-            world->getPhase()==World::SERVER_READY_PHASE))
+        else if (world->getPhase()==World::TRACK_INTRO_PHASE)
         {
             m_referee->selectReadySetGo(0);   // set red color
             m_referee_height -= dt*5.0f;
@@ -615,10 +608,7 @@ void RaceGUIBase::drawGlobalPlayerIcons(int bottom_margin)
     unsigned int sta = race_manager->getNumSpareTireKarts();
     unsigned int total_karts = race_manager->getNumberOfKarts() - sta;
     unsigned int num_karts = 0;
-    if (NetworkConfig::get()->isNetworking())
-        num_karts = World::getWorld()->getCurrentNumKarts();
-    else
-        num_karts = race_manager->getNumberOfKarts() - sta;
+    num_karts = race_manager->getNumberOfKarts() - sta;
 
     // -2 because that's the spacing further on
     int ICON_PLAYER_WIDTH = y_space / (num_karts) - 2;
@@ -801,8 +791,7 @@ void RaceGUIBase::drawGlobalPlayerIcons(int bottom_margin)
 
         AbstractKart* target_kart = NULL;
         Camera* cam = Camera::getActiveCamera();
-        auto cl = LobbyProtocol::get<ClientLobby>();
-        bool is_nw_spectate = cl && cl->isSpectator();
+        bool is_nw_spectate = false;
         // For network spectator highlight
         if (race_manager->getNumLocalPlayers() == 1 && cam && is_nw_spectate)
             target_kart = cam->getKart();

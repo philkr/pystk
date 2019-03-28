@@ -29,7 +29,6 @@
 #include "karts/max_speed.hpp"
 #include "karts/skidding.hpp"
 #include "modes/world.hpp"
-#include "network/protocols/client_lobby.hpp"
 #include "network/rewind_manager.hpp"
 #include "network/network_string.hpp"
 #include "physics/btKart.hpp"
@@ -123,22 +122,6 @@ void KartRewinder::computeError()
         {
             RemoteKartInfo& rki = race_manager->getKartInfo(kartid);
             rki.makeReserved();
-        }
-    }
-    else if (m_has_server_state && isEliminated())
-    {
-        if (auto cl = LobbyProtocol::get<ClientLobby>())
-        {
-            Log::debug("KartRewinder", "Kart id %d connected.",
-                getWorldKartId());
-            cl->requestKartInfo((uint8_t)getWorldKartId());
-            // New live join kart, hide the node until new kart info is received
-            // see ClientLobby::handleKartInfo
-            World::getWorld()->addReservedKart(getWorldKartId());
-            reset();
-            // Final ticks come from server
-            m_live_join_util = std::numeric_limits<int>::max();
-            getNode()->setVisible(false);
         }
     }
 }   // computeError

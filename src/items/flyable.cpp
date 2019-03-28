@@ -39,11 +39,10 @@
 #include "karts/controller/controller.hpp"
 #include "karts/explosion_animation.hpp"
 #include "modes/linear_world.hpp"
-#include "network/compress_network_body.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
+#include "network/compress_network_body.hpp"
 #include "physics/physics.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
@@ -671,9 +670,7 @@ void Flyable::addForRewind(const std::string& uid)
 // ----------------------------------------------------------------------------
 void Flyable::addRewindInfoEventFunctionAfterFiring()
 {
-    if (!NetworkConfig::get()->isNetworking() ||
-        NetworkConfig::get()->isServer())
-        return;
+    return;
 
     std::shared_ptr<Flyable> f = getShared<Flyable>();
     RewindManager::get()->addRewindInfoEventFunction(new
@@ -718,10 +715,7 @@ void Flyable::hideNodeWhenUndoDestruction()
 // ----------------------------------------------------------------------------
 void Flyable::handleUndoDestruction()
 {
-    if (!NetworkConfig::get()->isNetworking() ||
-        NetworkConfig::get()->isServer() ||
-        m_has_undone_destruction)
-        return;
+    return;
 
     m_has_undone_destruction = true;
 

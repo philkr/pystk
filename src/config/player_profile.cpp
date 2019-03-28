@@ -23,7 +23,7 @@
 #include "config/player_manager.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
-#include "online/online_player_profile.hpp"
+#include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
 #include "io/utf_writer.hpp"
 #include "utils/string_utils.hpp"
@@ -176,23 +176,23 @@ void PlayerProfile::addIcon()
     }
 }   // addIcon
 
-//------------------------------------------------------------------------------
-/** Returns the name of the icon file for this player. If the player icon
- *  file is undefined, it returns a "?" mark texture. Note, getAsset does
- *  not return a reference, but only a temporary string. So we must return a
- *  copy of the string (not a reference to).
- */
-const std::string PlayerProfile::getIconFilename() const
-{
-    // If the icon file is undefined or does not exist, return the "?" icon
-    if(m_icon_filename.size()==0 ||
-       !file_manager->fileExists(file_manager->getUserConfigFile(m_icon_filename)))
-    {
-        return file_manager->getAsset(FileManager::GUI_ICON, "main_help.png");
-    }
-
-    return file_manager->getUserConfigFile(m_icon_filename);
-}   // getIconFilename
+// //------------------------------------------------------------------------------
+// /** Returns the name of the icon file for this player. If the player icon
+//  *  file is undefined, it returns a "?" mark texture. Note, getAsset does
+//  *  not return a reference, but only a temporary string. So we must return a
+//  *  copy of the string (not a reference to).
+//  */
+// const std::string PlayerProfile::getIconFilename() const
+// {
+//     // If the icon file is undefined or does not exist, return the "?" icon
+//     if(m_icon_filename.size()==0 ||
+//        !file_manager->fileExists(file_manager->getUserConfigFile(m_icon_filename)))
+//     {
+//         return file_manager->getAsset(FileManager::GUI_ICON, "main_help.png");
+//     }
+// 
+//     return file_manager->getUserConfigFile(m_icon_filename);
+// }   // getIconFilename
 
 //------------------------------------------------------------------------------
 /** Writes the data for this player to the specified UTFWriter.

@@ -36,7 +36,6 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "modes/overworld.hpp"
-#include "network/network_config.hpp"
 #include "states_screens/race_setup_screen.hpp"
 #include "utils/log.hpp"
 #include "utils/translation.hpp"
@@ -382,7 +381,6 @@ void KartSelectionScreen::init()
     // way of player joining by pressing 'fire' instead of 'select'.
     input_manager->getDeviceManager()->mapFireToSelect(true);
 
-    if (!NetworkConfig::get()->isNetworking())
     {
         StateManager::get()->resetActivePlayers();
         if (!m_multiplayer)
@@ -1515,7 +1513,7 @@ void KartSelectionScreen::setKartsFromCurrentGroup()
     {
         const KartProperties* prop = karts.get(i);
         if (PlayerManager::getCurrentPlayer()->isLocked(prop->getIdent()) &&
-            !m_multiplayer && !NetworkConfig::get()->isNetworking())
+            !m_multiplayer)
         {
             w->addItem(_("Locked : solve active challenges to gain access to more!"),
                        ID_LOCKED + prop->getIdent(),

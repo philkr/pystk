@@ -23,11 +23,6 @@
 #include "guiengine/modaldialog.hpp"
 #include "guiengine/widgets.hpp"
 
-namespace Online
-{
-    class XMLRequest;
-}
-
 /**
  * \brief Dialog that allows a user to recover his account
  * \ingroup states_screens
@@ -54,8 +49,6 @@ private:
     bool m_self_destroy;
     bool m_show_recovery_input;
     bool m_show_recovery_info;
-
-    Online::XMLRequest * m_recovery_request;
 
     GUIEngine::TextBoxWidget * m_username_widget;
     GUIEngine::TextBoxWidget * m_email_widget;

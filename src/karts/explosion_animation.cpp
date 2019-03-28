@@ -24,7 +24,6 @@
 #include "karts/kart_properties.hpp"
 #include "modes/follow_the_leader.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/track.hpp"
 
@@ -123,11 +122,6 @@ ExplosionAnimation::ExplosionAnimation(AbstractKart *kart,
         m_orig_xyz = m_xyz;
     }
 
-    if (NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isServer())
-    {
-        m_end_ticks = m_timer + World::getWorld()->getTicksSinceStart() + 1;
-    }
     // Half of the overall time is spent in raising, so only use
     // half of the explosion time here.
     // Velocity after t seconds is:
@@ -194,9 +188,7 @@ void ExplosionAnimation::update(int ticks)
     if ((m_xyz - m_orig_xyz).dot(m_normal)<0)
     {
         m_xyz = m_orig_xyz;
-        // Don't end the animation if networking for predefined end transform
-        if (!NetworkConfig::get()->isNetworking())
-            m_timer = -1;
+        m_timer = -1;
     }
     m_curr_rotation += dt * m_add_rotation;
     btQuaternion q(m_curr_rotation.getHeading(), m_curr_rotation.getPitch(),

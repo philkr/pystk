@@ -17,7 +17,6 @@
 
 #include "states_screens/options/options_screen_general.hpp"
 
-#include "addons/news_manager.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
@@ -35,7 +34,6 @@
 #include "guiengine/widgets/spinner_widget.hpp"
 #include "guiengine/widget.hpp"
 #include "io/file_manager.hpp"
-#include "online/request_manager.hpp"
 #include "states_screens/main_menu_screen.hpp"
 #include "states_screens/options/options_screen_audio.hpp"
 #include "states_screens/options/options_screen_input.hpp"
@@ -81,8 +79,7 @@ void OptionsScreenGeneral::init()
 
     CheckBoxWidget* internet_enabled = getWidget<CheckBoxWidget>("enable-internet");
     assert( internet_enabled != NULL );
-    internet_enabled->setState( UserConfigParams::m_internet_status
-                                     ==RequestManager::IPERM_ALLOWED );
+    internet_enabled->setState( false );
     CheckBoxWidget* stats = getWidget<CheckBoxWidget>("enable-hw-report");
     assert( stats != NULL );
     LabelWidget *stats_label = getWidget<LabelWidget>("label-hw-report");
@@ -157,16 +154,6 @@ void OptionsScreenGeneral::eventCallback(Widget* widget, const std::string& name
         CheckBoxWidget* internet = getWidget<CheckBoxWidget>("enable-internet");
         assert( internet != NULL );
 
-        // If internet is being activated, enable immediately. If it's being disabled,
-        // we'll disable later after logout.
-        if (internet->getState())
-        {
-            UserConfigParams::m_internet_status = RequestManager::IPERM_ALLOWED;
-
-            if (!RequestManager::isRunning())
-                RequestManager::get()->startNetworkThread();
-        }
-
         // If internet gets enabled, re-initialise the addon manager (which
         // happens in a separate thread) so that news.xml etc can be
         // downloaded if necessary.
@@ -174,18 +161,7 @@ void OptionsScreenGeneral::eventCallback(Widget* widget, const std::string& name
         LabelWidget* stats_label = getWidget<LabelWidget>("label-hw-report");
         CheckBoxWidget* chat = getWidget<CheckBoxWidget>("enable-lobby-chat");
         LabelWidget* chat_label = getWidget<LabelWidget>("label-lobby-chat");
-        if(internet->getState())
-        {
-            NewsManager::get()->init(false);
-            stats->setVisible(true);
-            stats_label->setVisible(true);
-            stats->setState(UserConfigParams::m_hw_report_enable);
-            chat->setVisible(true);
-            chat->setState(UserConfigParams::m_lobby_chat);
-            chat_label->setVisible(true);
-        }
-        else
-        {
+		{
             chat->setVisible(false);
             chat_label->setVisible(false);
             stats->setVisible(false);
@@ -193,14 +169,7 @@ void OptionsScreenGeneral::eventCallback(Widget* widget, const std::string& name
             // Disable this, so that the user has to re-check this if
             // enabled later (for GDPR compliance).
             UserConfigParams::m_hw_report_enable = false;
-            PlayerProfile* profile = PlayerManager::getCurrentPlayer();
-            if (profile != NULL && profile->isLoggedIn())
-                profile->requestSignOut();
         }
-
-        // Deactivate internet after 'requestSignOut' so that the sign out request is allowed
-        if (!internet->getState())
-            UserConfigParams::m_internet_status = RequestManager::IPERM_NOT_ALLOWED;
     }
     else if (name=="enable-hw-report")
     {

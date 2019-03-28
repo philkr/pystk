@@ -82,41 +82,6 @@ void ChangePasswordDialog::changePassword(const stringw &current_password,
                                           const stringw &new_password      )
 {
 
-    // ----------------------------------------------------------------
-    class ChangePasswordRequest : public XMLRequest
-    {
-        /** Callback for the change password request. If the matching dialog is
-         *  still open, show a confirmation message. */
-        virtual void callback()
-        {
-            if (!GUIEngine::ModalDialog::isADialogActive()) return;
-
-            ChangePasswordDialog * dialog =
-                dynamic_cast<ChangePasswordDialog*>(GUIEngine::ModalDialog
-                                                     ::getCurrent());
-            if (dialog)
-            {
-                if (isSuccess())
-                    dialog->success();
-                else
-                    dialog->error(getInfo());
-            }   // if dialog
-        }   // callback
-
-    public:
-        ChangePasswordRequest() : XMLRequest(true) {}
-    };   // ChangePasswordRequest
-    // ------------------------------------------------------------------------
-
-    ChangePasswordRequest * request = new ChangePasswordRequest();
-    PlayerManager::setUserDetails(request, "change-password");
-    request->addParameter("current", current_password);
-
-    // The server code expects two passwords (and verifies again that they
-    // are identical), so send the passwod twice.
-    request->addParameter("new1", new_password);
-    request->addParameter("new2", new_password);
-    request->queue();
 }   // changePassword
 
 // ----------------------------------------------------------------------------

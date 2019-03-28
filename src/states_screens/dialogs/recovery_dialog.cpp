@@ -35,7 +35,6 @@ using namespace Online;
  */
 RecoveryDialog::RecoveryDialog() : ModalDialog(0.8f,0.8f)
 {
-    m_recovery_request    = NULL;
     m_self_destroy        = false;
     m_show_recovery_input = true;
     m_show_recovery_info  = false;
@@ -47,7 +46,6 @@ RecoveryDialog::RecoveryDialog() : ModalDialog(0.8f,0.8f)
  */
 RecoveryDialog::~RecoveryDialog()
 {
-    delete m_recovery_request;
 }   //~RecoverDialog
 
 // -----------------------------------------------------------------------------
@@ -123,14 +121,6 @@ void RecoveryDialog::processInput()
     {
         m_info_widget->setDefaultColor();
         m_options_widget->setActive(false);
-
-        m_recovery_request = new XMLRequest();
-
-        // This function also works when the current user is not logged in
-        PlayerManager::setUserDetails(m_recovery_request, "recover");
-        m_recovery_request->addParameter("username", username);
-        m_recovery_request->addParameter("email",    email   );
-        m_recovery_request->queue();
     }
 }   // processInput
 
@@ -182,33 +172,6 @@ void RecoveryDialog::onEnterPressedInternal()
  */
 void RecoveryDialog::onUpdate(float dt)
 {
-    if(m_recovery_request  != NULL)
-    {
-        if(m_recovery_request->isDone())
-        {
-            if(m_recovery_request->isSuccess())
-            {
-                m_show_recovery_info = true;
-            }
-            else
-            {
-                m_info_widget->setErrorColor();
-                m_info_widget->setText(m_recovery_request->getInfo(), false);
-                m_options_widget->setActive(true);
-            }
-
-            delete m_recovery_request;
-            m_recovery_request = NULL;
-        }
-        else
-        {
-            m_info_widget->setText(
-                StringUtils::loadingDots(_("Validating info")),
-                false
-            );
-        }
-    }
-
     // It's unsafe to delete from inside the event handler so we do it here
     if (m_self_destroy)
         ModalDialog::dismiss();

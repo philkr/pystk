@@ -20,9 +20,7 @@
 
 #include "graphics/irr_driver.hpp"
 #include "modes/world.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
-#include "network/protocols/game_protocol.hpp"
 #include "network/rewinder.hpp"
 #include "network/rewind_info.hpp"
 #include "network/smooth_network_body.hpp"
@@ -80,8 +78,7 @@ void RewindManager::reset()
     m_is_rewinding = false;
     m_not_rewound_ticks.store(0);
     m_overall_state_size = 0;
-    m_state_frequency = stk_config->getPhysicsFPS() /
-        NetworkConfig::get()->getStateFrequency();
+    m_state_frequency = 1;
 
     if (!m_enable_rewind_manager) return;
 
@@ -136,7 +133,6 @@ void RewindManager::addNetworkEvent(EventRewinder *event_rewinder,
  */
 void RewindManager::addNetworkState(BareNetworkString *buffer, int ticks)
 {
-    assert(NetworkConfig::get()->isClient());
     m_rewind_queue.addNetworkState(buffer, ticks);
 }   // addNetworkState
 
@@ -146,31 +142,6 @@ void RewindManager::addNetworkState(BareNetworkString *buffer, int ticks)
  */
 void RewindManager::saveState()
 {
-    PROFILER_PUSH_CPU_MARKER("RewindManager - save state", 0x20, 0x7F, 0x20);
-    auto gp = GameProtocol::lock();
-    if (!gp)
-        return;
-    gp->startNewState();
-
-    m_overall_state_size = 0;
-    std::vector<std::string> rewinder_using;
-
-    for (auto& p : m_all_rewinder)
-    {
-        // TODO: check if it's worth passing in a sufficiently large buffer from
-        // GameProtocol - this would save the copy operation.
-        BareNetworkString* buffer = NULL;
-        if (auto r = p.second.lock())
-            buffer = r->saveState(&rewinder_using);
-        if (buffer != NULL)
-        {
-            m_overall_state_size += buffer->size();
-            gp->addState(buffer);
-        }
-        delete buffer;    // buffer can be freed
-    }
-    gp->finalizeState(rewinder_using);
-    PROFILER_POP_CPU_MARKER();
 }   // saveState
 
 // ----------------------------------------------------------------------------
@@ -194,21 +165,8 @@ void RewindManager::update(int ticks_not_used)
 
     // Save state, remove expired rewinder first
     clearExpiredRewinder();
-    if (NetworkConfig::get()->isClient())
-    {
-        auto& ret = m_local_state[ticks];
-        for (auto& p : m_all_rewinder)
-        {
-            if (auto r = p.second.lock())
-                ret.push_back(r->getLocalStateRestoreFunction());
-        }
-    }
-    else
     {
         saveState();
-        PROFILER_PUSH_CPU_MARKER("RewindManager - send state", 0x20, 0x7F, 0x40);
-        if (auto gp = GameProtocol::lock())
-            gp->sendState();
     }
     PROFILER_POP_CPU_MARKER();
 }   // update
@@ -385,8 +343,7 @@ void RewindManager::rewindTo(int rewind_ticks, int now_ticks,
 // ----------------------------------------------------------------------------
 bool RewindManager::useLocalEvent() const
 {
-    return NetworkConfig::get()->isNetworking() &&
-        NetworkConfig::get()->isClient() && !m_is_rewinding;
+    return false;
 }   // useLocalEvent
 
 // ----------------------------------------------------------------------------

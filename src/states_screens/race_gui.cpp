@@ -49,7 +49,6 @@ using namespace irr;
 #include "modes/linear_world.hpp"
 #include "modes/world.hpp"
 #include "modes/soccer_world.hpp"
-#include "network/protocols/client_lobby.hpp"
 #include "race/race_manager.hpp"
 #include "states_screens/race_gui_multitouch.hpp"
 #include "tracks/track.hpp"
@@ -573,8 +572,7 @@ void RaceGUI::drawGlobalMiniMap()
 
     AbstractKart* target_kart = NULL;
     Camera* cam = Camera::getActiveCamera();
-    auto cl = LobbyProtocol::get<ClientLobby>();
-    bool is_nw_spectate = cl && cl->isSpectator();
+    bool is_nw_spectate = false;
     // For network spectator highlight
     if (race_manager->getNumLocalPlayers() == 1 && cam && is_nw_spectate)
         target_kart = cam->getKart();

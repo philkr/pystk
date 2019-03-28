@@ -65,9 +65,6 @@
 #include "modes/overworld.hpp"
 #include "modes/profile_world.hpp"
 #include "modes/soccer_world.hpp"
-#include "network/network_config.hpp"
-#include "network/protocols/client_lobby.hpp"
-#include "network/race_event_manager.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
 #include "physics/btKart.hpp"
@@ -826,50 +823,6 @@ void Kart::finishedRace(float time, bool from_server)
         race_manager->getMinorMode() == RaceManager::MINOR_MODE_NORMAL_RACE ||
         race_manager->getMinorMode() == RaceManager::MINOR_MODE_TIME_TRIAL  ||
         race_manager->getMinorMode() == RaceManager::MINOR_MODE_FOLLOW_LEADER;
-    if (NetworkConfig::get()->isNetworking() && !from_server)
-    {
-        if (NetworkConfig::get()->isServer())
-        {
-            RaceEventManager::getInstance()->kartFinishedRace(this, time);
-        }   // isServer
-
-        // Ignore local detection of a kart finishing a race in a 
-        // network game.
-        else if (NetworkConfig::get()->isClient())
-        {
-            if (is_linear_race && m_saved_controller == NULL &&
-                !RewindManager::get()->isRewinding())
-            {
-                m_network_finish_check_ticks =
-                    World::getWorld()->getTicksSinceStart() +
-                    stk_config->time2Ticks(1.0f);
-                EndController* ec = new EndController(this, m_controller);
-                Controller* old_controller = m_controller;
-                setController(ec);
-                // Seamless endcontroller replay
-                RewindManager::get()->addRewindInfoEventFunction(new
-                RewindInfoEventFunction(
-                    World::getWorld()->getTicksSinceStart(),
-                    /*undo_function*/[old_controller, this]()
-                    {
-                        if (m_network_finish_check_ticks == -1)
-                            return;
-
-                        m_controller = old_controller;
-                    },
-                    /*replay_function*/[ec, old_controller, this]()
-                    {
-                        if (m_network_finish_check_ticks == -1)
-                            return;
-
-                        m_saved_controller = old_controller;
-                        ec->reset();
-                        m_controller = ec;
-                    }));
-            }
-            return;
-        }
-    }   // !from_server
 
     m_finished_race = true;
 
@@ -1232,33 +1185,6 @@ void Kart::update(int ticks)
         m_controller = m_saved_controller;
         m_saved_controller = NULL;
     }
-
-#ifndef ANDROID
-    auto cl = LobbyProtocol::get<ClientLobby>();
-    // Enable spectate mode after 2 seconds which allow player to
-    // release left / right button if they keep pressing it during
-    // finishing line (1 second here because m_network_finish_check_ticks is
-    // already 1 second ahead of time when crossing finished line)
-
-    if (cl && m_finished_race && m_controller->isLocalPlayerController() &&
-        race_manager->getNumLocalPlayers() == 1 &&
-        race_manager->modeHasLaps() &&
-        World::getWorld()->isActiveRacePhase() &&
-        m_network_finish_check_ticks > 0 &&
-        World::getWorld()->getTicksSinceStart() >
-        m_network_finish_check_ticks + stk_config->time2Ticks(1.0f) &&
-        !m_enabled_network_spectator)
-    {
-        static bool msg_shown = false;
-        if (!msg_shown)
-        {
-            msg_shown = true;
-            cl->addSpectateHelperMessage();
-        }
-        m_enabled_network_spectator = true;
-        cl->setSpectator(true);
-    }
-#endif
 
     m_powerup->update(ticks);
 

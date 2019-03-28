@@ -32,13 +32,6 @@ using namespace irr;
 #include <string>
 
 class AchievementsStatus;
-namespace Online
-{
-    class CurrentUser;
-    class HTTPRequest;
-    class OnlineProfile;
-    class XMLRequest;
-}
 class UTFWriter;
 
 /** Class for managing player profiles (name, usage frequency,
@@ -54,16 +47,16 @@ class UTFWriter;
 class PlayerProfile : public NoCopy
 {
 public:
-    /** The online state a player can be in. */
-    enum OnlineState
-    {
-        OS_SIGNED_OUT = 0,
-        OS_SIGNED_IN,
-        OS_GUEST,
-        OS_SIGNING_IN,
-        OS_SIGNING_OUT
-    };
-
+//     /** The online state a player can be in. */
+//     enum OnlineState
+//     {
+//         OS_SIGNED_OUT = 0,
+//         OS_SIGNED_IN,
+//         OS_GUEST,
+//         OS_SIGNING_IN,
+//         OS_SIGNING_OUT
+//     };
+// 
 
 private:
     LEAK_CHECK()
@@ -129,24 +122,24 @@ public:
     void clearSession(bool save=true);
     void addIcon();
 
-    /** Abstract virtual classes, to be implemented by the OnlinePlayer. */
-    virtual void setUserDetails(Online::HTTPRequest *request,
-                                const std::string &action,
-                                const std::string &url_path = "") const = 0;
-    virtual uint32_t getOnlineId() const = 0;
-    virtual PlayerProfile::OnlineState getOnlineState() const = 0;
-    virtual Online::OnlineProfile* getProfile() const = 0;
-    virtual void requestPoll() const = 0;
-    virtual void requestSavedSession() = 0;
-    virtual void requestSignIn(const irr::core::stringw &username,
-                               const irr::core::stringw &password) = 0;
-    virtual void signIn(bool success, const XMLNode * input) = 0;
-    virtual void signOut(bool success, const XMLNode * input,
-                         const irr::core::stringw &info) = 0;
-    virtual void requestSignOut() = 0;
-    virtual bool isLoggedIn() const { return false;  }
-    const std::string getIconFilename() const;
-    // ------------------------------------------------------------------------
+//     /** Abstract virtual classes, to be implemented by the OnlinePlayer. */
+//     virtual void setUserDetails(Online::HTTPRequest *request,
+//                                 const std::string &action,
+//                                 const std::string &url_path = "") const = 0;
+//     virtual uint32_t getOnlineId() const = 0;
+//     virtual PlayerProfile::OnlineState getOnlineState() const = 0;
+//     virtual Online::OnlineProfile* getProfile() const = 0;
+//     virtual void requestPoll() const = 0;
+//     virtual void requestSavedSession() = 0;
+//     virtual void requestSignIn(const irr::core::stringw &username,
+//                                const irr::core::stringw &password) = 0;
+//     virtual void signIn(bool success, const XMLNode * input) = 0;
+//     virtual void signOut(bool success, const XMLNode * input,
+//                          const irr::core::stringw &info) = 0;
+//     virtual void requestSignOut() = 0;
+//     virtual bool isLoggedIn() const { return false;  }
+//     const std::string getIconFilename() const;
+//     // ------------------------------------------------------------------------
     /** Sets the name of this player. */
     void setName(const core::stringw& name)
     {

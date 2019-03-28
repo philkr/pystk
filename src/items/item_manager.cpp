@@ -27,8 +27,6 @@
 #include "karts/controller/spare_tire_ai.hpp"
 #include "modes/easter_egg_hunt.hpp"
 #include "modes/profile_world.hpp"
-#include "network/network_config.hpp"
-#include "network/race_event_manager.hpp"
 #include "physics/triangle_mesh.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/arena_node.hpp"

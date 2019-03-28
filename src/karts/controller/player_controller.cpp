@@ -29,10 +29,7 @@
 #include "karts/skidding.hpp"
 #include "karts/rescue_animation.hpp"
 #include "modes/world.hpp"
-#include "network/game_setup.hpp"
 #include "network/rewind_manager.hpp"
-#include "network/network_config.hpp"
-#include "network/network_player_profile.hpp"
 #include "network/network_string.hpp"
 #include "race/history.hpp"
 #include "states_screens/race_gui_base.hpp"
@@ -328,7 +325,7 @@ void PlayerController::update(int ticks)
     if (World::getWorld()->isStartPhase())
     {
         if ((m_controls->getAccel() || m_controls->getBrake()||
-            m_controls->getNitro()) && !NetworkConfig::get()->isNetworking())
+            m_controls->getNitro()))
         {
             // Only give penalty time in READY_PHASE.
             // Penalty time check makes sure it doesn't get rendered on every
@@ -395,14 +392,6 @@ void PlayerController::rewindTo(BareNetworkString *buffer)
 core::stringw PlayerController::getName() const
 {
     core::stringw name = m_kart->getName();
-    if (NetworkConfig::get()->isNetworking())
-    {
-        const RemoteKartInfo& rki = race_manager->getKartInfo(
-            m_kart->getWorldKartId());
-        name = rki.getPlayerName();
-        if (rki.getDifficulty() == PLAYER_DIFFICULTY_HANDICAP)
-            name = _("%s (handicapped)", name);
-    }
     return name;
 }   // getName
 

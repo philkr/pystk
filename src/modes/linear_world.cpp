@@ -28,11 +28,7 @@
 #include "graphics/material.hpp"
 #include "guiengine/modaldialog.hpp"
 #include "physics/physics.hpp"
-#include "network/network_config.hpp"
 #include "network/network_string.hpp"
-#include "network/protocols/game_events_protocol.hpp"
-#include "network/server_config.hpp"
-#include "network/stk_host.hpp"
 #include "race/history.hpp"
 #include "states_screens/race_gui_base.hpp"
 #include "tracks/check_manager.hpp"
@@ -435,12 +431,6 @@ void LinearWorld::newLap(unsigned int kart_index)
             float prev_time = kart->getRecentPreviousXYZTime();
             float finish_time = prev_time*finish_proportion + getTime()*(1.0f-finish_proportion);
 
-            if (NetworkConfig::get()->isServer() &&
-                ServerConfig::m_auto_end &&
-                m_finish_timeout == std::numeric_limits<float>::max())
-            {
-                m_finish_timeout = finish_time * 0.25f + 15.0f;
-            }
             kart->finishedRace(finish_time);
         }
     }
@@ -1128,31 +1118,7 @@ void LinearWorld::restoreCompleteState(const BareNetworkString& b)
  */
 void LinearWorld::updateCheckLinesServer(int kart_id)
 {
-    if (!NetworkConfig::get()->isNetworking() ||
-        NetworkConfig::get()->isClient())
-        return;
-
-    NetworkString cl(PROTOCOL_GAME_EVENTS);
-    cl.setSynchronous(true);
-    cl.addUInt8(GameEventsProtocol::GE_CHECK_LINE_KART)
-        .addUInt8((uint8_t)kart_id);
-
-    int8_t finished_laps = (int8_t)m_kart_info[kart_id].m_finished_laps;
-    cl.addUInt8(finished_laps);
-
-    int8_t ltcl =
-        (int8_t)m_kart_track_sector[kart_id]->getLastTriggeredCheckline();
-    cl.addUInt8(ltcl);
-
-    cl.addUInt32(m_fastest_lap_ticks);
-    cl.encodeString(m_fastest_lap_kart_name);
-
-    const uint8_t cc = (uint8_t)CheckManager::get()->getCheckStructureCount();
-    cl.addUInt8(cc);
-    for (unsigned i = 0; i < cc; i++)
-        CheckManager::get()->getCheckStructure(i)->saveIsActive(kart_id, &cl);
-
-    STKHost::get()->sendPacketToAllPeers(&cl, true);
+    return;
 }   // updateCheckLinesServer
 
 // ----------------------------------------------------------------------------
