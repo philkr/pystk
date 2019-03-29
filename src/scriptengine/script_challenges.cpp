@@ -86,29 +86,7 @@ namespace Scripting
         // --------------------------------------------------------------------
         bool isChallengeUnlocked(std::string* challenge_name)
         {
-            if (UserConfigParams::m_unlock_everything > 0)
-                return true;
-
-            const ChallengeData* challenge =
-                             unlock_manager->getChallengeData(*challenge_name);
-            if (challenge == NULL)
-            {
-                if (*challenge_name != "tutorial")
-                    Log::error("track", "Cannot find challenge named '%s'\n",
-                    challenge_name->c_str());
-                return false;
-            }
-
-            const unsigned int val = challenge->getNumTrophies();
-// Android may have less challenges available than the main version
-#ifdef ANDROID
-                bool enough_challenges = true;
-#else
-                const unsigned int val2 = challenge->getNumChallenges();
-                bool enough_challenges = (PlayerManager::getCurrentPlayer()->getNumCompletedChallenges() >= val2);
-#endif
-            bool unlocked = enough_challenges && (PlayerManager::getCurrentPlayer()->getPoints() >= val);
-            return unlocked;
+            return true;
         }   // isChallengeUnlocked
 
         // --------------------------------------------------------------------

@@ -21,6 +21,7 @@
 
 #include "graphics/irr_driver.hpp"
 #include "graphics/lod_node.hpp"
+#include "graphics/render_info.hpp"
 #include "graphics/sp/sp_mesh.hpp"
 #include "graphics/sp/sp_mesh_node.hpp"
 #include "items/item_manager.hpp"
@@ -33,6 +34,7 @@
 #include "tracks/drive_node.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
+#include "utils/objecttype.h"
 
 #include <IMeshSceneNode.h>
 #include <ISceneManager.h>
@@ -202,19 +204,21 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
     initItem(type, xyz, normal);
     m_graphical_type    = getGrahpicalType();
     m_listener          = NULL;
+    
+    ri_ = std::make_shared<RenderInfo>(0.f, false, makeObjectId(OT_PICKUP, getItemId()+1));
 
     LODNode* lodnode =
         new LODNode("item", irr_driver->getSceneManager()->getRootSceneNode(),
                     irr_driver->getSceneManager());
     scene::ISceneNode* meshnode =
-        irr_driver->addMesh(mesh, StringUtils::insertValues("item_%i", (int)type));
+        irr_driver->addMesh(mesh, StringUtils::insertValues("item_%i", (int)type), NULL, ri_);
 
     if (lowres_mesh != NULL)
     {
         lodnode->add(35, meshnode, true);
         scene::ISceneNode* meshnode =
             irr_driver->addMesh(lowres_mesh,
-                                StringUtils::insertValues("item_lo_%i", (int)type));
+                                StringUtils::insertValues("item_lo_%i", (int)type, NULL, ri_));
         lodnode->add(100, meshnode, true);
     }
     else
@@ -237,6 +241,11 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
     m_node->setRotation(hpr.toIrrHPR());
     m_node->grab();
 }   // Item(type, xyz, normal, mesh, lowres_mesh)
+
+void Item::setItemId(unsigned int n) {
+    ItemState::setItemId(n);
+	ri_->setObjectId(makeObjectId(OT_PICKUP, n+1));
+}
 
 //-----------------------------------------------------------------------------
 

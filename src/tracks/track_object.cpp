@@ -82,7 +82,7 @@ TrackObject::TrackObject(const core::vector3df& xyz, const core::vector3df& hpr,
     m_soccer_ball     = false;
     m_initially_visible = false;
     m_type            = "";
-    m_render_info     = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_OBJECT));
+    m_render_info     = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_PICKUP));
 
     if (m_interaction != "ghost" && m_interaction != "none" &&
         physics_settings )

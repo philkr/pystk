@@ -31,10 +31,12 @@
 #include "utils/vec3.hpp"
 
 #include <line3d.h>
+#include <memory>
 
 class BareNetworkString;
 class AbstractKart;
 class LODNode;
+class RenderInfo;
 
 namespace irr
 {
@@ -291,7 +293,7 @@ public:
     ItemType getOriginalType() const { return m_original_type; }
     // ------------------------------------------------------------------------
     /** Sets the index of this item in the item manager list. */
-    void setItemId(unsigned int n) { m_item_id = n; }
+    virtual void setItemId(unsigned int n) { m_item_id = n; }
     // ------------------------------------------------------------------------
     /** Returns the index of this item in the item manager list. */
     unsigned int getItemId() const { return m_item_id; }
@@ -374,6 +376,8 @@ private:
     void          setMesh(scene::IMesh* mesh, scene::IMesh* lowres_mesh);
     void          handleNewMesh(ItemType type);
 
+    std::shared_ptr<RenderInfo> ri_;
+
 public:
                   Item(ItemType type, const Vec3& xyz, const Vec3& normal,
                        scene::IMesh* mesh, scene::IMesh* lowres_mesh,
@@ -383,6 +387,9 @@ public:
     virtual       ~Item ();
     virtual void  updateGraphics(float dt) OVERRIDE;
     virtual void  reset() OVERRIDE;
+    
+    virtual void setItemId(unsigned int n);
+
 
     //-------------------------------------------------------------------------
     /** Is called when the item is hit by a kart.  It sets the flag that the

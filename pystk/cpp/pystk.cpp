@@ -347,9 +347,6 @@ void PySuperTuxKart::stop() {
 	ai_controller_ = nullptr;
 }
 void PySuperTuxKart::render(float dt) {
-//     m_wind->update();
-
-    PropertyAnimator::get()->update(dt);
 	SP::SPTextureManager::get()->checkForGLCommand();
 
 	World *world = World::getWorld();
@@ -377,6 +374,7 @@ bool PySuperTuxKart::step(const PySTKAction & a) {
 bool PySuperTuxKart::step() {
 	const float dt = config_.step_size;
 
+    PropertyAnimator::get()->update(dt);
 	if (World::getWorld())
 		World::getWorld()->updateGraphics(dt);
 	
@@ -417,13 +415,11 @@ void PySuperTuxKart::load() {
 	// Get into menu mode initially.
 	input_manager->setMode(InputManager::MENU);
 	main_loop = new MainLoop(0/*parent_pid*/);
-	material_manager->loadMaterial();
 
+	
+	material_manager->loadMaterial();
 	// Preload the explosion effects (explode.png)
 	ParticleKindManager::get()->getParticles("explosion.xml");
-
-	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-														"options_video.png"));
 	kart_properties_manager -> loadAllKarts    ();
 
 	// Needs the kart and track directories to load potential challenges
@@ -436,17 +432,13 @@ void PySuperTuxKart::load() {
 	// initialise the game slots of all players and the AchievementsManager
 	// to initialise the AchievementsStatus, so it is done only now.
 	PlayerManager::get()->initRemainingData();
-
-	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-														"gui_lock.png"  ) );
 	projectile_manager->loadData();
 
 	// Both item_manager and powerup_manager load models and therefore
 	// textures from the model directory. To avoid reading the
 	// materials.xml twice, we do this here once for both:
 	file_manager->pushTextureSearchPath(file_manager->getAsset(FileManager::MODEL,""), "models");
-	const std::string materials_file =
-		file_manager->getAsset(FileManager::MODEL,"materials.xml");
+	const std::string materials_file = file_manager->getAsset(FileManager::MODEL,"materials.xml");
 	if(materials_file!="")
 	{
 		// Some of the materials might be needed later, so just add
@@ -459,15 +451,8 @@ void PySuperTuxKart::load() {
 	Referee::init();
 	powerup_manager->loadPowerupsModels();
 	ItemManager::loadDefaultItemMeshes();
-
-	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-														"gift.png")       );
-
 	attachment_manager->loadModels();
 	file_manager->popTextureSearchPath();
-
-	GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-														"banana.png")    );
 }
 
 // ============================================================================
@@ -481,10 +466,8 @@ void PySuperTuxKart::setupRaceStart()
     // a current player
     PlayerManager::get()->enforceCurrentPlayer();
 
-    InputDevice *device;
-
     // Use keyboard 0 by default in --no-start-screen
-    device = input_manager->getDeviceManager()->getKeyboard(0);
+    InputDevice *device = input_manager->getDeviceManager()->getKeyboard(0);
 
     // Create player and associate player with keyboard
     StateManager::get()->createActivePlayer(
@@ -600,16 +583,6 @@ void PySuperTuxKart::initUserConfig()
     // depend on artist debug flag). So init the rest of the file manager
     // after reading the user config file.
     file_manager->init();
-    if (UserConfigParams::m_language.toString() != "system")
-    {
-#ifdef WIN32
-        std::string s=std::string("LANGUAGE=")
-                     +UserConfigParams::m_language.c_str();
-        _putenv(s.c_str());
-#else
-        setenv("LANGUAGE", UserConfigParams::m_language.c_str(), 1);
-#endif
-    }
 
     translations            = new Translations();   // needs file_manager
     stk_config              = new STKConfig();      // in case of --stk-config
@@ -694,10 +667,10 @@ void PySuperTuxKart::initRest()
     race_manager->setDifficulty(
                  (RaceManager::Difficulty)(int)UserConfigParams::m_difficulty);
 
-    if (!track_manager->getTrack(UserConfigParams::m_last_track))
-        UserConfigParams::m_last_track.revertToDefaults();
+//     if (!track_manager->getTrack(UserConfigParams::m_last_track))
+// 	UserConfigParams::m_last_track.revertToDefaults();
 
-    race_manager->setTrack(UserConfigParams::m_last_track);
+    race_manager->setTrack(UserConfigParams::m_last_track.getDefaultValue());
 	kart_properties_manager -> loadAllKarts(false);
 
 }   // initRest

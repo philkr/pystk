@@ -54,13 +54,17 @@ if args.play:
     t0 = time()
     n = 0
     while ui.visible:
-        k.step(k.ai_action) # ui.current_action)
+        k.step(ui.current_action)
+        #k.step(k.ai_action)
         ui.show(k.render_data[0])
+        #import numpy as np
+        #print( np.vectorize(hex)(np.unique(np.array(k.render_data[0].instance))) )
         # Make sure we play in real time
         n += 1
         delta_d = n * config.step_size - (time() - t0)
+        #if n % 100 == 0: ui.sleep(10)
         if delta_d > 0:
-            sleep(delta_d)
+            ui.sleep(delta_d)
 
     k.stop()
     del k

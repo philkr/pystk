@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 from typing import Dict, Set
 import pystk
 
-cmap = {}
-cmap[VT.SEMANTIC] = matplotlib.colors.ListedColormap(class_color / 255., N=32)
-cmap[VT.INSTANCE] = matplotlib.colors.ListedColormap(instance_color / 255., N=1<<16)
+kwargs = {}
+kwargs[VT.SEMANTIC] = dict(cmap=matplotlib.colors.ListedColormap(class_color / 255., N=32), vmin=0, vmax=31)
+kwargs[VT.INSTANCE] = dict(cmap=matplotlib.colors.ListedColormap(instance_color / 255., N=1<<16), vmin=0, vmax=(1<<16)-1)
 
 
 class MplUI(BaseUI):
@@ -78,8 +78,8 @@ class MplUI(BaseUI):
             d = data[t]
             if hasattr(a, '_im'):
                 a._im.set_data(d)
-            elif t in cmap:
-                a._im = a.imshow(d, interpolation='nearest', cmap=cmap[t])
+            elif t in kwargs:
+                a._im = a.imshow(d, interpolation='nearest', **kwargs[t])
             else:
                 a._im = a.imshow(d, interpolation='nearest')
 
@@ -90,6 +90,9 @@ class MplUI(BaseUI):
 
     def _close(self, e):
         self.visible = False
+
+    def sleep(self, s: float):
+        plt.pause(s)
 
 
 if __name__ == "__main__":

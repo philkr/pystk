@@ -52,14 +52,14 @@ def _c(i, m):
 
 
 def semantic_seg(instance, colorize: bool = True):
-    L = np.array(instance) >> 24
+    L = (np.array(instance) >> 24) & 0xff
     if colorize:
         return _c(L, class_color)
     return L
 
 
 def instance_seg(instance, colorize: bool = True):
-    L = np.array(instance) % 0xffffff
+    L = np.array(instance) & 0xffffff
     if colorize:
         return _c(L, instance_color)
     return L
@@ -80,15 +80,19 @@ class BaseUI:
         r = dict()
         r[VT.IMAGE] = render_data.image
         r[VT.DEPTH] = render_data.depth
-        r[VT.INSTANCE] = semantic_seg(render_data.instance, colorize=colorize)
-        r[VT.SEMANTIC] = instance_seg(render_data.instance, colorize=colorize)
+        r[VT.SEMANTIC] = semantic_seg(render_data.instance, colorize=colorize)
+        r[VT.INSTANCE] = instance_seg(render_data.instance, colorize=colorize)
         return r
 
     def _update_action(self, key_state: Set[str]):
         self.current_action.acceleration = int('w' in self._ks or 'up' in self._ks)
         self.current_action.brake = 's' in self._ks or 'down' in self._ks
         self.current_action.steer = int('d' in self._ks or 'right' in self._ks) - int('a' in self._ks or 'left' in self._ks)
+        self.current_action.fire = ' ' in self._ks
         # TODO: Complete
 
     def show(self, render_data: pystk.RenderData):
+        raise NotImplemented
+
+    def sleep(self, s: float):
         raise NotImplemented

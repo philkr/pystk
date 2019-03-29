@@ -21,6 +21,7 @@
 
 #include <map>
 #include <memory>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -31,6 +32,7 @@ namespace irr
 
 #include "items/powerup_manager.hpp"
 #include "utils/no_copy.hpp"
+#include "utils/id_map.hpp"
 
 class AbstractKart;
 class Flyable;
@@ -52,6 +54,8 @@ private:
     std::map<std::string, std::shared_ptr<Flyable> > m_active_projectiles;
 
     std::unordered_set<std::string> m_deleted_projectiles;
+    
+    std::unordered_map<std::string, int> m_id_map;
 
     /** All active hit effects, i.e. hit effects which are currently
      *  being shown or have a sfx playing. */
@@ -86,14 +90,8 @@ public:
     std::shared_ptr<Flyable> newProjectile(AbstractKart *kart,
                                            PowerupManager::PowerupType type);
     // ------------------------------------------------------------------------
-    void addByUID(const std::string& uid, std::shared_ptr<Flyable> f)
-                                             { m_active_projectiles[uid] = f; }
-    // ------------------------------------------------------------------------
     void removeByUID(const std::string& uid)
-                                           { m_active_projectiles.erase(uid); }
-    // ------------------------------------------------------------------------
-    void addDeletedUID(const std::string& uid)
-                                         { m_deleted_projectiles.insert(uid); }
+                                           { m_active_projectiles.erase(uid); m_id_map.erase(uid); }
 };
 
 extern ProjectileManager *projectile_manager;

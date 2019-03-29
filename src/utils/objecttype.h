@@ -3,8 +3,8 @@
 #include <string>
 
 enum ObjectType {
-	OT_NONE=-1,
-	OT_KART=0,
+	OT_NONE=0,
+	OT_KART,
 	OT_TRACK,
 	OT_BACKGROUND,
 	OT_PICKUP,
@@ -19,7 +19,7 @@ const int OBJECT_TYPE_SHIFT = 24;
 typedef uint32_t ObjectID;
 
 ObjectType getOT(const std::string & debug_name);
-ObjectID makeObjectID(ObjectType ot, uint32_t i);
+ObjectID makeObjectId(ObjectType ot, uint32_t i);
 ObjectID newObjectId(ObjectType ot);
 ObjectID newObjectId(const std::string & debug_name);
 void resetObjectId();

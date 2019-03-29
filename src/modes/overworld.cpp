@@ -241,33 +241,9 @@ void OverWorld::onFirePressed(Controller* who)
             }
             else
             {
-                const ChallengeData* challenge = unlock_manager->getChallengeData(challenges[n].m_challenge_id);
-                if (challenge == NULL)
-                {
-                    Log::error("track", "Cannot find challenge named '%s'\n",
-                        challenges[n].m_challenge_id.c_str());
-                    continue;
-                }
-
-                const unsigned int val = challenge->getNumTrophies();
-// Android may have less challenges available than the main version
-#ifdef ANDROID
-                bool enough_challenges = true;
-#else
-                const unsigned int val2 = challenge->getNumChallenges();
-                bool enough_challenges = (PlayerManager::getCurrentPlayer()->getNumCompletedChallenges() >= val2);
-#endif
-                bool unlocked = enough_challenges && (PlayerManager::getCurrentPlayer()->getPoints() >= val);
-                
-                if (UserConfigParams::m_unlock_everything > 0)
-                    unlocked = true;
-
-                if (unlocked)
-                {
-                    race_manager->setKartLastPositionOnOverworld(kart_xyz);
-                    new SelectChallengeDialog(0.9f, 0.9f,
-                        challenges[n].m_challenge_id);
-                }
+                race_manager->setKartLastPositionOnOverworld(kart_xyz);
+                new SelectChallengeDialog(0.9f, 0.9f,
+                    challenges[n].m_challenge_id);
             }
         } // end if
     } // end for

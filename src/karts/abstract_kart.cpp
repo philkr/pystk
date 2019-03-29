@@ -44,7 +44,7 @@ AbstractKart::AbstractKart(const std::string& ident,
              : Moveable()
 {
     if (!ri) ri = std::make_shared<RenderInfo>();
-    ri->setObjectId(makeObjectID(OT_KART, m_world_kart_id));
+    ri->setObjectId(makeObjectId(OT_KART, world_kart_id+1));
     m_world_kart_id   = world_kart_id;
     loadKartProperties(ident, difficulty, ri);
 }   // AbstractKart

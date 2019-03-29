@@ -5,18 +5,6 @@
 #include <vector>
 
 ObjectType getOT(const std::string & debug_name) {
-	if (debug_name.find("track") != std::string::npos) return OT_TRACK;
-	if (debug_name.find("water") != std::string::npos) return OT_BACKGROUND;
-	if (debug_name.find("item")  != std::string::npos) return OT_PICKUP;
-	if (debug_name.find("bomb")  != std::string::npos) return OT_BOMB;
-	if (debug_name.find("tree")  != std::string::npos) return OT_BACKGROUND;
-	if (debug_name.find("Tree")  != std::string::npos) return OT_BACKGROUND;
-	if (debug_name.find("conifer")!=std::string::npos) return OT_BACKGROUND;
-	if (debug_name.find("wheel") != std::string::npos) return OT_KART;
-	if (debug_name.find("kart")  != std::string::npos) return OT_KART;
-// 	if (debug_name.find("water") != std::string::npos) return OT_KART;
-	
-	Log::warn("ObjectType", ("Unknown object type  '" + debug_name + "'!").c_str());
 	return OT_UNKNOWN;
 	return OT_NONE;
 }
@@ -29,12 +17,12 @@ std::string unknownDebugName(uint32_t id) {
 		return unknown_ot_name[id];
 	return "<invalid>";
 }
-ObjectID makeObjectID(ObjectType ot, uint32_t i) {
+ObjectID makeObjectId(ObjectType ot, uint32_t i) {
+	if (ot == OT_NONE) return 0;
 	return ((uint32_t)ot << OBJECT_TYPE_SHIFT) + i;
 }
 ObjectID newObjectId(ObjectType ot) {
-	if (ot == OT_NONE) return 0;
-	return (++last_object_id[ot]) + (ot << OBJECT_TYPE_SHIFT);
+	return makeObjectId(ot, ++last_object_id[ot]);
 }
 ObjectID newObjectId(const std::string & debug_name) {
 	ObjectType ot = getOT(debug_name);
@@ -44,7 +32,10 @@ ObjectID newObjectId(const std::string & debug_name) {
 			it = unknown_ot.insert({debug_name, unknown_ot_name.size()}).first;
 			unknown_ot_name.push_back(debug_name);
 		}
-		return makeObjectID(ot, it->second);
+		else {
+			Log::warn("ObjectType", ("Unknown object type  '" + debug_name + "'!").c_str());
+		}
+		return makeObjectId(ot, it->second);
 	}
 	return newObjectId(ot);
 }

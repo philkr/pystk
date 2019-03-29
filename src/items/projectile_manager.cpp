@@ -120,7 +120,7 @@ void ProjectileManager::updateServer(int ticks)
                 if (he)
                     addHitEffect(he);
             }
-            p->second->handleUndoDestruction();
+            m_id_map.erase(p->first);
             p = m_active_projectiles.erase(p);
         }
         else
@@ -163,6 +163,8 @@ std::shared_ptr<Flyable>
             return nullptr;
     }
     m_active_projectiles[uid] = f;
+    m_id_map[uid] = f->getObjectId();
+    printf("New projectile %d\n", f->getObjectId());
     if (RewindManager::get()->isEnabled())
     {
         f->addForRewind(uid);
@@ -286,6 +288,7 @@ std::shared_ptr<Rewinder>
             auto f = std::make_shared<Bowling>(kart);
             f->addForRewind(uid);
             m_active_projectiles[uid] = f;
+            m_id_map[uid] = f->getObjectId();
             return f;
         }
         case 'P':
@@ -293,6 +296,7 @@ std::shared_ptr<Rewinder>
             auto f = std::make_shared<Plunger>(kart);
             f->addForRewind(uid);
             m_active_projectiles[uid] = f;
+            m_id_map[uid] = f->getObjectId();
             return f;
         }
         case 'C':
@@ -300,6 +304,7 @@ std::shared_ptr<Rewinder>
             auto f = std::make_shared<Cake>(kart);
             f->addForRewind(uid);
             m_active_projectiles[uid] = f;
+            m_id_map[uid] = f->getObjectId();
             return f;
         }
         case 'R':
@@ -307,6 +312,7 @@ std::shared_ptr<Rewinder>
             auto f = std::make_shared<RubberBall>(kart);
             f->addForRewind(uid);
             m_active_projectiles[uid] = f;
+            m_id_map[uid] = f->getObjectId();
             return f;
         }
         default:

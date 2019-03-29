@@ -32,6 +32,7 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/material.hpp"
 #include "graphics/mesh_tools.hpp"
+#include "graphics/render_info.hpp"
 #include "graphics/stars.hpp"
 #include "io/xml_node.hpp"
 #include "items/projectile_manager.hpp"
@@ -48,6 +49,7 @@
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/vs.hpp"
+#include "utils/objecttype.h"
 
 // static variables:
 float         Flyable::m_st_speed       [PowerupManager::POWERUP_MAX];
@@ -87,8 +89,9 @@ Flyable::Flyable(AbstractKart *kart, PowerupManager::PowerupType type,
     m_check_created_ticks          = -1;
 
     // Add the graphical model
+    ri_ = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_PROJECTILE));
 #ifndef SERVER_ONLY
-    setNode(irr_driver->addMesh(m_st_model[type], StringUtils::insertValues("flyable_%i", (int)type)));
+    setNode(irr_driver->addMesh(m_st_model[type], StringUtils::insertValues("flyable_%i", (int)type), NULL, ri_));
 #ifdef DEBUG
     std::string debug_name("flyable: ");
     debug_name += type;
@@ -96,6 +99,15 @@ Flyable::Flyable(AbstractKart *kart, PowerupManager::PowerupType type,
 #endif
 #endif
 }   // Flyable
+
+void Flyable::setObjectId(uint32_t id) {
+	if (ri_) ri_->setObjectId(makeObjectId(OT_PROJECTILE, id));
+}
+uint32_t Flyable::getObjectId() const {
+	if (ri_) return ri_->objectId() & 0xffffff;
+	return 0;
+}
+
 
 // ----------------------------------------------------------------------------
 /** Creates a bullet physics body for the flyable item.
@@ -711,33 +723,6 @@ void Flyable::hideNodeWhenUndoDestruction()
 #endif
     moveToInfinity();
 }   // hideNodeWhenUndoDestruction
-
-// ----------------------------------------------------------------------------
-void Flyable::handleUndoDestruction()
-{
-    return;
-
-    m_has_undone_destruction = true;
-
-    // We don't bother seeing the mesh during rewinding
-    hideNodeWhenUndoDestruction();
-    std::shared_ptr<Flyable> f = getShared<Flyable>();
-    std::string uid = f->getUniqueIdentity();
-    projectile_manager->addDeletedUID(uid);
-    RewindManager::get()->addRewindInfoEventFunction(new
-    RewindInfoEventFunction(World::getWorld()->getTicksSinceStart(),
-        /*undo_function*/[f, uid]()
-        {
-            f->m_has_hit_something = false;
-            projectile_manager->addByUID(uid, f);
-        },
-        /*replay_function*/[f, uid]()
-        {
-            f->m_has_hit_something = true;
-            projectile_manager->removeByUID(uid);
-            f->moveToInfinity();
-        }));
-}   // handleUndoDestruction
 
 // ----------------------------------------------------------------------------
 void Flyable::computeError()
