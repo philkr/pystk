@@ -76,6 +76,7 @@ protected: // Static methods
 
 public: // Static methods
 	static void init(const PySTKGraphicsConfig & config);
+	static void load();
 	static void clean();
 	static int nRunning();
 	static std::vector<std::string> listTracks();
@@ -83,7 +84,6 @@ public: // Static methods
 
 protected:
 	void setupConfig(const PySTKRaceConfig & config);
-	void load();
 	void setupRaceStart();
 	void render(float dt);
 	std::vector<std::unique_ptr<PySTKRenderTarget> > render_targets_;

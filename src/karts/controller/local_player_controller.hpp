@@ -22,10 +22,12 @@
 #define HEADER_LOCAL_PLAYER_CONTROLLER_HPP
 
 #include "karts/controller/player_controller.hpp"
+#include "network/remote_kart_info.hpp"
 #include <memory>
 
 class AbstractKart;
 class ParticleEmitter;
+class PlayerProfile;
 
 /** PlayerKart manages control events from the player and moves
   * them to the Kart
@@ -35,10 +37,6 @@ class ParticleEmitter;
 class LocalPlayerController : public PlayerController
 {
 private:
-
-    /** Stores the active player data structure. */
-    StateManager::ActivePlayer *m_player;
-
     bool           m_sound_schedule;
     bool           m_has_started;
 
@@ -47,6 +45,8 @@ private:
     /** The index of the camera attached to the kart for this controller. The
      *  camera object is managed in the Camera class, so no need to free it. */
     int  m_camera_index;
+
+    PlayerProfile * m_player;
 
     PerPlayerDifficulty m_difficulty;
 

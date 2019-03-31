@@ -19,7 +19,6 @@
 #include "graphics/central_settings.hpp"
 
 #include "config/user_config.hpp"
-#include "modes/profile_world.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/gl_headers.hpp"
 #include "graphics/glwrap.hpp"
@@ -60,7 +59,6 @@ void CentralVideoSettings::init()
     m_need_vertex_id_workaround = false;
 
     // Call to glGetIntegerv should not be made if --no-graphics is used
-    if (!ProfileWorld::isNoGraphics())
     {
         glGetIntegerv(GL_MAJOR_VERSION, &m_gl_major_version);
         glGetIntegerv(GL_MINOR_VERSION, &m_gl_minor_version);
@@ -71,14 +69,12 @@ void CentralVideoSettings::init()
     }
 #if !defined(USE_GLES2)
     m_glsl = (m_gl_major_version > 3 || (m_gl_major_version == 3 && m_gl_minor_version >= 1))
-           && !UserConfigParams::m_force_legacy_device && m_supports_sp;
+           && m_supports_sp;
 #else
     m_glsl = m_gl_major_version >= 3 && !UserConfigParams::m_force_legacy_device;
 #endif
-    if (!ProfileWorld::isNoGraphics())
-        initGL();
+    initGL();
 
-    if (!ProfileWorld::isNoGraphics())
     {
         std::string driver((char*)(glGetString(GL_VERSION)));
         std::string card((char*)(glGetString(GL_RENDERER)));

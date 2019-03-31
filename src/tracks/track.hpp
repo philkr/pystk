@@ -38,6 +38,7 @@ using namespace irr;
 #include "utils/aligned_array.hpp"
 #include "utils/translation.hpp"
 #include "utils/vec3.hpp"
+#include "utils/no_copy.hpp"
 #include "utils/ptr_vector.hpp"
 
 class AbstractKart;
@@ -92,7 +93,7 @@ struct Subtitle
 /**
   * \ingroup tracks
   */
-class Track
+class Track: public NoCopy
 {
 private:
 
@@ -351,7 +352,6 @@ private:
 
     /** The render target for the mini map, which is displayed in the race gui. */
     RenderTarget           *m_render_target;
-    core::dimension2du      m_mini_map_size;
     float                   m_minimap_x_scale;
     float                   m_minimap_y_scale;
 

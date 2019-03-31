@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 
+#include "config/stk_config.hpp"
 #include "graphics/material.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/mesh_tools.hpp"
@@ -47,7 +48,7 @@ ThreeDAnimation::ThreeDAnimation(const XMLNode &node, TrackObject* object) : Ani
     node.get("explode", &m_explode_kart);
     node.get("flatten", &m_flatten_kart);
 
-    m_important_animation = (World::getWorld()->getIdent() == IDENT_CUTSCENE);
+    m_important_animation = false;
     node.get("important", &m_important_animation);
 
     /** Save the initial position and rotation in the base animation object. */

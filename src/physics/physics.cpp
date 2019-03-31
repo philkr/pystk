@@ -164,17 +164,8 @@ void Physics::update(int ticks)
     // Since the world update (which calls physics update) is called at the
     // fixed frequency necessary for the physics update, we need to do exactly
     // one physic step only.
-    double start;
-    if(UserConfigParams::m_physics_debug) start = StkTime::getRealTime();
-
     m_dynamics_world->stepSimulation(stk_config->ticks2Time(1), 1,
                                      stk_config->ticks2Time(1)      );
-    if (UserConfigParams::m_physics_debug)
-    {
-        Log::verbose("Physics", "At %d physics duration %12.8f",
-                     World::getWorld()->getTicksSinceStart(),
-                     StkTime::getRealTime() - start);
-    }
 
     // Now handle the actual collision. Note: flyables can not be removed
     // inside of this loop, since the same flyables might hit more than one
@@ -347,25 +338,6 @@ void Physics::update(int ticks)
             {
                 Flyable *f = p->getUserPointer(0)->getPointerFlyable();
                 f->hit(target_kart);
-
-                // Check for achievements
-                AbstractKart * kart = World::getWorld()->getKart(f->getOwnerId());
-                LocalPlayerController *lpc =
-                    dynamic_cast<LocalPlayerController*>(kart->getController());
-
-                // Check that it's not a kart hitting itself (this can
-                // happen at the time a flyable is shot - release too close
-                // to the kart, and it's the current player. At this stage
-                // only the current player can get achievements.
-                if (target_kart != kart && lpc && lpc->canGetAchievements())
-                {
-                    if (type == PowerupManager::POWERUP_BOWLING)
-                    {
-                        PlayerManager::increaseAchievement(AchievementsStatus::BOWLING_HIT, 1);
-                        if (race_manager->isLinearRaceMode())
-                            PlayerManager::increaseAchievement(AchievementsStatus::BOWLING_HIT_1RACE, 1);
-                    }   // is bowling ball
-                }   // if target_kart != kart && is a player kart and is current player
             }
 
         }

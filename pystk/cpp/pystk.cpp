@@ -44,8 +44,6 @@
 
 #include "pystk.hpp"
 #include "main_loop.hpp"
-#include "achievements/achievements_manager.hpp"
-#include "challenges/unlock_manager.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
 #include "config/player_profile.hpp"
@@ -66,13 +64,7 @@
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/sp/sp_shader.hpp"
 #include "graphics/sp/sp_texture_manager.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/event_handler.hpp"
-#include "guiengine/dialog_queue.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_manager.hpp"
-#include "input/keyboard_device.hpp"
-#include "input/wiimote_manager.hpp"
+#include "input/input.hpp"
 #include "io/file_manager.hpp"
 #include "items/attachment_manager.hpp"
 #include "items/item_manager.hpp"
@@ -84,24 +76,16 @@
 #include "karts/kart_model.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
-#include "modes/cutscene_world.hpp"
-#include "modes/demo_world.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "network/network_string.hpp"
 #include "network/rewind_manager.hpp"
 #include "network/rewind_queue.hpp"
-#include "race/grand_prix_manager.hpp"
 #include "race/highscore_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
 #include "replay/replay_play.hpp"
 #include "replay/replay_recorder.hpp"
 #include "scriptengine/property_animator.hpp"
-#include "states_screens/main_menu_screen.hpp"
-#include "states_screens/state_manager.hpp"
-#include "states_screens/options/user_screen.hpp"
-#include "states_screens/dialogs/init_android_dialog.hpp"
-#include "states_screens/dialogs/message_dialog.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
@@ -244,6 +228,7 @@ void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
 	stk_config->load(file_manager->getAsset("stk_config.xml"));
 	initGraphicsConfig(config);
 	initRest();
+	load();
 }
 void PySuperTuxKart::clean() {
 	if (n_running > 0)
@@ -276,7 +261,7 @@ PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
 	
 	setupConfig(config);
 	
-	load();
+	main_loop = new MainLoop(0/*parent_pid*/);
 	
 	render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
 }
@@ -291,31 +276,18 @@ std::vector<std::string> PySuperTuxKart::listKarts() {
 	return std::vector<std::string>();
 }
 PySuperTuxKart::~PySuperTuxKart() {
-	if (input_manager) {
-		delete input_manager;
-		input_manager = NULL;
-	}
-	
-	AchievementsManager::destroy();
-	
 	
     delete main_loop;
 	main_loop = nullptr;
     Referee::cleanup();
 
-    if(unlock_manager)          delete unlock_manager;
-	unlock_manager = nullptr;
-	
-	
 	n_running--;
-	StateManager::get()->resetActivePlayers();
 }
 
 void PySuperTuxKart::start() {
 	setupRaceStart();
-	StateManager::get()->enterGameState();
 	race_manager->setupPlayerKartInfo();
-	race_manager->startNew(false);
+	race_manager->startNew();
 	time_leftover_ = 0.f;
     if (config_.player_ai) {
 		AbstractKart * player_kart = World::getWorld()->getPlayerKart(0);
@@ -334,12 +306,8 @@ void PySuperTuxKart::stop() {
 			irr_driver->getActualScreenSize().Height);
 	}
 
-	// In case the user opened a race pause dialog
-	GUIEngine::ModalDialog::dismiss();
-
 	if (World::getWorld())
 	{
-		race_manager->clearNetworkGrandPrixResult();
 		race_manager->exitRace();
 	}
 	
@@ -385,8 +353,6 @@ bool PySuperTuxKart::step() {
 		irr_driver->minimalUpdate(dt);
 	}
 	render(dt);
-	input_manager->update(dt);
-	GUIEngine::update(dt);
 	
 	if (World::getWorld()) {
 		time_leftover_ += dt;
@@ -410,23 +376,11 @@ bool PySuperTuxKart::step() {
 }
 
 void PySuperTuxKart::load() {
-	input_manager = new InputManager ();
-
-	// Get into menu mode initially.
-	input_manager->setMode(InputManager::MENU);
-	main_loop = new MainLoop(0/*parent_pid*/);
-
 	
 	material_manager->loadMaterial();
 	// Preload the explosion effects (explode.png)
 	ParticleKindManager::get()->getParticles("explosion.xml");
 	kart_properties_manager -> loadAllKarts    ();
-
-	// Needs the kart and track directories to load potential challenges
-	// in those dirs, so it can only be created after reading tracks
-	// and karts.
-	unlock_manager = new UnlockManager();
-	AchievementsManager::create();
 
 	// Reading the rest of the player data needs the unlock manager to
 	// initialise the game slots of all players and the AchievementsManager
@@ -461,18 +415,6 @@ void PySuperTuxKart::load() {
  */
 void PySuperTuxKart::setupRaceStart()
 {
-    // Skip the start screen. This esp. means that no login screen is
-    // displayed (if necessary), so we have to make sure there is
-    // a current player
-    PlayerManager::get()->enforceCurrentPlayer();
-
-    // Use keyboard 0 by default in --no-start-screen
-    InputDevice *device = input_manager->getDeviceManager()->getKeyboard(0);
-
-    // Create player and associate player with keyboard
-    StateManager::get()->createActivePlayer(
-        PlayerManager::get()->getPlayer(0), device);
-
     if (!kart_properties_manager->getKart(UserConfigParams::m_default_kart))
     {
         Log::warn("main", "Kart '%s' is unknown so will use the "
@@ -487,10 +429,6 @@ void PySuperTuxKart::setupRaceStart()
         if (race_manager->getNumPlayers() > 0)
             race_manager->setPlayerKart(0, UserConfigParams::m_default_kart);
     }
-
-    // ASSIGN should make sure that only input from assigned devices
-    // is read.
-    input_manager->getDeviceManager()->setAssignMode(ASSIGN);
 }   // setupRaceStart
 
 static RaceManager::MinorRaceModeType translate_mode(PySTKRaceConfig::RaceMode mode) {
@@ -521,10 +459,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 			// if a player was added with -N, change its kart.
 			// Otherwise, nothing to do, kart choice will be picked
 			// up upon player creation.
-			if (StateManager::get()->activePlayerCount() > 0)
-			{
-				race_manager->setPlayerKart(0, config.kart);
-			}
+			race_manager->setPlayerKart(0, config.kart);
 			Log::verbose("main", "You chose to use kart '%s'.",
 							config.kart.c_str());
 		}
@@ -537,12 +472,9 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 	if (config.track.length())
 		race_manager->setTrack(config.track);
 	
-	UserConfigParams::m_no_start_screen = true;
 	UserConfigParams::m_race_now = true;
 	
 	race_manager->setNumLaps(config.laps);
-	
-	UserConfigParams::m_unlock_everything = 2;
 	
 // 	stk_config->setPhysicsFPS(30.);
 // 	race_manager->setDefaultAIKartList(l);
@@ -612,13 +544,13 @@ void PySuperTuxKart::initRest()
 
     font_manager = new FontManager();
     font_manager->loadFonts();
-    GUIEngine::init(device, driver, StateManager::get());
 
     // The request manager will start the login process in case of a saved
     // session, so we need to read the main data from the players.xml file.
     // The rest will be read later (since the rest needs the unlock- and
     // achievement managers to be created, which can only be created later).
     PlayerManager::create();
+    PlayerManager::get()->enforceCurrentPlayer();
 
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
@@ -648,21 +580,10 @@ void PySuperTuxKart::initRest()
 
     track_manager->loadTrackList();
 
-    GUIEngine::addLoadingIcon(irr_driver->getTexture(FileManager::GUI_ICON,
-                                                     "notes.png"      ) );
-
-    grand_prix_manager      = new GrandPrixManager     ();
-    // Consistency check for challenges, and enable all challenges
-    // that have all prerequisites fulfilled
-    grand_prix_manager->checkConsistency();
-    GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                      "cup_gold.png"    ) );
-
     race_manager            = new RaceManager          ();
     // default settings for Quickstart
     race_manager->setNumPlayers(1);
     race_manager->setNumLaps   (3);
-    race_manager->setMajorMode (RaceManager::MAJOR_MODE_SINGLE);
     race_manager->setMinorMode (RaceManager::MINOR_MODE_NORMAL_RACE);
     race_manager->setDifficulty(
                  (RaceManager::Difficulty)(int)UserConfigParams::m_difficulty);
@@ -685,8 +606,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     irr_driver->updateConfigIfRelevant();
     if(race_manager)            delete race_manager;
 	race_manager = nullptr;
-    if(grand_prix_manager)      delete grand_prix_manager;
-	grand_prix_manager = nullptr;
     if(highscore_manager)       delete highscore_manager;
 	highscore_manager = nullptr;
     if(attachment_manager)      delete attachment_manager;
@@ -709,10 +628,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     ReplayRecorder::destroy();
     ParticleKindManager::destroy();
     PlayerManager::destroy();
-    GUIEngine::DialogQueue::deallocate();
-    GUIEngine::clear();
-    GUIEngine::cleanUp();
-    GUIEngine::clearScreenCache();
     if(font_manager)            delete font_manager;
 	font_manager = nullptr;
     
@@ -727,9 +642,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     // the OS takes all threads down.
 
     cleanUserConfig();
-
-    StateManager::deallocate();
-    GUIEngine::EventHandler::deallocate();
 }   // cleanSuperTuxKart
 
 //=============================================================================

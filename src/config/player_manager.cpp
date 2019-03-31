@@ -18,7 +18,6 @@
 
 #include "config/player_manager.hpp"
 
-#include "achievements/achievements_manager.hpp"
 #include "config/player_profile.hpp"
 #include "config/user_config.hpp"
 #include "io/file_manager.hpp"
@@ -41,117 +40,6 @@ void PlayerManager::create()
     m_player_manager = new PlayerManager();
 }   // create
 
-// // ----------------------------------------------------------------------------
-// /** Adds the login credential to a http request. It sets the name of
-//  *  the script to invokce, token, and user id.
-//  *  \param request The http request.
-//  *  \param action If not empty, the action to be set.
-//  */
-// void PlayerManager::setUserDetails(Online::HTTPRequest *request,
-//     const std::string &action,
-//     const std::string &php_name)
-// {
-//     get()->getCurrentPlayer()->setUserDetails(request, action, php_name);
-// }   // setUserDetails
-// 
-// // ----------------------------------------------------------------------------
-// /** Returns whether a user is signed in or not. */
-// bool PlayerManager::isCurrentLoggedIn()
-// {
-//     return getCurrentPlayer()->isLoggedIn();
-// }   // isCurrentLoggedIn
-// 
-// // ----------------------------------------------------------------------------
-// /** Returns the online id of the current player.
-// *  \pre User logged in (which is asserted in getID()).
-// */
-// unsigned int PlayerManager::getCurrentOnlineId()
-// {
-//     return getCurrentPlayer()->getOnlineId();
-// }   // getCurrentOnlineId
-// 
-// // ----------------------------------------------------------------------------
-// /** Returns the online state of the current player. It can be logged out,
-//  *  logging in, logged in, logging out, logged out, or guest.
-//  */
-// PlayerProfile::OnlineState PlayerManager::getCurrentOnlineState()
-// {
-//     return getCurrentPlayer()->getOnlineState();
-// }   // getCurrentOnlineState
-// 
-// // ----------------------------------------------------------------------------
-// /** Returns the online name of this player.
-//  */
-// const irr::core::stringw& PlayerManager::getCurrentOnlineUserName()
-// {
-//     if (getCurrentOnlineState() == PlayerProfile::OS_SIGNED_IN ||
-//         getCurrentOnlineState() == PlayerProfile::OS_GUEST         )
-//         return getCurrentOnlineProfile()->getUserName();
-// 
-//     static core::stringw not_signed_in = _("Currently not signed in");
-//     return not_signed_in;
-// }   // getCurrentOnlineUserName
-// 
-// // ----------------------------------------------------------------------------
-// /** Sends a request to the server to see if any new information is
-//  *  available. (online friends, notifications, etc.).
-//  */
-// void PlayerManager::requestOnlinePoll()
-// {
-//     getCurrentPlayer()->requestPoll();
-// }   // requestOnlinePoll
-// 
-// // ----------------------------------------------------------------------------
-// /** Reconnect to the server using the saved session data.
-//  */
-// void PlayerManager::resumeSavedSession()
-// {
-//     getCurrentPlayer()->requestSavedSession();
-// }   // resumeSavedSession
-// 
-// // ----------------------------------------------------------------------------
-// /** Sends a message to the server that the client has been closed, if a
-//  *  user is signed in.
-//  */
-// void PlayerManager::onSTKQuit()
-// {
-//     if (getCurrentPlayer() && getCurrentPlayer()->isLoggedIn())
-//         getCurrentPlayer()->requestSignOut();
-// }   // onSTKQuit
-// 
-// // ----------------------------------------------------------------------------
-// /** Create a signin request.
-//  *  \param username Name of user.
-//  *  \param password Password.
-//  *  \param save_session If true, the login credential will be saved to
-//  *         allow a password-less login.
-//  *  \param request_now Immediately submit this request to the
-//  *         RequestManager.
-//  */
-// 
-// void PlayerManager::requestSignIn(const irr::core::stringw &username,
-//                                   const irr::core::stringw &password)
-// {
-//     getCurrentPlayer()->requestSignIn(username, password);
-// }   // requestSignIn
-// 
-// // ----------------------------------------------------------------------------
-// /** Signs the current user out.
-//  */
-// void PlayerManager::requestSignOut()
-// {
-//     getCurrentPlayer()->requestSignOut();
-// }   // requestSignOut
-// 
-// // ----------------------------------------------------------------------------
-// /** Returns the current online profile (which is the list of all achievements
-//  *  and friends).
-//  */
-// Online::OnlineProfile* PlayerManager::getCurrentOnlineProfile()
-// {
-//     return getCurrentPlayer()->getProfile();
-// }   // getCurrentOnlineProfile
-
 // ============================================================================
 /** Constructor.
  */
@@ -166,18 +54,7 @@ PlayerManager::PlayerManager()
  */
 PlayerManager::~PlayerManager()
 {
-    // If the passwords should not be remembered, clear the saved session.
-    for_var_in(PlayerProfile*, player, m_all_players)
-    {
-        if(!player->rememberPassword())
-        {
-            // Don't let the player trigger a save, since it
-            // will be done below anyway.
-            player->clearSession(/*save*/false);
-        }
-    }
     save();
-
 }   // ~PlayerManager
 
 // ----------------------------------------------------------------------------
@@ -189,20 +66,20 @@ void PlayerManager::load()
 {
     std::string filename = file_manager->getUserConfigFile("players.xml");
 
-    m_player_data = file_manager->createXMLTree(filename);
-    if(!m_player_data)
+    XMLNode *player_data = file_manager->createXMLTree(filename);
+    if(!player_data)
     {
         Log::info("player_manager", "A new players.xml file will be created.");
         return;
     }
-    else if(m_player_data->getName()!="players")
+    else if(player_data->getName()!="players")
     {
         Log::info("player_manager", "The players.xml file is invalid.");
         return;
     }
 
     std::vector<XMLNode*> player_list;
-    m_player_data->getNodes("player", player_list);
+    player_data->getNodes("player", player_list);
     for(unsigned int i=0; i<player_list.size(); i++)
     {
         const XMLNode *player_xml = player_list[i];
@@ -210,14 +87,14 @@ void PlayerManager::load()
         m_all_players.push_back(player);
     }
     m_current_player = NULL;
-    const XMLNode *current = m_player_data->getNode("current");
+    const XMLNode *current = player_data->getNode("current");
     if(current)
     {
         stringw name;
         current->getAndDecode("player", &name);
         m_current_player = getPlayer(name);
     }
-
+    delete player_data;
 }   // load
 
 // ----------------------------------------------------------------------------
@@ -229,25 +106,8 @@ void PlayerManager::load()
  */
 void PlayerManager::initRemainingData()
 {
-    // Filter the player nodes out (there is one additional node 'online-ids'
-    // which makes this necessary), otherwise the index of m_all_players
-    // is not identical with the index in the xml file.
-    std::vector<XMLNode*> player_nodes;
-    if(m_player_data)
-        m_player_data->getNodes("player", player_nodes);
     for (unsigned int i = 0; i<m_all_players.size(); i++)
-    {
-        // On the first time STK is run, there is no player data,
-        // so just initialise the story and achievement data
-        // structures
-        if (!m_player_data)
-            m_all_players[i].initRemainingData();
-        else   // not a first time start, load remaining data
-            m_all_players[i].loadRemainingData(player_nodes[i]);
-    }
-
-    delete m_player_data;
-    m_player_data = NULL;
+        m_all_players[i].initRemainingData();
 
     // Sort player by frequency
     m_all_players.insertionSort(/*start*/0, /*desc*/true);
@@ -275,8 +135,7 @@ void PlayerManager::save()
         // Save all non-guest players
         for (PlayerProfile* player : m_all_players)
         {
-            if(!player->isGuestAccount())
-                player->save(players_file);
+            player->save(players_file);
         }
         players_file << "</players>\n";
         players_file.close();
@@ -324,14 +183,11 @@ void PlayerManager::enforceCurrentPlayer()
     if (m_current_player) return;
     for (PlayerProfile* player : m_all_players)
     {
-        if (!player->isGuestAccount())
-        {
-            Log::info("PlayerManager", "Enforcing current player '%s'.",
-                StringUtils::wideToUtf8(player->getName(true/*ignoreRTL*/))
-                .c_str());
-            m_current_player = player;
-            return;
-        }
+        Log::info("PlayerManager", "Enforcing current player '%s'.",
+            StringUtils::wideToUtf8(player->getName(true/*ignoreRTL*/))
+            .c_str());
+        m_current_player = player;
+        return;
     }   // for player in m_all_players
 
     // This shouldn't happen - but just in case: add the default players
@@ -339,14 +195,11 @@ void PlayerManager::enforceCurrentPlayer()
     addDefaultPlayer();
     for (PlayerProfile* player : m_all_players)
     {
-        if (!player->isGuestAccount())
-        {
-            Log::info("PlayerManager", "Enforcing current player '%s'.",
-                StringUtils::wideToUtf8(player->getName(true/*ignoreRTL*/))
-                .c_str());
-            m_current_player = player;
-            return;
-        }
+        Log::info("PlayerManager", "Enforcing current player '%s'.",
+            StringUtils::wideToUtf8(player->getName(true/*ignoreRTL*/))
+            .c_str());
+        m_current_player = player;
+		return;
     }   // for player in m_all_players
 
     // Now this really really should not happen.
@@ -398,7 +251,7 @@ void PlayerManager::createGuestPlayers(int n)
             // I18N: Name of further guest players, with a 1, 2, ... attached
             guest_name = _LTR("Guest %d", i);
         }
-        PlayerProfile *guest = new PlayerProfile(guest_name, /*guest*/ true);
+        PlayerProfile *guest = new PlayerProfile(guest_name);
         m_all_players.push_back(guest);
     }
 }   // createGuestPlayers
@@ -411,40 +264,10 @@ unsigned int PlayerManager::getNumNonGuestPlayers() const
     unsigned int count=0;
     for (const PlayerProfile* player : m_all_players)
     {
-        if(!player->isGuestAccount()) count ++;
+        count ++;
     }
     return count;
 }   // getNumNonGuestPlayers
-
-// ----------------------------------------------------------------------------
-/** This returns a unique id. This is 1 + largest id used so far.
- */
-unsigned int PlayerManager::getUniqueId() const
-{
-    unsigned int max_id=0;
-    for (const PlayerProfile* player : m_all_players)
-    {
-        if(player->getUniqueID()>max_id)
-            max_id = player->getUniqueID();
-    }
-    return max_id+1;
-}   // getUniqueId
-
-// ----------------------------------------------------------------------------
-/** Returns a PlayerProfile with a given id. It searches linearly through
- *  the list of all players.
- *  \returns The profile, or NULL if no such profile exists.
- *  \param id The id of the player to look for.
- */
-const PlayerProfile *PlayerManager::getPlayerById(unsigned int id)
-{
-    for (const PlayerProfile* player : m_all_players)
-    {
-        if(player->getUniqueID()==id)
-            return player;
-    }
-    return NULL;
-}   // getPlayerById
 
 // ----------------------------------------------------------------------------
 /** Returns a player with a given name.
@@ -467,12 +290,5 @@ PlayerProfile *PlayerManager::getPlayer(const irr::core::stringw &name)
  */
 void PlayerManager::setCurrentPlayer(PlayerProfile *player)
 {
-    if (m_current_player != player)
-        race_manager->clearKartLastPositionOnOverworld();
-
     m_current_player = player;
-    if(m_current_player)
-    {
-        m_current_player->computeActive();
-    }
 }   // setCurrentPlayer

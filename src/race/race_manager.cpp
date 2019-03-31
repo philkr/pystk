@@ -21,40 +21,26 @@
 #include <iostream>
 #include <algorithm>
 
-#include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
-#include "config/saved_grand_prix.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "main_loop.hpp"
 #include "modes/capture_the_flag.hpp"
-#include "modes/cutscene_world.hpp"
-#include "modes/demo_world.hpp"
 #include "modes/easter_egg_hunt.hpp"
 #include "modes/follow_the_leader.hpp"
 #include "modes/free_for_all.hpp"
-#include "modes/overworld.hpp"
-#include "modes/profile_world.hpp"
 #include "modes/standard_race.hpp"
-#include "modes/tutorial_world.hpp"
 #include "modes/world.hpp"
 #include "modes/three_strikes_battle.hpp"
 #include "modes/soccer_world.hpp"
 #include "network/network_string.hpp"
 #include "replay/replay_play.hpp"
 #include "scriptengine/property_animator.hpp"
-#include "states_screens/grand_prix_cutscene.hpp"
-#include "states_screens/grand_prix_lose.hpp"
-#include "states_screens/grand_prix_win.hpp"
-#include "states_screens/kart_selection.hpp"
-#include "states_screens/main_menu_screen.hpp"
-#include "states_screens/state_manager.hpp"
 #include "tracks/track_manager.hpp"
 #include "utils/ptr_vector.hpp"
 
@@ -69,13 +55,9 @@ RaceManager::RaceManager()
     m_num_karts          = UserConfigParams::m_default_num_karts;
     m_num_ghost_karts    = 0;
     m_difficulty         = DIFFICULTY_HARD;
-    m_major_mode         = MAJOR_MODE_SINGLE;
     m_minor_mode         = MINOR_MODE_NORMAL_RACE;
     m_ai_superpower      = SUPERPOWER_NONE;
-    m_track_number       = 0;
     m_coin_target        = 0;
-    m_started_from_overworld = false;
-    m_have_kart_last_position_on_overworld = false;
     m_num_local_players = 0;
     m_hit_capture_limit = 0;
     m_flag_return_ticks = stk_config->time2Ticks(20.0f);
@@ -152,8 +134,7 @@ void RaceManager::setPlayerKart(unsigned int player_id, const RemoteKartInfo& ki
 void RaceManager::setPlayerKart(unsigned int player_id,
                                  const std::string &kart_name)
 {
-    const PlayerProfile* profile =
-                    StateManager::get()->getActivePlayerProfile(player_id);
+    const PlayerProfile* profile = PlayerManager::get()->getPlayer(player_id);
     RemoteKartInfo rki(player_id, kart_name, profile->getName(), 0, false);
     m_player_karts[player_id] = rki;
 }   // setPlayerKart
@@ -179,35 +160,6 @@ void RaceManager::setPlayerDifficulty(unsigned int player_id,
 
     m_player_karts[player_id].setPerPlayerDifficulty(difficulty);
 }   // setPlayerDifficulty
-
-//-----------------------------------------------------------------------------
-/** Returns a pointer to the kart which has a given GP rank.
- *  \param n The rank (1 to number of karts) to look for.
- */
-const AbstractKart *RaceManager::getKartWithGPRank(unsigned int n)
-{
-    for(unsigned int i=0; i<m_kart_status.size(); i++)
-        if(m_kart_status[i].m_gp_rank == (int)n)
-            return World::getWorld()->getKart(i);
-    return NULL;
-}   // getKLartWithGPRank
-
-//-----------------------------------------------------------------------------
-/** Returns the GP rank (between 1 and number of karts) of a local player.
- *  \param player_id Local id of the player.
- */
-int RaceManager::getLocalPlayerGPRank(const int player_id) const
-{
-    const int amount = (int)m_kart_status.size();
-    for (int n=0; n<amount; n++)
-    {
-        if (m_kart_status[n].m_local_player_id == player_id)
-        {
-            return m_kart_status[n].m_gp_rank;
-        }
-    }
-    return -1;
-}   // getLocalPlayerGPRank
 
 //-----------------------------------------------------------------------------
 /** Sets the number of players and optional the number of local players.
@@ -258,9 +210,7 @@ void RaceManager::setDifficulty(Difficulty diff)
  */
 void RaceManager::setTrack(const std::string& track)
 {
-    m_tracks.clear();
-    m_tracks.push_back(track);
-
+    m_track = track;
     m_coin_target = 0;
 }   // setTrack
 
@@ -319,54 +269,11 @@ void RaceManager::computeRandomKartList()
  *  \param from_overworld True if the race/GP is started from overworld
  *         (used to return to overworld at end of race/GP).
  */
-void RaceManager::startNew(bool from_overworld)
+void RaceManager::startNew()
 {
     m_num_ghost_karts = 0;
     if (m_has_ghost_karts)
         m_num_ghost_karts = ReplayPlay::get()->getNumGhostKart();
-
-    m_started_from_overworld = from_overworld;
-    if (m_started_from_overworld) m_continue_saved_gp = false;
-    m_saved_gp = NULL; // There will be checks for this being NULL done later
-
-    if (m_major_mode==MAJOR_MODE_GRAND_PRIX)
-    {
-        // GP: get tracks, laps and reverse info from grand prix
-        m_tracks        = m_grand_prix.getTrackNames();
-        m_num_laps      = m_grand_prix.getLaps();
-        m_reverse_track = m_grand_prix.getReverse();
-
-        {
-            // We look if Player 1 has a saved version of this GP.
-            m_saved_gp = SavedGrandPrix::getSavedGP(
-                                         StateManager::get()
-                                         ->getActivePlayerProfile(0)
-                                         ->getUniqueID(),
-                                         m_grand_prix.getId(),
-                                         m_minor_mode,
-                                         (unsigned int)m_player_karts.size());
-    
-            // Saved GP only in offline mode
-            if (m_continue_saved_gp)
-            {
-                if (m_saved_gp == NULL)
-                {
-                    Log::error("Race Manager", "Can not continue Grand Prix '%s'"
-                                               "because it could not be loaded",
-                                               m_grand_prix.getId().c_str());
-                    m_continue_saved_gp = false; // simple and working
-                }
-                else
-                {
-                    setNumKarts(m_saved_gp->getTotalKarts());
-                    setupPlayerKartInfo();
-                    m_grand_prix.changeReverse((GrandPrixData::GPReverseType)
-                                                m_saved_gp->getReverseType());
-                    m_reverse_track = m_grand_prix.getReverse();
-                }   // if m_saved_gp==NULL
-            }   // if m_continue_saved_gp
-        }   // if !network_world
-    }   // if grand prix
 
     // command line parameters: negative numbers=all karts
     if(m_num_karts < 0 ) m_num_karts = stk_config->m_max_karts;
@@ -406,57 +313,19 @@ void RaceManager::startNew(bool from_overworld)
         m_kart_status.push_back(KartStatus(m_ai_kart_list[i], i, -1, -1,
             init_gp_rank, KT_AI, PLAYER_DIFFICULTY_NORMAL));
         init_gp_rank ++;
-        if(UserConfigParams::m_ftl_debug)
-        {
-            Log::debug("RaceManager", "[ftl] rank %d ai-kart %s", init_gp_rank,
-                   m_ai_kart_list[i].c_str());
-        }
     }
 
     // Finally add the players, which start behind the AI karts
     // -----------------------------------------------------
     for(unsigned int i = 0; i < m_player_karts.size(); i++)
     {
-        KartType kt= m_player_karts[i].isNetworkPlayer() ? KT_NETWORK_PLAYER 
-                                                         : KT_PLAYER;
         m_kart_status.push_back(KartStatus(m_player_karts[i].getKartName(), i,
                                            m_player_karts[i].getLocalPlayerId(),
                                            m_player_karts[i].getGlobalPlayerId(),
-                                           init_gp_rank, kt,
+                                           init_gp_rank, KT_PLAYER,
                                            m_player_karts[i].getDifficulty()));
-        if(UserConfigParams::m_ftl_debug)
-        {
-            Log::debug("RaceManager", "[ftl] rank %d kart %s", init_gp_rank,
-                m_player_karts[i].getKartName().c_str());
-        }
         init_gp_rank ++;
     }
-
-    m_track_number = 0;
-    if (m_major_mode == MAJOR_MODE_GRAND_PRIX)
-    {
-        if (m_continue_saved_gp)
-        {
-            int next_track = m_saved_gp->getNextTrack();
-            if (next_track < (int)m_tracks.size())
-                m_track_number = next_track;
-            m_saved_gp->loadKarts(m_kart_status);
-        }
-        else 
-        {
-            while (m_saved_gp != NULL)
-            {
-                m_saved_gp->remove();
-                m_saved_gp = SavedGrandPrix::getSavedGP(
-                                             StateManager::get()
-                                             ->getActivePlayerProfile(0)
-                                             ->getUniqueID(),
-                                             m_grand_prix.getId(),
-                                             m_minor_mode,
-                                             (unsigned int)m_player_karts.size());
-            }   // while m_saved_gp
-        }   // if m_continue_saved_gp
-    }   // if grand prix
 
     startNextRace();
 }   // startNew
@@ -473,42 +342,12 @@ void RaceManager::startNextRace()
     // Uncomment to debug audio leaks
 
     IrrlichtDevice* device = irr_driver->getDevice();
-    GUIEngine::renderLoading();
     device->getVideoDriver()->endScene();
     device->getVideoDriver()->beginScene(true, true,
                                          video::SColor(255,100,101,140));
 
     m_num_finished_karts   = 0;
     m_num_finished_players = 0;
-
-    // if subsequent race, sort kart status structure
-    // ==============================================
-    if (m_track_number > 0)
-    {
-        // In follow the leader mode do not change the first kart,
-        // since it's always the leader.
-        int offset = (m_minor_mode==MINOR_MODE_FOLLOW_LEADER) ? 1 : 0;
-
-        // Keep players at the end if needed
-        int player_last_offset = 0;
-        if (UserConfigParams::m_gp_player_last)
-        {
-            // Doing this is enough to keep player karts at
-            // the end because of the simple reason that they
-            // are at the end when getting added. Keep them out
-            // of the later sorting and they will stay there.
-            player_last_offset = (int)m_player_karts.size();
-        }
-
-        std::sort(m_kart_status.begin()+offset,
-                  m_kart_status.end() - player_last_offset);
-        // reverse kart order if flagged in user's config
-        if (UserConfigParams::m_gp_most_points_first)
-        {
-            std::reverse(m_kart_status.begin()+offset,
-                         m_kart_status.end() - player_last_offset);
-        }
-    }   // not first race
 
     // set boosted AI status for AI karts
     int boosted_ai_count = std::min<int>((int)m_ai_kart_list.size(),
@@ -520,9 +359,7 @@ void RaceManager::startNextRace()
     {
         if (m_kart_status[i].m_kart_type == KT_AI)
         {
-            if (boosted_ai_count > 0 &&
-                (UserConfigParams::m_gp_most_points_first ||
-                ai_count == boosted_ai_count))
+            if (boosted_ai_count > 0)
             {
                 m_kart_status[i].m_boosted_ai = true;
                 boosted_ai_count--;
@@ -541,17 +378,11 @@ void RaceManager::startNextRace()
     // variable world. Admittedly a bit ugly, but simplifies
     // handling of objects which get created in the constructor
     // and need world to be defined.
-    if(DemoWorld::isDemoMode())
-        World::setWorld(new DemoWorld());
-    else if(ProfileWorld::isProfileMode())
-        World::setWorld(new ProfileWorld());
-    else if(m_minor_mode==MINOR_MODE_FOLLOW_LEADER)
+    if(m_minor_mode==MINOR_MODE_FOLLOW_LEADER)
         World::setWorld(new FollowTheLeaderRace());
     else if(m_minor_mode==MINOR_MODE_NORMAL_RACE ||
             m_minor_mode==MINOR_MODE_TIME_TRIAL)
         World::setWorld(new StandardRace());
-    else if(m_minor_mode==MINOR_MODE_TUTORIAL)
-        World::setWorld(new TutorialWorld());
     else if (isBattleMode())
     {
         if (m_minor_mode == MINOR_MODE_3_STRIKES)
@@ -563,10 +394,6 @@ void RaceManager::startNextRace()
     }
     else if(m_minor_mode==MINOR_MODE_SOCCER)
         World::setWorld(new SoccerWorld());
-    else if(m_minor_mode==MINOR_MODE_OVERWORLD)
-        World::setWorld(new OverWorld());
-    else if(m_minor_mode==MINOR_MODE_CUTSCENE)
-        World::setWorld(new CutsceneWorld());
     else if(m_minor_mode==MINOR_MODE_EASTER_EGG)
         World::setWorld(new EasterEggHunt());
     else
@@ -614,69 +441,8 @@ void RaceManager::next()
     World::deleteWorld();
     m_num_finished_karts   = 0;
     m_num_finished_players = 0;
-    m_track_number++;
-    if(m_track_number<(int)m_tracks.size())
-    {
-        if( m_major_mode==MAJOR_MODE_GRAND_PRIX )
-        {
-            // Saving GP state
-            saveGP();
-        }
-        startNextRace();
-    }
-    else
-    {
-        exitRace();
-    }
+    exitRace();
 }   // next
-
-//-----------------------------------------------------------------------------
-/** Saves the current GP to the config.
- */
-void RaceManager::saveGP()
-{
-    // If Player 1 has already saved a GP, we adapt it
-    if (m_saved_gp != NULL)
-    {
-        m_saved_gp->setKarts(m_kart_status);
-        m_saved_gp->setNextTrack(m_track_number);
-    }
-    else  if(!m_grand_prix.isRandomGP())
-    {
-        m_saved_gp = new SavedGrandPrix(
-            StateManager::get()->getActivePlayerProfile(0)->getUniqueID(),
-            m_grand_prix.getId(),
-            m_minor_mode,
-            m_difficulty,
-            (int)m_player_karts.size(),
-            m_track_number,
-            m_grand_prix.getReverseType(),
-            m_kart_status);
-
-        // If a new GP is saved, delete any other saved data for this
-        // GP at the same difficulty (even if #karts is different, otherwise
-        // the user has to remember the number of AI karts, with no indication
-        // on which ones are saved).
-        for (unsigned int i = 0;
-            i < UserConfigParams::m_saved_grand_prix_list.size();)
-        {
-            // Delete other save files (and random GP, which should never
-            // have been saved in the first place)
-            const SavedGrandPrix &sgp =
-                                  UserConfigParams::m_saved_grand_prix_list[i];
-            if (sgp.getGPID() == "random"                          ||
-                (sgp.getGPID() == m_saved_gp->getGPID() &&
-                 sgp.getDifficulty() == m_saved_gp->getDifficulty())    )
-            {
-                UserConfigParams::m_saved_grand_prix_list.erase(i);
-            }
-            else i++;
-        }
-        UserConfigParams::m_saved_grand_prix_list.push_back(m_saved_gp);
-    }
-
-    user_config->saveConfig();
-}   // saveGP
 
 //-----------------------------------------------------------------------------
 
@@ -702,68 +468,6 @@ namespace computeGPRanksData
     };   // SortData
 }   // namespace
 
-// ----------------------------------------------------------------------------
-/** Sort karts and update the m_gp_rank KartStatus member, in preparation
- *  for future calls to RaceManager::getKartGPRank or
- *  RaceManager::getKartWithGPRank
- */
-void RaceManager::computeGPRanks()
-{
-    // calculate the rank of each kart
-    const unsigned int NUM_KARTS = getNumberOfKarts();
-    PtrVector<computeGPRanksData::SortData> sort_data;
-
-    // Ignore the first kart if it's a follow-the-leader race.
-    int start=(race_manager->getMinorMode()==RaceManager::MINOR_MODE_FOLLOW_LEADER);
-    if (start)
-    {
-        // fill values for leader
-        computeGPRanksData::SortData *sd = new computeGPRanksData::SortData();
-
-        sd->m_position  = -1;
-        sd->m_score     = -1;
-        sd->m_race_time = -1;
-        sort_data.push_back(sd);
-        m_kart_status[0].m_gp_rank = -1;
-        if(UserConfigParams::m_ftl_debug)
-        {
-            Log::debug("Race Manager","[ftl] kart '%s' has position %d.",
-                       World::getWorld()->getKart(0)->getIdent().c_str(),
-                       sd->m_position);
-        }
-    }
-    for (unsigned int kart_id = start; kart_id < NUM_KARTS; ++kart_id)
-    {
-        computeGPRanksData::SortData *sd = new computeGPRanksData::SortData();
-        sd->m_position  = kart_id;
-        sd->m_score     = getKartScore(kart_id);
-        sd->m_race_time = getOverallTime(kart_id);
-        sort_data.push_back(sd);
-        if(UserConfigParams::m_ftl_debug)
-        {
-            Log::debug("Race Manager",
-                       "[ftl] kart '%s' has position %d score %d.",
-                       World::getWorld()->getKart(kart_id)->getIdent().c_str(),
-                       sd->m_position, sd->m_score);
-        }
-    }
-
-    sort_data.insertionSort(start);
-    for (unsigned int i=start; i < NUM_KARTS; ++i)
-    {
-        if(UserConfigParams::m_ftl_debug)
-        {
-            const AbstractKart *kart =
-                World::getWorld()->getKart(sort_data[i].m_position);
-            Log::debug("Race Manager","[ftl] kart '%s' has now position %d.",
-                kart->getIdent().c_str(),
-                i-start);
-        }
-
-        m_kart_status[sort_data[i].m_position].m_gp_rank = i - start;
-    }
-}   // computeGPRanks
-
 //-----------------------------------------------------------------------------
 /** \brief Exit a race (and don't start the next one)
  * \note In GP, displays the GP result screen first
@@ -771,109 +475,11 @@ void RaceManager::computeGPRanks()
  */
 void RaceManager::exitRace(bool delete_world)
 {
-    // Only display the grand prix result screen if all tracks
-    // were finished, and not when a race is aborted.
-    if ( m_major_mode==MAJOR_MODE_GRAND_PRIX &&
-         m_track_number==(int)m_tracks.size()   )
-    {
-        PlayerManager::getCurrentPlayer()->grandPrixFinished();
-        if( m_major_mode==MAJOR_MODE_GRAND_PRIX )
-        {
-            if(m_saved_gp != NULL)
-                m_saved_gp->remove();
-        }
-        StateManager::get()->resetAndGoToScreen( MainMenuScreen::getInstance() );
-
-        bool some_human_player_well_ranked = false;
-        bool some_human_player_won = false;
-        const unsigned int kart_status_count = (unsigned int)m_kart_status.size();
-
-        const int loserThreshold = 3;
-
-        std::string winners[3];
-        // because we don't care about AIs that lost
-        std::vector<std::string> humanLosers;
-        for (unsigned int i=0; i < kart_status_count; ++i)
-        {
-            if(UserConfigParams::logMisc())
-            {
-                Log::info("RaceManager", "%s has GP final rank %d",
-                    m_kart_status[i].m_ident.c_str(), m_kart_status[i].m_gp_rank);
-            }
-
-            const int rank = m_kart_status[i].m_gp_rank;
-            if (rank >= 0 && rank < loserThreshold)
-            {
-                winners[rank] = m_kart_status[i].m_ident;
-                if (m_kart_status[i].m_kart_type == KT_PLAYER ||
-                    m_kart_status[i].m_kart_type == KT_NETWORK_PLAYER)
-                {
-                    some_human_player_well_ranked = true;
-                    if (rank == 0)
-                        some_human_player_won = true;
-                }
-            }
-            else if (rank >= loserThreshold)
-            {
-                if (m_kart_status[i].m_kart_type == KT_PLAYER ||
-                    m_kart_status[i].m_kart_type == KT_NETWORK_PLAYER)
-                {
-                    humanLosers.push_back(m_kart_status[i].m_ident);
-                }
-            }
-        }
-
-        if (delete_world)
-        {
-            PropertyAnimator::get()->clear();
-            World::deleteWorld();
-        }
-        delete_world = false;
-
-        StateManager::get()->enterGameState();
-        race_manager->setMinorMode(RaceManager::MINOR_MODE_CUTSCENE);
-        race_manager->setNumKarts(0);
-        race_manager->setNumPlayers(0);
-
-        if (some_human_player_well_ranked)
-        {
-            race_manager->startSingleRace("gpwin", 999,
-                                  race_manager->raceWasStartedFromOverworld());
-            GrandPrixWin* scene = GrandPrixWin::getInstance();
-            scene->push();
-            scene->setKarts(winners);
-            scene->setPlayerWon(some_human_player_won);
-        }
-        else
-        {
-            race_manager->startSingleRace("gplose", 999,
-                                  race_manager->raceWasStartedFromOverworld());
-            GrandPrixLose* scene = GrandPrixLose::getInstance();
-            scene->push();
-
-            if (humanLosers.size() >= 1)
-            {
-                scene->setKarts(humanLosers);
-            }
-            else
-            {
-                Log::error("RaceManager", "There are no winners and no losers."
-                           "This should have never happend\n");
-                std::vector<std::string> karts;
-                karts.push_back(UserConfigParams::m_default_kart);
-                scene->setKarts(karts);
-            }
-        }
-    }
-
     if (delete_world)
     {
         PropertyAnimator::get()->clear();
         World::deleteWorld();
     }
-
-    m_saved_gp = NULL;
-    m_track_number = 0;
 }   // exitRace
 
 //-----------------------------------------------------------------------------
@@ -930,33 +536,15 @@ void RaceManager::rerunRace()
 
 //-----------------------------------------------------------------------------
 /** \brief Higher-level method to start a GP without having to care about
- *  the exact startup sequence
- */
-void RaceManager::startGP(const GrandPrixData &gp, bool from_overworld,
-                          bool continue_saved_gp)
-{
-    StateManager::get()->enterGameState();
-    setGrandPrix(gp);
-    race_manager->setupPlayerKartInfo();
-    m_continue_saved_gp = continue_saved_gp;
-
-    setMajorMode(RaceManager::MAJOR_MODE_GRAND_PRIX);
-    startNew(from_overworld);
-}
-
-//-----------------------------------------------------------------------------
-/** \brief Higher-level method to start a GP without having to care about
  *  the exact startup sequence.
  * \param trackIdent Internal name of the track to race on
  * \param num_laps   Number of laps to race, or -1 if number of laps is
  *        not relevant in current mode
  */
 void RaceManager::startSingleRace(const std::string &track_ident,
-                                  const int num_laps,
-                                  bool from_overworld)
+                                  const int num_laps)
 {
     assert(!m_watching_replay);
-    StateManager::get()->enterGameState();
 
     // In networking, make sure that the tracks screen is shown. This will
     // allow for a 'randomly pick track' animation to be shown while
@@ -981,14 +569,12 @@ void RaceManager::startSingleRace(const std::string &track_ident,
 
     if (num_laps != -1) setNumLaps( num_laps );
 
-    setMajorMode(RaceManager::MAJOR_MODE_SINGLE);
-
     setCoinTarget( 0 ); // Might still be set from a previous challenge
 
     // if not in a network world, setup player karts
     race_manager->setupPlayerKartInfo(); // do this setup player kart
 
-    startNew(from_overworld);
+    startNew();
 }   // startSingleRace
 
 //-----------------------------------------------------------------------------
@@ -1009,10 +595,8 @@ void RaceManager::startWatchingReplay(const std::string &track_ident,
                                       const int num_laps)
 {
     assert(m_watching_replay && m_has_ghost_karts && !m_is_recording_race);
-    StateManager::get()->enterGameState();
     setTrack(track_ident);
     setNumLaps(num_laps);
-    setMajorMode(RaceManager::MAJOR_MODE_SINGLE);
     setCoinTarget(0);
     m_num_karts = ReplayPlay::get()->getNumGhostKart();
     m_kart_status.clear();
@@ -1029,75 +613,5 @@ void RaceManager::startWatchingReplay(const std::string &track_ident,
         init_gp_rank ++;
     }
 
-    m_track_number = 0;
     startNextRace();
 }   // startWatchingReplay
-
-//-----------------------------------------------------------------------------
-void RaceManager::configGrandPrixResultFromNetwork(NetworkString& ns)
-{
-    setMajorMode(MAJOR_MODE_GRAND_PRIX);
-    class NetworkGrandPrixData : public GrandPrixData
-    {
-    public:
-        NetworkGrandPrixData() : GrandPrixData()
-            { setGroup(GrandPrixData::GP_STANDARD); }
-        virtual std::vector<std::string>
-            getTrackNames(const bool includeLocked=false) const
-            { return m_tracks; }
-        virtual unsigned int
-            getNumberOfTracks(const bool includeLocked=false) const
-            { return (unsigned int)m_tracks.size(); }
-        void addNetworkTrack(const std::string& t) { m_tracks.push_back(t); }
-    };
-
-    NetworkGrandPrixData ngpd;
-    unsigned int track_size = ns.getUInt8();
-    unsigned int all_track_size = ns.getUInt8();
-    assert(all_track_size > 0);
-    m_track_number = all_track_size -1;
-    for (unsigned i = 0; i < all_track_size; i++)
-    {
-        std::string t;
-        ns.decodeString(&t);
-        ngpd.addNetworkTrack(t);
-    }
-    while (all_track_size < track_size)
-    {
-        ngpd.addNetworkTrack("");
-        all_track_size++;
-    }
-
-    m_tracks = ngpd.getTrackNames();
-    // For result screen we only need current lap and reserve
-    m_num_laps.resize(track_size, m_num_laps[0]);
-    m_reverse_track.resize(track_size, m_reverse_track[0]);
-
-    m_grand_prix = ngpd;
-    unsigned int player_size = ns.getUInt8();
-    assert(player_size == m_kart_status.size());
-    for (unsigned i = 0; i < player_size; i++)
-    {
-        int last_score = ns.getUInt32();
-        int cur_score = ns.getUInt32();
-        float overall_time = ns.getFloat();
-        m_kart_status[i].m_last_score = last_score;
-        m_kart_status[i].m_score = cur_score;
-        m_kart_status[i].m_overall_time = overall_time;
-        m_kart_status[i].m_gp_rank = i;
-    }
-}   // configGrandPrixResultFromNetwork
-
-//-----------------------------------------------------------------------------
-void RaceManager::clearNetworkGrandPrixResult()
-{
-    if (m_major_mode != MAJOR_MODE_GRAND_PRIX)
-        return;
-    setMajorMode(MAJOR_MODE_SINGLE);
-    m_grand_prix = GrandPrixData();
-    m_track_number = 0;
-    m_tracks.clear();
-    m_num_laps.clear();
-    m_reverse_track.clear();
-
-}   // clearNetworkGrandPrixResult

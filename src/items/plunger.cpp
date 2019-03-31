@@ -21,6 +21,7 @@
 
 #include "items/plunger.hpp"
 
+#include "config/stk_config.hpp"
 #include "io/xml_node.hpp"
 #include "items/rubber_band.hpp"
 #include "items/projectile_manager.hpp"

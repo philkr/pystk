@@ -712,14 +712,6 @@ float DriveGraph::getDistanceFromStart(int j) const
 // -----------------------------------------------------------------------------
 void DriveGraph::differentNodeColor(int n, video::SColor* c) const
 {
-    if (UserConfigParams::m_track_debug)
-    {
-        if (getNode(n)->is3DQuad())
-            *c = video::SColor(255, 0, 255, 0);
-        else
-            *c = video::SColor(255, 255, 255, 0);
-    }
-
 }   // differentNodeColor
 
 // -----------------------------------------------------------------------------

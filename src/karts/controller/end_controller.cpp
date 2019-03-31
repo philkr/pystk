@@ -44,7 +44,6 @@
 #include "karts/rescue_animation.hpp"
 #include "modes/linear_world.hpp"
 #include "race/race_manager.hpp"
-#include "states_screens/race_result_gui.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"
 #include "tracks/track.hpp"
@@ -164,11 +163,6 @@ void  EndController::newLap(int lap)
  */
 bool EndController::action(PlayerAction action, int value, bool dry_run)
 {
-    if(action!=PA_FIRE) return true;
-    RaceResultGUI *race_result_gui =
-        dynamic_cast<RaceResultGUI*>(World::getWorld()->getRaceGUI());
-    if(!race_result_gui) return true;
-    race_result_gui->nextPhase();
     return true;
 }   // action
 

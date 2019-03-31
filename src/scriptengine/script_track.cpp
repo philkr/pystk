@@ -24,16 +24,11 @@
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_text_billboard.hpp"
-#include "guiengine/scalable_font.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_device.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "modes/world.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "scriptengine/aswrappedcall.hpp"
 #include "scriptengine/scriptarray.hpp"
-#include "states_screens/dialogs/tutorial_message_dialog.hpp"
-#include "states_screens/dialogs/race_paused_dialog.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "tracks/track_object_manager.hpp"
@@ -112,8 +107,8 @@ namespace Scripting
             core::vector3df xyz(location->getX(), location->getY(), location->getZ());
 #ifndef SERVER_ONLY
             STKTextBillboard* tb = new STKTextBillboard(
-                GUIEngine::getSkin()->getColor("font::bottom"),
-                GUIEngine::getSkin()->getColor("font::top"),
+                video::SColor(255,255,220,15),
+                video::SColor(255,255,128,0),
                 irr_driver->getSceneManager()->getRootSceneNode(),
                 irr_driver->getSceneManager(), -1, xyz,
                 core::vector3df(1.5f, 1.5f, 1.5f));
@@ -151,7 +146,6 @@ namespace Scripting
 
         void pauseRace()
         {
-            new RacePausedDialog(0.8f, 0.6f);
         }
 
         int getNumberOfKarts()
@@ -171,7 +165,7 @@ namespace Scripting
 
         int getMajorRaceMode()
         {
-            return race_manager->getMajorMode();
+            return 1;
         }
 
         int getMinorRaceMode()

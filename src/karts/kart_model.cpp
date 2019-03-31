@@ -40,7 +40,6 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/ghost_kart.hpp"
 #include "karts/kart_properties.hpp"
-#include "modes/profile_world.hpp"
 #include "physics/btKart.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
@@ -629,9 +628,6 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
     m_kart_lowest_point  = kart_min.getY();
     initInverseBoneMatrices();
 
-    if (ProfileWorld::isNoGraphics())
-        m_mesh->freeMeshVertexBuffer();
-
     // Load the speed weighted object models. We need to do that now because it can affect the dimensions of the kart
     for(size_t i=0 ; i < m_speed_weighted_objects.size() ; i++)
     {
@@ -675,8 +671,6 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         obj.m_location.transformVect(transformed_max, obj_max.toIrrVector());
         kart_min.min(transformed_min);
         kart_max.max(transformed_max);
-        if (ProfileWorld::isNoGraphics())
-            mesh->freeMeshVertexBuffer();
     }
 
     for (unsigned int i = 0; i < m_headlight_objects.size(); i++)
@@ -689,8 +683,6 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
 #endif
         obj.getModel()->grab();
         irr_driver->grabAllTextures(obj.getModel());
-        if (ProfileWorld::isNoGraphics())
-            obj.getModel()->freeMeshVertexBuffer();
     }
 
     Vec3 size     = kart_max-kart_min;
@@ -739,8 +731,6 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         // the destructor will only free the textures if a master
         // copy is freed.
         irr_driver->grabAllTextures(m_wheel_model[i]);
-        if (ProfileWorld::isNoGraphics())
-            m_wheel_model[i]->freeMeshVertexBuffer();
     }   // for i<4
 
     return true;
@@ -1034,15 +1024,6 @@ void KartModel::update(float dt, float distance, float steer, float speed,
     for(unsigned int i=0; i<4; i++)
     {
         if (!m_kart || !m_wheel_node[i]) continue;
-#ifdef DEBUG
-        if (UserConfigParams::m_physics_debug &&
-            !m_kart->isGhostKart())
-        {
-            const btWheelInfo &wi = m_kart->getVehicle()->getWheelInfo(i);
-            // Make wheels that are not touching the ground invisible
-            m_wheel_node[i]->setVisible(wi.m_raycastInfo.m_isInContact);
-        }
-#endif
         core::vector3df pos =  m_wheel_graphics_position[i].toIrrVector();
 
         float suspension_length = m_default_physics_suspension[i];

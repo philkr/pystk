@@ -32,7 +32,6 @@ namespace irr
 
 #include "items/powerup_manager.hpp"
 #include "utils/no_copy.hpp"
-#include "utils/id_map.hpp"
 
 class AbstractKart;
 class Flyable;

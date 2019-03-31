@@ -29,7 +29,7 @@
 #include "graphics/sp/sp_mesh_node.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
-#include "input/device_manager.hpp"
+#include "input/input.hpp"
 #include "items/item_manager.hpp"
 #include "physics/physical_object.hpp"
 #include "race/race_manager.hpp"

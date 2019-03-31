@@ -25,14 +25,12 @@
 
 #include "config/user_config.hpp"
 #include "config/stk_config.hpp"
-#include "guiengine/engine.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/particle_kind_manager.hpp"
 #include "graphics/stk_tex_manager.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
-#include "modes/profile_world.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
@@ -726,16 +724,6 @@ void  Material::setMaterialProperties(video::SMaterial *m, scene::IMeshBuffer* m
         m->BackfaceCulling = false;
     }
 
-#ifdef DEBUG
-    if(UserConfigParams::m_rendering_debug)
-    {
-        m->Shininess = 100.0f;
-        m->DiffuseColor  = video::SColor(200, 255, 0, 0);
-        m->AmbientColor  = video::SColor(200, 0, 0, 255);
-        m->SpecularColor = video::SColor(200, 0, 255, 0);
-    }
-#endif
-
     if (UserConfigParams::m_anisotropic > 0)
     {
         for (u32 i=0; i<video::MATERIAL_MAX_TEXTURES; ++i)
@@ -772,12 +760,4 @@ void  Material::setMaterialProperties(video::SMaterial *m, scene::IMeshBuffer* m
 
     // Material color
     m->ColorMaterial = video::ECM_DIFFUSE_AND_AMBIENT;
-
-#ifdef DEBUG
-    if (UserConfigParams::m_rendering_debug)
-    {
-        m->ColorMaterial = video::ECM_NONE; // Override one above
-    }
-#endif
-
 } // setMaterialProperties

@@ -18,7 +18,7 @@
 
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "utils/log.hpp"
 #include "utils/progress_bar_android.hpp"
 
@@ -49,9 +49,6 @@ ProgressBarAndroid::~ProgressBarAndroid()
 bool ProgressBarAndroid::compileShaders()
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return false;
-        
     const GLchar* vsh =
         "precision mediump float;"
         "attribute vec2 position;"
@@ -127,9 +124,6 @@ bool ProgressBarAndroid::compileShaders()
 void ProgressBarAndroid::deleteShaders()
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-        
     glDeleteShader(m_vertex_shader);
     glDeleteShader(m_fragment_shader);
     glDeleteProgram(m_program);
@@ -139,9 +133,6 @@ void ProgressBarAndroid::deleteShaders()
 void ProgressBarAndroid::init()
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-        
     SIrrlichtCreationParameters params;
     params.DriverType    = video::EDT_OGLES2;
     params.Bits          = 32;
@@ -185,9 +176,6 @@ void ProgressBarAndroid::init()
 void ProgressBarAndroid::close()
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-        
     glDisableVertexAttribArray(m_position);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glUseProgram(0);
@@ -210,9 +198,6 @@ void ProgressBarAndroid::close()
 void ProgressBarAndroid::draw(float value)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-        
     if (!m_initialized || m_close_event_received)
         return;
 

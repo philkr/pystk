@@ -28,9 +28,8 @@ class BareNetworkString;
   * Contains kart controllers, which are either human players or AIs
   * (this module thus contains the AIs)
   */
-
 #include "input/input.hpp"
-#include "states_screens/state_manager.hpp"
+#include "utils/translation.hpp"
 
 class AbstractKart;
 class BareNetworString;

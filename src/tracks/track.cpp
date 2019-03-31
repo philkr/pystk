@@ -19,8 +19,6 @@
 
 #include "tracks/track.hpp"
 
-#include "challenges/challenge_status.hpp"
-#include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -56,7 +54,7 @@
 #include "main_loop.hpp"
 #include "modes/linear_world.hpp"
 #include "modes/easter_egg_hunt.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "physics/physical_object.hpp"
 #include "physics/physics.hpp"
 #include "physics/triangle_mesh.hpp"
@@ -151,8 +149,7 @@ Track::Track(const std::string &filename)
     m_godrays_color         = video::SColor(255, 255, 255, 255);
     m_weather_lightning      = false;
     m_weather_sound         = "";
-    m_cache_track           = UserConfigParams::m_cache_overworld &&
-                              m_ident=="overworld";
+    m_cache_track           = m_ident=="overworld";
     m_render_target         = NULL;
     m_minimap_x_scale       = 1.0f;
     m_minimap_y_scale       = 1.0f;
@@ -186,15 +183,7 @@ Track::~Track()
  */
 bool Track::operator<(const Track &other) const
 {
-    PlayerProfile *p = PlayerManager::getCurrentPlayer();
-    bool this_is_locked = p->isLocked(getIdent());
-    bool other_is_locked = p->isLocked(other.getIdent());
-    if(this_is_locked == other_is_locked)
-    {
-        return getSortName() < other.getSortName();
-    }
-    else
-        return other_is_locked;
+    return getSortName() < other.getSortName();
 }   // operator<
 
 //-----------------------------------------------------------------------------
@@ -244,23 +233,7 @@ bool Track::isInGroup(const std::string &group_name)
 /** Returns number of completed challenges */
 unsigned int Track::getNumOfCompletedChallenges()
 {
-    unsigned int unlocked_challenges = 0;
-    PlayerProfile *player = PlayerManager::getCurrentPlayer();
-    for (unsigned int i=0; i<m_challenges.size(); i++)
-    {
-        if (m_challenges[i].m_challenge_id == "tutorial")
-        {
-            unlocked_challenges++;
-            continue;
-        }
-        if (player->getChallengeStatus(m_challenges[i].m_challenge_id)
-                ->isSolvedAtAnyDifficulty())
-        {
-            unlocked_challenges++;
-        }
-    }
-
-    return unlocked_challenges;
+    return m_challenges.size();
 }   // getNumOfCompletedChallenges
 
 //-----------------------------------------------------------------------------
@@ -307,7 +280,6 @@ void Track::cleanup()
 #ifndef SERVER_ONLY
     if (CVS->isGLSL())
     {
-        if (!ProfileWorld::isNoGraphics())
         {
             CPUParticleManager::getInstance()->cleanMaterialMap();
         }
@@ -331,7 +303,7 @@ void Track::cleanup()
 
     for (unsigned int i = 0; i < m_static_physics_only_nodes.size(); i++)
     {
-        m_static_physics_only_nodes[i]->remove();
+        m_static_physics_only_nodes[i]->drop();
     }
     m_static_physics_only_nodes.clear();
 
@@ -436,49 +408,6 @@ void Track::cleanup()
         SP::SPTextureManager::get()->removeUnusedTextures();
     }
 #endif
-    if(UserConfigParams::logMemory())
-    {
-        Log::debug("track",
-              "[memory] After cleaning '%s': mesh cache %d texture cache %d\n",
-                getIdent().c_str(),
-                irr_driver->getSceneManager()->getMeshCache()->getMeshCount(),
-                irr_driver->getVideoDriver()->getTextureCount());
-#ifdef DEBUG
-        scene::IMeshCache *cache = irr_driver->getSceneManager()->getMeshCache();
-        for(unsigned int i=0; i<cache->getMeshCount(); i++)
-        {
-            const io::SNamedPath &name = cache->getMeshName(i);
-            std::vector<std::string>::iterator p;
-            p = std::find(m_old_mesh_buffers.begin(), m_old_mesh_buffers.end(),
-                         name.getInternalName().c_str());
-            if(p!=m_old_mesh_buffers.end())
-                m_old_mesh_buffers.erase(p);
-            else
-            {
-                Log::debug("track", "[memory] Leaked mesh buffer '%s'.\n",
-                       name.getInternalName().c_str());
-            }   // if name not found
-        }   // for i < cache size
-
-        video::IVideoDriver *vd = irr_driver->getVideoDriver();
-        for(unsigned int i=0; i<vd->getTextureCount(); i++)
-        {
-            video::ITexture *t = vd->getTextureByIndex(i);
-            std::vector<video::ITexture*>::iterator p;
-            p = std::find(m_old_textures.begin(), m_old_textures.end(),
-                          t);
-            if(p!=m_old_textures.end())
-            {
-                m_old_textures.erase(p);
-            }
-            else
-            {
-                Log::debug("track", "[memory] Leaked texture '%s'.\n",
-                    t->getName().getInternalName().c_str());
-            }
-        }
-#endif
-    }   // if verbose
 
 #ifdef __DEBUG_DUMP_MESH_CACHE_AFTER_CLEANUP__
     scene::IMeshCache* meshCache = irr_driver->getSceneManager()->getMeshCache();
@@ -817,31 +746,15 @@ void Track::createPhysicsModel(unsigned int main_track_count)
         main_loop->renderGUI(5550, i, m_static_physics_only_nodes.size());
 
         convertTrackToBullet(m_static_physics_only_nodes[i]);
-        if (UserConfigParams::m_physics_debug &&
-            m_static_physics_only_nodes[i]->getType() == scene::ESNT_MESH)
-        {
-            const video::SColor color(255, 255, 105, 180);
-
-            scene::IMesh *mesh = ((scene::IMeshSceneNode*)m_static_physics_only_nodes[i])->getMesh();
-            scene::IMeshBuffer *mb = mesh->getMeshBuffer(0);
-            mb->getMaterial().BackfaceCulling = false;
-            video::S3DVertex * const verts = (video::S3DVertex *) mb->getVertices();
-            const u32 max = mb->getVertexCount();
-            for (i = 0; i < max; i++)
-            {
-                verts[i].Color = color;
-            }
-        }
-        else
-            irr_driver->removeNode(m_static_physics_only_nodes[i]);
+        m_static_physics_only_nodes[i]->setVisible(false);
+        m_static_physics_only_nodes[i]->grab();
+        irr_driver->removeNode(m_static_physics_only_nodes[i]);
     }
     main_loop->renderGUI(5560);
-    if (!UserConfigParams::m_physics_debug)
-        m_static_physics_only_nodes.clear();
 
     for (unsigned int i = 0; i<m_object_physics_only_nodes.size(); i++)
     {
-        main_loop->renderGUI(5565, i, m_static_physics_only_nodes.size());
+        main_loop->renderGUI(5565, i, m_object_physics_only_nodes.size());
         convertTrackToBullet(m_object_physics_only_nodes[i]);
         m_object_physics_only_nodes[i]->setVisible(false);
         m_object_physics_only_nodes[i]->grab();
@@ -1102,11 +1015,8 @@ void Track::convertTrackToBullet(scene::ISceneNode *node)
 void Track::loadMinimap()
 {
 #ifndef SERVER_ONLY
-    //Create the minimap resizing it as necessary.
-    m_mini_map_size = World::getWorld()->getRaceGUI()->getMiniMapSize();
-
     //Use twice the size of the rendered minimap to reduce significantly aliasing
-    m_render_target = Graph::get()->makeMiniMap(m_mini_map_size * 2,
+    m_render_target = Graph::get()->makeMiniMap({uint32_t(stk_config->m_minimap_size * 2), uint32_t(stk_config->m_minimap_size * 2)},
         "minimap::" + m_ident, video::SColor(127, 255, 255, 255),
         m_minimap_invert_x_z);
     if (!m_render_target) return;
@@ -1114,12 +1024,12 @@ void Track::loadMinimap()
     core::dimension2du mini_map_texture_size = m_render_target->getTextureSize();
 
     if(mini_map_texture_size.Width) 
-        m_minimap_x_scale = float(m_mini_map_size.Width) / float(mini_map_texture_size.Width);
+        m_minimap_x_scale = float(stk_config->m_minimap_size) / float(mini_map_texture_size.Width);
     else
         m_minimap_x_scale = 0;
 
     if(mini_map_texture_size.Height) 
-        m_minimap_y_scale = float(m_mini_map_size.Height) / float(mini_map_texture_size.Height);
+        m_minimap_y_scale = float(stk_config->m_minimap_size) / float(mini_map_texture_size.Height);
     else
         m_minimap_y_scale = 0;
 #endif
@@ -1158,7 +1068,7 @@ bool Track::loadMainTrack(const XMLNode &root)
 #ifdef SERVER_ONLY
     if (false)
 #else
-    if (m_version < 7 && !CVS->isGLSL() && !ProfileWorld::isNoGraphics())
+    if (m_version < 7 && !CVS->isGLSL())
 #endif
     {
         // The mesh as returned does not have all mesh buffers with the same
@@ -1323,80 +1233,6 @@ bool Track::loadMainTrack(const XMLNode &root)
 
             handleAnimatedTextures(scene_node, *n);
 
-            // for challenge orbs, a bit more work to do
-            // TODO: this is hardcoded for the overworld, convert to scripting
-            if (challenge.size() > 0)
-            {
-                const ChallengeData* c = NULL;
-
-                if (challenge != "tutorial")
-                {
-                    c = unlock_manager->getChallengeData(challenge);
-                    if (c == NULL)
-                    {
-                        Log::error("track", "Cannot find challenge named <%s>\n",
-                                   challenge.c_str());
-                        scene_node->remove();
-                        continue;
-                    }
-                }
-
-                m_challenges.push_back( OverworldChallenge(xyz, challenge) );
-
-                if (c && c->isGrandPrix())
-                {
-
-                }
-                else
-                {
-                    if (challenge != "tutorial")
-                    {
-                        Track* t = track_manager->getTrack(c->getTrackId());
-                        if (t == NULL)
-                        {
-                            Log::error("track", "Cannot find track named <%s>\n",
-                                       c->getTrackId().c_str());
-                            continue;
-                        }
-
-                        std::string sshot = t->getScreenshotFile();
-                        video::ITexture* screenshot = irr_driver->getTexture(sshot);
-
-                        if (screenshot == NULL)
-                        {
-                            Log::error("track",
-                                       "Cannot find track screenshot <%s>",
-                                       sshot.c_str());
-                            continue;
-                        }
-                        scene_node->getMaterial(0).setTexture(0, screenshot);
-                    }
-                }
-
-                // make transparent
-                for (unsigned int m=0; m<a_mesh->getMeshBufferCount(); m++)
-                {
-                    scene::IMeshBuffer* mb = a_mesh->getMeshBuffer(m);
-                    if (mb->getVertexType() == video::EVT_STANDARD)
-                    {
-                        video::S3DVertex* v = (video::S3DVertex*)mb->getVertices();
-                        for (unsigned int n=0; n<mb->getVertexCount(); n++)
-                        {
-                            v[n].Color.setAlpha(125);
-                        }
-                    }
-                }
-
-
-                LODNode* lod_node = new LODNode("challenge_orb",
-                                                irr_driver->getSceneManager()->getRootSceneNode(),
-                                                irr_driver->getSceneManager());
-                lod_node->setPosition(xyz);
-                lod_node->add(50, scene_node, true /* reparent */);
-
-                m_all_nodes.push_back( lod_node );
-            }
-            else
             {
                 if(interaction=="physics-only")
                     m_static_physics_only_nodes.push_back(scene_node);
@@ -1417,10 +1253,6 @@ bool Track::loadMainTrack(const XMLNode &root)
         main_loop->renderGUI(4400, i, m_all_nodes.size());
     }
 
-    // Free the tangent (track mesh) after converting to physics
-    if (ProfileWorld::isNoGraphics())
-        tangent_mesh->freeMeshVertexBuffer();
-
     if (m_track_mesh == NULL)
     {
         Log::fatal("track", "m_track_mesh == NULL, cannot loadMainTrack\n");
@@ -1437,11 +1269,6 @@ bool Track::loadMainTrack(const XMLNode &root)
 // ----------------------------------------------------------------------------
 void Track::freeCachedMeshVertexBuffer()
 {
-    if (ProfileWorld::isNoGraphics())
-    {
-        for (unsigned i = 0; i < m_all_cached_meshes.size(); i++)
-            m_all_cached_meshes[i]->freeMeshVertexBuffer();
-    }
 }   // freeCachedMeshVertexBuffer
 
 // ----------------------------------------------------------------------------
@@ -1727,32 +1554,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     main_loop->renderGUI(3000);
     CheckManager::create();
     assert(m_all_cached_meshes.size()==0);
-    if(UserConfigParams::logMemory())
-    {
-        Log::debug("[memory] Before loading '%s': mesh cache %d "
-                   "texture cache %d\n",
-            getIdent().c_str(),
-            irr_driver->getSceneManager()->getMeshCache()->getMeshCount(),
-            irr_driver->getVideoDriver()->getTextureCount());
-#ifdef DEBUG
-        scene::IMeshCache *cache =
-            irr_driver->getSceneManager()->getMeshCache();
-        m_old_mesh_buffers.clear();
-        for(unsigned int i=0; i<cache->getMeshCount(); i++)
-        {
-            const io::SNamedPath &name=cache->getMeshName(i);
-            m_old_mesh_buffers.push_back(name.getInternalName().c_str());
-        }
-
-        m_old_textures.clear();
-        video::IVideoDriver *vd = irr_driver->getVideoDriver();
-        for(unsigned int i=0; i<vd->getTextureCount(); i++)
-        {
-            video::ITexture *t=vd->getTextureByIndex(i);
-            m_old_textures.push_back(t);
-        }
-#endif
-    }
 
     CameraEnd::clearEndCameras();
     m_minimap_invert_x_z   = false;
@@ -1903,7 +1704,7 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     main_loop->renderGUI(3500);
 
 #ifndef SERVER_ONLY
-    if (!ProfileWorld::isNoGraphics() && CVS->isGLSL() && m_use_fog)
+    if (CVS->isGLSL() && m_use_fog)
     {
         glBindBuffer(GL_UNIFORM_BUFFER, SP::sp_fog_ubo);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, &m_fog_start);
@@ -2130,9 +1931,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
 
     main_loop->renderGUI(5900);
 
-    if (UserConfigParams::m_track_debug && Graph::get() && !m_is_cutscene)
-        Graph::get()->createDebugMesh();
-
     // Only print warning if not in battle mode, since battle tracks don't have
     // any quads or check lines.
     if (CheckManager::get()->getCheckStructureCount()==0  &&
@@ -2142,14 +1940,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
                   m_ident.c_str());
         Log::warn("track", "Lap counting will not work, and start "
                   "positions might be incorrect.");
-    }
-
-    if (UserConfigParams::logMemory())
-    {
-        Log::debug("track", "[memory] After loading  '%s': mesh cache %d "
-                   "texture cache %d\n", getIdent().c_str(),
-                irr_driver->getSceneManager()->getMeshCache()->getMeshCount(),
-                irr_driver->getVideoDriver()->getTextureCount());
     }
 
     World *world = World::getWorld();

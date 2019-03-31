@@ -19,7 +19,6 @@
 #include "items/attachment.hpp"
 
 #include <algorithm>
-#include "achievements/achievements_status.hpp"
 #include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -312,12 +311,6 @@ void Attachment::rewindTo(BareNetworkString *buffer)
  */
 void Attachment::hitBanana(ItemState *item_state)
 {
-    if (m_kart->getController()->canGetAchievements())
-    {
-        PlayerManager::increaseAchievement(AchievementsStatus::BANANA, 1);
-        if (race_manager->isLinearRaceMode())
-            PlayerManager::increaseAchievement(AchievementsStatus::BANANA_1RACE, 1);
-    }
     //Bubble gum shield effect:
     if(m_type == ATTACH_BUBBLEGUM_SHIELD ||
        m_type == ATTACH_NOLOK_BUBBLEGUM_SHIELD)

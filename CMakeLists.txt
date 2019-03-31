@@ -178,7 +178,7 @@ endif()
 
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-    add_definitions(-DDEBUG)
+    add_definitions(-DDEBUG -fno-default-inline)
 else()
     add_definitions(-DNDEBUG)
 endif()

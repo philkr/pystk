@@ -30,7 +30,6 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/cannon_animation.hpp"
 #include "karts/skidding.hpp"
-#include "modes/profile_world.hpp"
 #include "modes/world.hpp"
 #include "network/rewind_manager.hpp"
 
@@ -57,39 +56,6 @@ CheckCannon::CheckCannon(const XMLNode &node,  unsigned int index)
     m_curve = new Ipo(*(node.getNode("curve")),
                       /*fps*/25,
                       /*reverse*/race_manager->getReverseTrack());
-
-#if defined(DEBUG) && !defined(SERVER_ONLY)
-    if(UserConfigParams::m_track_debug)
-    {
-        m_show_curve = new ShowCurve(0.5f, 0.5f);
-        const std::vector<Vec3> &p = m_curve->getPoints();
-        for(unsigned int i=0; i<p.size(); i++)
-            m_show_curve->addPoint(p[i]);
-    }
-    if (UserConfigParams::m_check_debug && !ProfileWorld::isNoGraphics())
-    {
-        m_debug_target_dy_dc = std::make_shared<SP::SPDynamicDrawCall>
-            (scene::EPT_TRIANGLE_STRIP,
-            SP::SPShaderManager::get()->getSPShader("additive"),
-            material_manager->getDefaultSPMaterial("additive"));
-        SP::addDynamicDrawCall(m_debug_target_dy_dc);
-        m_debug_target_dy_dc->getVerticesVector().resize(4);
-        auto& vertices = m_debug_target_dy_dc->getVerticesVector();
-        Vec3 height(0, 3, 0);
-        vertices[0].m_position = m_target_left.toIrrVector();
-        vertices[1].m_position = m_target_right.toIrrVector();
-        vertices[2].m_position = Vec3(m_target_left  + height).toIrrVector();
-        vertices[3].m_position = Vec3(m_target_right + height).toIrrVector();
-        for (unsigned int i = 0; i < 4; i++)
-        {
-            vertices[i].m_color = m_active_at_reset
-                ? video::SColor(128, 255, 0, 0)
-                : video::SColor(128, 128, 128, 128);
-        }
-        m_debug_target_dy_dc->recalculateBoundingBox();
-    }
-#endif   // DEBUG AND !SERVER_ONLY
-
 }   // CheckCannon
 
 // ----------------------------------------------------------------------------
@@ -99,12 +65,6 @@ CheckCannon::CheckCannon(const XMLNode &node,  unsigned int index)
 CheckCannon::~CheckCannon()
 {
     delete m_curve;
-#if defined(DEBUG) && !defined(SERVER_ONLY)
-    if(UserConfigParams::m_track_debug)
-        delete m_show_curve;
-    if (m_debug_target_dy_dc)
-        m_debug_target_dy_dc->removeFromSP();
-#endif
 }   // ~CheckCannon
 
 // ----------------------------------------------------------------------------

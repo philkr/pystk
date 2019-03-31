@@ -22,7 +22,6 @@
 #include "config/stk_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/graphics_restrictions.hpp"
-#include "guiengine/message_queue.hpp"
 #include "io/file_manager.hpp"
 #include "utils/log.hpp"
 
@@ -230,13 +229,6 @@ ShaderFilesManager::SharedShader ShaderFilesManager::loadShader
         glGetShaderInfoLog(*ss, info_length, NULL, error_message);
         Log::error("ShaderFilesManager", error_message);
         delete[] error_message;
-        if (UserConfigParams::m_artist_debug_mode)
-        {
-            core::stringw err = StringUtils::insertValues(L"Shader file %s"
-                " failed to compile, check stdout.log or console for details",
-                full_path.c_str());
-            MessageQueue::add(MessageQueue::MT_ERROR, err);
-        }
         return NULL;
     }
     glGetError();

@@ -20,6 +20,7 @@
 #define HEADER_PLAYER_CONTROLLER_HPP
 
 #include "karts/controller/controller.hpp"
+#include "utils/cpp2011.hpp"
 
 class AbstractKart;
 class Player;

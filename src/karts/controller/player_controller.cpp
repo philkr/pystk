@@ -20,7 +20,7 @@
 #include "karts/controller/player_controller.hpp"
 
 #include "config/user_config.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "items/attachment.hpp"
 #include "items/item.hpp"
 #include "items/powerup.hpp"
@@ -32,7 +32,6 @@
 #include "network/rewind_manager.hpp"
 #include "network/network_string.hpp"
 #include "race/history.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/translation.hpp"
@@ -236,7 +235,6 @@ bool PlayerController::action(PlayerAction action, int value, bool dry_run)
         }
         break;
     case PA_PAUSE_RACE:
-        if (value != 0) StateManager::get()->escapePressed();
         break;
     default:
        break;

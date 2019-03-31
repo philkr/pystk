@@ -461,17 +461,7 @@ void KartProperties::checkAllSet(const std::string &filename)
 // ----------------------------------------------------------------------------
 bool KartProperties::operator<(const KartProperties &other) const
 {
-    PlayerProfile *p = PlayerManager::getCurrentPlayer();
-    bool this_is_locked = p->isLocked(getIdent());
-    bool other_is_locked = p->isLocked(other.getIdent());
-    if (this_is_locked == other_is_locked)
-    {
-        return getName() < other.getName();
-    }
-    else
-        return other_is_locked;
-
-    return true;
+    return getName() < other.getName();
 }  // operator<
 
 // ----------------------------------------------------------------------------

@@ -26,7 +26,7 @@
 
 #include "items/swatter.hpp"
 
-#include "achievements/achievements_status.hpp"
+#include "config/stk_config.hpp"
 #include "config/player_manager.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/irr_driver.hpp"
@@ -340,18 +340,6 @@ void Swatter::squashThingsAround()
             int reset_ticks = (ctf->getTicksSinceStart() / 10) * 10 + 80;
             ctf->resetKartForSwatterHit(m_closest_kart->getWorldKartId(),
                 reset_ticks);
-        }
-        // Handle achievement if the swatter is used by the current player
-        if (m_kart->getController()->canGetAchievements())
-        {
-            PlayerManager::addKartHit(m_closest_kart->getWorldKartId());
-            PlayerManager::increaseAchievement(AchievementsStatus::SWATTER_HIT, 1);
-            PlayerManager::increaseAchievement(AchievementsStatus::ALL_HITS, 1);
-            if (race_manager->isLinearRaceMode())
-            {
-                PlayerManager::increaseAchievement(AchievementsStatus::SWATTER_HIT_1RACE, 1);
-                PlayerManager::increaseAchievement(AchievementsStatus::ALL_HITS_1RACE, 1);
-            }
         }
     }
 

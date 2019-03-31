@@ -171,8 +171,6 @@
 #include <IEventReceiver.h>
 
 #include "main_loop.hpp"
-#include "achievements/achievements_manager.hpp"
-#include "challenges/unlock_manager.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
 #include "config/player_profile.hpp"
@@ -189,13 +187,7 @@
 #include "graphics/referee.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/sp/sp_shader.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/event_handler.hpp"
-#include "guiengine/dialog_queue.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_manager.hpp"
-#include "input/keyboard_device.hpp"
-#include "input/wiimote_manager.hpp"
+#include "input/input.hpp"
 #include "io/file_manager.hpp"
 #include "items/attachment_manager.hpp"
 #include "items/item_manager.hpp"
@@ -206,23 +198,15 @@
 #include "karts/kart_model.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
-#include "modes/cutscene_world.hpp"
-#include "modes/demo_world.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "network/network_string.hpp"
 #include "network/rewind_manager.hpp"
 #include "network/rewind_queue.hpp"
-#include "race/grand_prix_manager.hpp"
 #include "race/highscore_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
 #include "replay/replay_play.hpp"
 #include "replay/replay_recorder.hpp"
-#include "states_screens/main_menu_screen.hpp"
-#include "states_screens/state_manager.hpp"
-#include "states_screens/options/user_screen.hpp"
-#include "states_screens/dialogs/init_android_dialog.hpp"
-#include "states_screens/dialogs/message_dialog.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_manager.hpp"
@@ -491,15 +475,6 @@ void setupRaceStart()
     // a current player
     PlayerManager::get()->enforceCurrentPlayer();
 
-    InputDevice *device;
-
-    // Use keyboard 0 by default in --no-start-screen
-    device = input_manager->getDeviceManager()->getKeyboard(0);
-
-    // Create player and associate player with keyboard
-    StateManager::get()->createActivePlayer(
-        PlayerManager::get()->getPlayer(0), device);
-
     if (!kart_properties_manager->getKart(UserConfigParams::m_default_kart))
     {
         Log::warn("main", "Kart '%s' is unknown so will use the "
@@ -514,10 +489,6 @@ void setupRaceStart()
         if (race_manager->getNumPlayers() > 0)
             race_manager->setPlayerKart(0, UserConfigParams::m_default_kart);
     }
-
-    // ASSIGN should make sure that only input from assigned devices
-    // is read.
-    input_manager->getDeviceManager()->setAssignMode(ASSIGN);
 }   // setupRaceStart
 
 // ----------------------------------------------------------------------------
@@ -731,9 +702,6 @@ int handleCmdLineOutputModifier()
  */
 int handleCmdLinePreliminary()
 {
-   if(CommandLine::has("--gamepad-visualisation") ||   // only BE
-       CommandLine::has("--gamepad-visualization")    ) // both AE and BE
-        UserConfigParams::m_gamepad_visualisation=true;
     if(CommandLine::has("--debug=memory"))
         UserConfigParams::m_verbosity |= UserConfigParams::LOG_MEMORY;
     if(CommandLine::has("--debug=addons"))
@@ -883,19 +851,6 @@ int handleCmdLinePreliminary()
     else if (CommandLine::has("--disable-hd-textures"))
         UserConfigParams::m_high_definition_textures = 2;
 
-    // Enable loading grand prix from local directory
-    if(CommandLine::has("--add-gp-dir", &s))
-    {
-        // Ensure that the path ends with a /
-        if (s[s.size()] == '/')
-            UserConfigParams::m_additional_gp_directory = s;
-        else
-            UserConfigParams::m_additional_gp_directory = s + "/";
-
-        Log::info("main", "Additional Grand Prix's will be loaded from %s",
-                           UserConfigParams::m_additional_gp_directory.c_str());
-    }
-
     int n;
     if(CommandLine::has("--xmas", &n))
         UserConfigParams::m_xmas_mode = n;
@@ -910,9 +865,6 @@ int handleCmdLinePreliminary()
     // mode to compute the distance matrix!!
     if(CommandLine::has("--dont-load-navmesh"))
         Track::m_dont_load_navmesh = true;
-
-    if (CommandLine::has("--no-sound"))
-        UserConfigParams::m_enable_sound = false;
 
     if (CommandLine::has("--seed", &n))
     {
@@ -935,92 +887,12 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
 
     irr::core::stringw login, password;
 
-    if (CommandLine::has("--unit-testing"))
-        UserConfigParams::m_unit_testing = true;
-    if (CommandLine::has("--gamepad-debug"))
-        UserConfigParams::m_gamepad_debug=true;
-    if (CommandLine::has("--keyboard-debug"))
-        UserConfigParams::m_keyboard_debug = true;
-    if (CommandLine::has("--wiimote-debug"))
-        UserConfigParams::m_wiimote_debug = true;
-    if(CommandLine::has("--tutorial-debug"))
-            UserConfigParams::m_tutorial_debug = true;
-    if(CommandLine::has( "--track-debug",&n))
-        UserConfigParams::m_track_debug=n;
-    if(CommandLine::has( "--track-debug"))
-        UserConfigParams::m_track_debug=1;
-    if(CommandLine::has("--material-debug"))
-        UserConfigParams::m_material_debug = true;
-    if(CommandLine::has("--ftl-debug"))
-        UserConfigParams::m_ftl_debug = true;
-    if(CommandLine::has("--slipstream-debug"))
-        UserConfigParams::m_slipstream_debug = true;
-    if(CommandLine::has("--rendering-debug"))
-        UserConfigParams::m_rendering_debug=true;
     if(CommandLine::has("--ai-debug"))
         AIBaseController::enableDebug();
     if(CommandLine::has("--test-ai", &n))
         AIBaseController::setTestAI(n);
-    if (CommandLine::has("--fps-debug"))
-        UserConfigParams::m_fps_debug = true;
     if (CommandLine::has("--rewind") )
         RewindManager::setEnable(true);
-    if(CommandLine::has("--soccer-ai-stats"))
-    {
-        UserConfigParams::m_arena_ai_stats=true;
-        race_manager->setMinorMode(RaceManager::MINOR_MODE_SOCCER);
-        std::vector<std::string> l;
-        for (int i = 0; i < 8; i++)
-            l.push_back("tux");
-        race_manager->setDefaultAIKartList(l);
-        race_manager->setNumKarts(9);
-        race_manager->setMaxGoal(30);
-        race_manager->setTrack("soccer_field");
-        race_manager->setDifficulty(RaceManager::Difficulty(3));
-        UserConfigParams::m_no_start_screen = true;
-        UserConfigParams::m_race_now = true;
-    }
-    if(CommandLine::has("--battle-ai-stats"))
-    {
-        std::string track;
-        if (!CommandLine::has("--track", &track))
-            track = "temple";
-        UserConfigParams::m_arena_ai_stats=true;
-        race_manager->setMinorMode(RaceManager::MINOR_MODE_3_STRIKES);
-        std::vector<std::string> l;
-        for (int i = 0; i < 8; i++)
-            l.push_back("tux");
-        race_manager->setDefaultAIKartList(l);
-        race_manager->setTrack(track);
-        race_manager->setNumKarts(8);
-        race_manager->setDifficulty(RaceManager::Difficulty(3));
-        UserConfigParams::m_no_start_screen = true;
-        UserConfigParams::m_race_now = true;
-    }
-
-    if (UserConfigParams::m_artist_debug_mode)
-    {
-        if (CommandLine::has("--camera-wheel-debug"))
-        {
-            Camera::setDefaultCameraType(Camera::CM_TYPE_DEBUG);
-            CameraDebug::setDebugType(CameraDebug::CM_DEBUG_GROUND);
-        }
-        if(CommandLine::has("--camera-debug"))
-        {
-            Camera::setDefaultCameraType(Camera::CM_TYPE_DEBUG);
-            CameraDebug::setDebugType(CameraDebug::CM_DEBUG_TOP_OF_KART);
-        }
-        if(CommandLine::has("--camera-kart-debug"))
-        {
-            Camera::setDefaultCameraType(Camera::CM_TYPE_DEBUG);
-            CameraDebug::setDebugType(CameraDebug::CM_DEBUG_BEHIND_KART);
-        }
-        if(CommandLine::has("--physics-debug"))
-            UserConfigParams::m_physics_debug=1;
-        if(CommandLine::has("--check-debug"))
-            UserConfigParams::m_check_debug=true;
-    }
-
     if (CommandLine::has( "--difficulty", &s))
     {
         int n = atoi(s.c_str());
@@ -1108,10 +980,7 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
             // if a player was added with -N, change its kart.
             // Otherwise, nothing to do, kart choice will be picked
             // up upon player creation.
-            if (StateManager::get()->activePlayerCount() > 0)
-            {
-                race_manager->setPlayerKart(0, s);
-            }
+            race_manager->setPlayerKart(0, s);
             Log::verbose("main", "You chose to use kart '%s'.",
                          s.c_str());
         }
@@ -1168,31 +1037,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         }
     }   // --track
 
-    // used only for debugging/testing
-    if (CommandLine::has("--cutscene", &s))
-    {
-        UserConfigParams::m_no_start_screen = true; // Purple menu background otherwise
-        race_manager->setTrack(s);
-        StateManager::get()->enterGameState();
-        race_manager->setMinorMode(RaceManager::MINOR_MODE_CUTSCENE);
-        race_manager->setNumKarts(0);
-        race_manager->setNumPlayers(0);
-        race_manager->setNumLaps(999);
-    } // --cutscene
-
-    if(CommandLine::has("--gp", &s))
-    {
-        race_manager->setMajorMode(RaceManager::MAJOR_MODE_GRAND_PRIX);
-        const GrandPrixData *gp = grand_prix_manager->getGrandPrix(s);
-
-        if (!gp)
-        {
-            Log::warn("main", "There is no GP named '%s'.", s.c_str());
-            return 0;
-        }
-        race_manager->setGrandPrix(*gp);
-    }   // --gp
-
     if(CommandLine::has("--numkarts", &n) ||CommandLine::has("-k", &n))
     {
         UserConfigParams::m_default_num_karts = n;
@@ -1207,14 +1051,7 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
                      (int)UserConfigParams::m_default_num_karts);
     }   // --numkarts
 
-    if(CommandLine::has( "--no-start-screen") ||
-        CommandLine::has("-N")                   )
-        UserConfigParams::m_no_start_screen = true;
-    if(CommandLine::has("--race-now") || CommandLine::has("-R"))
-    {
-        UserConfigParams::m_no_start_screen = true;
-        UserConfigParams::m_race_now = true;
-    }   // --race-now
+    UserConfigParams::m_race_now = true;
 
     if(CommandLine::has("--laps", &s))
     {
@@ -1230,84 +1067,11 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
             race_manager->setNumLaps(laps);
         }
     }   // --laps
-
-    if(CommandLine::has("--profile-laps",  &n))
-    {
-        if (n < 0)
-        {
-            Log::error("main", "Invalid number of profile-laps: %i.", n );
-            return 0;
-        }
-        else
-        {
-            Log::verbose("main", "Profiling %d laps.",n);
-            UserConfigParams::m_no_start_screen = true;
-            ProfileWorld::setProfileModeLaps(n);
-            race_manager->setNumLaps(n);
-        }
-    }   // --profile-laps
     
-    if(CommandLine::has("--unlock-all"))
-    {
-        UserConfigParams::m_unlock_everything = 2;
-    } // --unlock-all
-    
-    if(CommandLine::has("--no-unlock-all"))
-    {
-        UserConfigParams::m_unlock_everything = 0;
-    } // --no-unlock-all
-    
-    if(CommandLine::has("--profile-time",  &n))
-    {
-        Log::verbose("main", "Profiling: %d seconds.", n);
-        UserConfigParams::m_no_start_screen = true;
-        ProfileWorld::setProfileModeTime((float)n);
-        race_manager->setNumLaps(999999); // profile end depends on time
-    }   // --profile-time
-
     if(CommandLine::has("--history"))
     {
         history->setReplayHistory(true);
-        // Force the no-start screen flag, since this initialises
-        // the player structures correctly.
-        if (!History::m_online_history_replay)
-            UserConfigParams::m_no_start_screen = true;
     }   // --history
-
-    // Demo mode
-    if(CommandLine::has("--demo-mode", &s))
-    {
-        float t = 0;
-        StringUtils::fromString(s, t);
-        DemoWorld::enableDemoMode(t);
-        // The default number of laps is taken from ProfileWorld and
-        // is 0. So set a more useful default for demo mode.
-        DemoWorld::setNumLaps(2);
-    }   // --demo-mode
-
-    if(CommandLine::has("--demo-laps", &n))
-    {
-        // Note that we use a separate setting for demo mode to avoid the
-        // problem that someone plays a game, and in further demos then
-        // the wrong (i.e. last selected) number of laps would be used
-        DemoWorld::setNumLaps(n);
-    }   // --demo-laps
-
-    if(CommandLine::has("--demo-karts", &n))
-    {
-        // Note that we use a separate setting for demo mode to avoid the
-        // problem that someone plays a game, and in further demos then
-        // the wrong (i.e. last selected) number of karts would be used
-        DemoWorld::setNumKarts(n);
-    }   // --demo-karts
-
-    if(CommandLine::has("--demo-tracks", &s))
-        DemoWorld::setTracks(StringUtils::split(s,','));
-
-#ifdef ENABLE_WIIUSE
-    if(CommandLine::has("--wii"))
-        WiimoteManager::enable();
-#endif
 
 #ifdef __APPLE__
     // on OS X, sometimes the Finder will pass a -psn* something parameter
@@ -1332,16 +1096,6 @@ void initUserConfig()
     // depend on artist debug flag). So init the rest of the file manager
     // after reading the user config file.
     file_manager->init();
-    if (UserConfigParams::m_language.toString() != "system")
-    {
-#ifdef WIN32
-        std::string s=std::string("LANGUAGE=")
-                     +UserConfigParams::m_language.c_str();
-        _putenv(s.c_str());
-#else
-        setenv("LANGUAGE", UserConfigParams::m_language.c_str(), 1);
-#endif
-    }
 
     translations            = new Translations();   // needs file_manager
     stk_config              = new STKConfig();      // in case of --stk-config
@@ -1368,15 +1122,8 @@ void initRest()
     IrrlichtDevice* device = irr_driver->getDevice();
     video::IVideoDriver* driver = device->getVideoDriver();
 
-    if (UserConfigParams::m_gamepad_visualisation)
-    {
-        gamepadVisualisation();
-        exit(0);
-    }
-
     font_manager = new FontManager();
     font_manager->loadFonts();
-    GUIEngine::init(device, driver, StateManager::get());
 
     // The request manager will start the login process in case of a saved
     // session, so we need to read the main data from the players.xml file.
@@ -1412,21 +1159,10 @@ void initRest()
 
     track_manager->loadTrackList();
 
-    GUIEngine::addLoadingIcon(irr_driver->getTexture(FileManager::GUI_ICON,
-                                                     "notes.png"      ) );
-
-    grand_prix_manager      = new GrandPrixManager     ();
-    // Consistency check for challenges, and enable all challenges
-    // that have all prerequisites fulfilled
-    grand_prix_manager->checkConsistency();
-    GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                      "cup_gold.png"    ) );
-
     race_manager            = new RaceManager          ();
     // default settings for Quickstart
     race_manager->setNumPlayers(1);
     race_manager->setNumLaps   (3);
-    race_manager->setMajorMode (RaceManager::MAJOR_MODE_SINGLE);
     race_manager->setMinorMode (RaceManager::MINOR_MODE_NORMAL_RACE);
     race_manager->setDifficulty(
                  (RaceManager::Difficulty)(int)UserConfigParams::m_difficulty);
@@ -1508,11 +1244,6 @@ int main(int argc, char *argv[] )
         if (CommandLine::has("--stdout-dir", &s))
             FileManager::setStdoutDir(s);
 
-#ifndef SERVER_ONLY
-        if(CommandLine::has("--no-graphics") || CommandLine::has("-l"))
-#endif
-            ProfileWorld::disableGraphics();
-
         // Init the minimum managers so that user config exists, then
         // handle all command line options that do not need (or must
         // not have) other managers initialised:
@@ -1524,18 +1255,9 @@ int main(int argc, char *argv[] )
 
         stk_config->load(file_manager->getAsset("stk_config.xml"));
 
-        if (!ProfileWorld::isNoGraphics())
-            profiler.init();
+        profiler.init();
         initRest();
 
-        input_manager = new InputManager ();
-
-#ifdef ENABLE_WIIUSE
-        wiimote_manager = new WiimoteManager();
-#endif
-
-        // Get into menu mode initially.
-        input_manager->setMode(InputManager::MENU);
         int parent_pid;
         bool has_parent_process = false;
         if (CommandLine::has("--parent-process", &parent_pid))
@@ -1550,25 +1272,15 @@ int main(int argc, char *argv[] )
         // Preload the explosion effects (explode.png)
         ParticleKindManager::get()->getParticles("explosion.xml");
 
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "options_video.png"));
         kart_properties_manager -> loadAllKarts    ();
         handleXmasMode();
         handleEasterEarMode();
-
-        // Needs the kart and track directories to load potential challenges
-        // in those dirs, so it can only be created after reading tracks
-        // and karts.
-        unlock_manager = new UnlockManager();
-        AchievementsManager::create();
 
         // Reading the rest of the player data needs the unlock manager to
         // initialise the game slots of all players and the AchievementsManager
         // to initialise the AchievementsStatus, so it is done only now.
         PlayerManager::get()->initRemainingData();
 
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "gui_lock.png"  ) );
         projectile_manager->loadData();
 
         // Both item_manager and powerup_manager load models and therefore
@@ -1590,124 +1302,14 @@ int main(int argc, char *argv[] )
         powerup_manager->loadPowerupsModels();
         ItemManager::loadDefaultItemMeshes();
 
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "gift.png")       );
-
         attachment_manager->loadModels();
         file_manager->popTextureSearchPath();
-
-        GUIEngine::addLoadingIcon( irr_driver->getTexture(FileManager::GUI_ICON,
-                                                          "banana.png")    );
 
         //handleCmdLine() needs InitTuxkart() so it can't be called first
         if (!handleCmdLine(!server_config.empty(), has_parent_process))
             exit(0);
 
-        if(UserConfigParams::m_unit_testing)
-        {
-            runUnitTests();
-            exit(0);
-        }
-
-#ifndef SERVER_ONLY
-        if (!ProfileWorld::isNoGraphics())
-        {
-            // Some Android devices have only 320x240 and height >= 480 is bare
-            // minimum to make the GUI working as expected.
-            if (irr_driver->getActualScreenSize().Height < 480)
-            {
-                if (UserConfigParams::m_old_driver_popup)
-                {
-                    MessageDialog *dialog =
-                        new MessageDialog(_("Your screen resolution is too "
-                                            "low to run STK."),
-                                            /*from queue*/ true);
-                    GUIEngine::DialogQueue::get()->pushDialog(dialog);
-                }
-                Log::warn("main", "Screen size is too small!");
-            }
-            
-            #ifdef ANDROID
-            if (UserConfigParams::m_multitouch_controls == MULTITOUCH_CONTROLS_UNDEFINED)
-            {
-                int32_t touch = AConfiguration_getTouchscreen(
-                                                    global_android_app->config);
-                
-                if (touch != ACONFIGURATION_TOUCHSCREEN_NOTOUCH)
-                {
-                    InitAndroidDialog* init_android = new InitAndroidDialog(
-                                                                    0.6f, 0.6f);
-                    GUIEngine::DialogQueue::get()->pushDialog(init_android);
-                }
-            }
-            #endif
-
-            if (GraphicsRestrictions::isDisabled(
-                GraphicsRestrictions::GR_DRIVER_RECENT_ENOUGH))
-            {
-                if (UserConfigParams::m_old_driver_popup)
-                {
-                    MessageDialog *dialog =
-                        new MessageDialog(_("Your driver version is too old. "
-                                            "Please install the latest video "
-                                            "drivers."), /*from queue*/ true);
-                    GUIEngine::DialogQueue::get()->pushDialog(dialog);
-                }
-                Log::warn("OpenGL", "Driver is too old!");
-            }
-            else if (!CVS->isGLSL())
-            {
-                #if !defined(ANDROID)
-                if (UserConfigParams::m_old_driver_popup)
-                {
-                    #ifdef USE_GLES2
-                    irr::core::stringw version = "OpenGL ES 3.0";
-                    #else
-                    irr::core::stringw version = "OpenGL 3.3";
-                    #endif
-                    MessageDialog *dialog =
-                        new MessageDialog(_("Your OpenGL version appears to be "
-                                            "too old. Please verify if an "
-                                            "update for your video driver is "
-                                            "available. SuperTuxKart requires "
-                                            "%s or better.", version), 
-                                            /*from queue*/ true);
-                    GUIEngine::DialogQueue::get()->pushDialog(dialog);
-                }
-                #endif
-                Log::warn("OpenGL", "OpenGL version is too old!");
-            }
-
-        }
-#endif
-
-        if (!UserConfigParams::m_no_start_screen)
-        {
-            if (UserConfigParams::m_enforce_current_player)
-            {
-                PlayerManager::get()->enforceCurrentPlayer();
-            }
-
-            // If there is a current player, it was saved in the config file,
-            // so we immediately start the main menu (unless it was requested
-            // to always show the login screen). Otherwise show the login
-            // screen first.
-            if(PlayerManager::getCurrentPlayer() && !
-                UserConfigParams::m_always_show_login_screen)
-            {
-                MainMenuScreen::getInstance()->push();
-            }
-            else
-            {
-                UserScreen::getInstance()->push();
-            }
-        }
-        else
-        {
-            setupRaceStart();
-            // Go straight to the race
-            StateManager::get()->enterGameState();
-        }
+        setupRaceStart();
 
         // Replay a race
         // =============
@@ -1718,34 +1320,19 @@ int main(int argc, char *argv[] )
             if (!History::m_online_history_replay)
             {
                 race_manager->setupPlayerKartInfo();
-                race_manager->startNew(false);
+                race_manager->startNew();
                 main_loop->run();
                 // The run() function will only return if the user aborts.
                 Log::flushBuffers();
                 exit(-3);
             }   // if !online
         }
-
-        // Not replaying
-        // =============
-        if(!ProfileWorld::isProfileMode())
         {
-            if(UserConfigParams::m_no_start_screen)
-            {
-                // Quickstart (-N)
-                // ===============
-                // all defaults are set in InitTuxkart()
-                race_manager->setupPlayerKartInfo();
-                race_manager->startNew(false);
-            }
-        }
-        else  // profile
-        {
-            // Profiling
-            // =========
-            race_manager->setMajorMode (RaceManager::MAJOR_MODE_SINGLE);
+            // Quickstart (-N)
+            // ===============
+            // all defaults are set in InitTuxkart()
             race_manager->setupPlayerKartInfo();
-            race_manager->startNew(false);
+            race_manager->startNew();
         }
         main_loop->run();
 
@@ -1764,15 +1351,6 @@ int main(int argc, char *argv[] )
     if(wiimote_manager)
         delete wiimote_manager;
 #endif
-
-    // If the window was closed in the middle of a race, remove players,
-    // so we don't crash later when StateManager tries to access input devices.
-    StateManager::get()->resetActivePlayers();
-    if (input_manager)
-    {
-        delete input_manager;
-        input_manager = NULL;
-    }
 
     cleanSuperTuxKart();
 
@@ -1821,10 +1399,8 @@ static void cleanSuperTuxKart()
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
     irr_driver->updateConfigIfRelevant();
-    AchievementsManager::destroy();
     Referee::cleanup();
     if(race_manager)            delete race_manager;
-    if(grand_prix_manager)      delete grand_prix_manager;
     if(highscore_manager)       delete highscore_manager;
     if(attachment_manager)      delete attachment_manager;
     ItemManager::removeTextures();
@@ -1838,11 +1414,6 @@ static void cleanSuperTuxKart()
     ReplayRecorder::destroy();
     delete ParticleKindManager::get();
     PlayerManager::destroy();
-    if(unlock_manager)          delete unlock_manager;
-    GUIEngine::DialogQueue::deallocate();
-    GUIEngine::clear();
-    GUIEngine::cleanUp();
-    GUIEngine::clearScreenCache();
     if(font_manager)            delete font_manager;
 
     // Now finish shutting down objects which a separate thread. The
@@ -1856,9 +1427,6 @@ static void cleanSuperTuxKart()
     // in the request manager, so it can not be deleted earlier.
 
     cleanUserConfig();
-
-    StateManager::deallocate();
-    GUIEngine::EventHandler::deallocate();
 }   // cleanSuperTuxKart
 
 //=============================================================================

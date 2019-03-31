@@ -20,7 +20,6 @@
 #define HEADER_GHOST_CONTROLLER_HPP
 
 #include "karts/controller/controller.hpp"
-#include "states_screens/state_manager.hpp"
 
 #include <vector>
 

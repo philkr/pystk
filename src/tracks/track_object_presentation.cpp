@@ -18,7 +18,6 @@
 
 #include "tracks/track_object_presentation.hpp"
 
-#include "challenges/unlock_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/central_settings.hpp"
@@ -31,15 +30,12 @@
 #include "graphics/sp/sp_shader_manager.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
-#include "input/device_manager.hpp"
-#include "input/input_device.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "items/item_manager.hpp"
 #include "karts/abstract_kart.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "modes/world.hpp"
 #include "scriptengine/script_engine.hpp"
-#include "states_screens/dialogs/tutorial_message_dialog.hpp"
 #include "tracks/check_cylinder.hpp"
 #include "tracks/check_manager.hpp"
 #include "tracks/check_sphere.hpp"
@@ -421,8 +417,7 @@ TrackObjectPresentationMesh::TrackObjectPresentationMesh(
         m_is_in_skybox = true;
     }
 
-    bool animated = skeletal_animation && (UserConfigParams::m_animated_characters ||
-                     World::getWorld()->getIdent() == IDENT_CUTSCENE);
+    bool animated = skeletal_animation && UserConfigParams::m_animated_characters;
     bool displacing = false;
     xml_node.get("displacing", &displacing);
     animated &= !displacing;
@@ -470,8 +465,7 @@ TrackObjectPresentationMesh::TrackObjectPresentationMesh(
     m_node         = NULL;
     m_is_in_skybox = false;
     m_render_info  = NULL;
-    bool animated  = (UserConfigParams::m_particles_effects > 1 ||
-                      World::getWorld()->getIdent() == IDENT_CUTSCENE);
+    bool animated  = UserConfigParams::m_particles_effects > 1;
 
     m_model_file = model_file;
     file_manager->pushTextureSearchPath(StringUtils::getPath(model_file), "");
@@ -507,8 +501,7 @@ void TrackObjectPresentationMesh::init(const XMLNode* xml_node,
     if(xml_node)
         xml_node->get("skeletal-animation", &skeletal_animation);
 
-    bool animated = skeletal_animation && (UserConfigParams::m_particles_effects > 1 ||
-             World::getWorld()->getIdent() == IDENT_CUTSCENE);
+    bool animated = skeletal_animation && UserConfigParams::m_particles_effects > 1;
     bool displacing = false;
     std::string interaction;
     if (xml_node)
@@ -767,7 +760,6 @@ TrackObjectPresentationBillboard::TrackObjectPresentationBillboard(
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationBillboard::updateGraphics(float dt)
 {
-    if (ProfileWorld::isNoGraphics()) return;
 #ifndef SERVER_ONLY
     if (m_fade_out_when_close)
     {

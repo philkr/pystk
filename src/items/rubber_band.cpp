@@ -18,6 +18,7 @@
 
 #include "items/rubber_band.hpp"
 
+#include "config/stk_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
@@ -28,7 +29,7 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/max_speed.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "physics/physics.hpp"
 #include "race/race_manager.hpp"
 #include "utils/mini_glm.hpp"
@@ -50,7 +51,7 @@ RubberBand::RubberBand(Plunger *plunger, AbstractKart *kart)
     updatePosition();
 
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics() || !CVS->isGLSL())
+    if (!CVS->isGLSL())
     {
         return;
     }

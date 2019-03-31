@@ -31,7 +31,6 @@
 #include <string>
 
 #include "network/remote_kart_info.hpp"
-#include "race/grand_prix_data.hpp"
 #include "utils/translation.hpp"
 #include "utils/vec3.hpp"
 
@@ -49,8 +48,6 @@ static const std::string IDENT_CTF      ("BATTLE_CTF"      );
 static const std::string IDENT_EASTER   ("EASTER_EGG_HUNT" );
 static const std::string IDENT_SOCCER   ("SOCCER"          );
 static const std::string IDENT_GHOST    ("GHOST"           );
-static const std::string IDENT_OVERWORLD("OVERWORLD"       );
-static const std::string IDENT_CUTSCENE ("CUTSCENE"        );
 
 /**
  * The race manager has two functions:
@@ -86,14 +83,6 @@ static const std::string IDENT_CUTSCENE ("CUTSCENE"        );
 class RaceManager
 {
 public:
-    /** The major types or races supported in STK
-    */
-    enum MajorRaceModeType
-    {
-        MAJOR_MODE_GRAND_PRIX = 0,
-        MAJOR_MODE_SINGLE
-    };
-
     // quick method to tell the difference between battle modes and race modes
     // think of it like a bitmask, but done in decimal to avoid endianness
     // issues
@@ -119,10 +108,6 @@ public:
         MINOR_MODE_SOCCER           = BATTLE_ARENA(3),
 
         MINOR_MODE_EASTER_EGG       = EASTER_EGG(0),
-
-        MINOR_MODE_OVERWORLD        = MISC(0),
-        MINOR_MODE_TUTORIAL         = MISC(1),
-        MINOR_MODE_CUTSCENE         = MISC(2)
     };
 
     // ------------------------------------------------------------------------
@@ -259,12 +244,8 @@ public:
     /** Different kart types: A local player, a player connected via network,
      *  an AI kart, the leader kart (currently not used), a ghost kart and
      *  spare tire karts which allow gain life in battle mode */
-    enum KartType       { KT_PLAYER, KT_NETWORK_PLAYER, KT_AI, KT_LEADER,
+    enum KartType       { KT_PLAYER, KT_AI, KT_LEADER,
                           KT_GHOST, KT_SPARE_TIRE };
-private:
-
-    bool m_started_from_overworld;
-
 public:
 
     /** This data structure accumulates kart data and race result data from
@@ -318,24 +299,21 @@ private:
     /** The selected difficulty. */
     Difficulty                       m_difficulty;
 
-    /** The major mode (single race, GP). */
-    MajorRaceModeType                m_major_mode;
-
     /** The minor mode (race, time trial, ftl, battle mode). */
     MinorRaceModeType                m_minor_mode;
     /** Stores remote kart information about all player karts. */
     std::vector<RemoteKartInfo>      m_player_karts;
-    std::vector<std::string>         m_tracks;
+    std::string                      m_track;
 
     /** Number of local players. */
     unsigned int m_num_local_players;
 
     /** The number of laps for each track of a GP (only one element
      *  is used if only a single track is used. */
-    std::vector<int>                 m_num_laps;
+   int                               m_num_laps;
 
     /** Whether a track should be reversed */
-    std::vector<bool>                m_reverse_track;
+    bool                             m_reverse_track;
 
     /** The list of default AI karts to use. This is from the command line. */
     std::vector<std::string>         m_default_ai_list;
@@ -348,9 +326,6 @@ private:
     /** The list of AI karts to use. This is stored here so that the
      *  same list of AIs is used for all tracks of a GP. */
     std::vector<std::string>         m_ai_kart_list;
-    int                              m_track_number;
-    GrandPrixData                    m_grand_prix;
-    SavedGrandPrix*                  m_saved_gp;
     int                              m_num_karts;
     unsigned int                     m_num_ghost_karts;
     unsigned int                     m_num_spare_tire_karts;
@@ -369,12 +344,6 @@ private:
             (left.m_score == right.m_score &&
              left.m_overall_time > right.m_overall_time);
     }
-
-    bool m_have_kart_last_position_on_overworld;
-    Vec3 m_kart_last_position_on_overworld;
-
-    /** Determines if saved GP should be continued or not*/
-    bool m_continue_saved_gp;
 
     bool m_is_recording_race;
 
@@ -403,37 +372,16 @@ public:
      */
     void setTrack(const std::string& track);
 
-    /** \brief Returns the kart with a given GP rank (or NULL if no such
-     *  kart exists).
-     *  \param n Rank (0<=n<num_karts) to look for.
-     */
-    const AbstractKart* getKartWithGPRank(unsigned int n);
-
-    /** \return the GP rank of a local player, or -1 if the given player ID
-     *  doesn't exist */
-    int getLocalPlayerGPRank(const int playerID) const;
-
-
-    /** Sort karts and update the m_gp_rank KartStatus member, in preparation
-      * for future calls to RaceManager::getKartGPRank or
-      *  RaceManager::getKartWithGPRank
-      */
-    void computeGPRanks();
-
     /** \brief Sets the difficulty.
       * \param diff Difficulty.
       */
     void setDifficulty(Difficulty diff);
     static Difficulty convertDifficulty(const std::string &difficulty);
-    void startNew(bool from_overworld);
+    void startNew();
     void next();
     void rerunRace();
     void exitRace(bool delete_world=true);
-    void startGP(const GrandPrixData &gp, bool from_overworld,
-                 bool continue_saved_gp);
-    void saveGP();
-    void startSingleRace(const std::string &track_ident, const int num_laps,
-                          bool from_overworld);
+    void startSingleRace(const std::string &track_ident, const int num_laps);
     void startWatchingReplay(const std::string &track_ident, const int num_laps);
     void setupPlayerKartInfo();
     void kartFinishedRace(const AbstractKart* kart, float time);
@@ -454,12 +402,6 @@ public:
     // ------------------------------------------------------------------------
     void setCoinTarget(int num)   { m_coin_target = num; }
     // ------------------------------------------------------------------------
-    void setGrandPrix(const GrandPrixData &gp)
-    {
-        m_grand_prix = gp;
-        setCoinTarget(0);
-    }   // setGrandPrix
-    // ------------------------------------------------------------------------
     void setAIKartOverride(const std::string& kart)
     {
         m_ai_kart_override = kart;
@@ -474,17 +416,13 @@ public:
     // ------------------------------------------------------------------------
     void setNumLaps(int num)
     {
-        m_num_laps.clear();
-        m_num_laps.push_back(num);
+        m_num_laps = num;
     }   // setNumLaps
     // ------------------------------------------------------------------------
     void setReverseTrack(bool r_t)
     {
-        m_reverse_track.clear();
-        m_reverse_track.push_back(r_t);
+        m_reverse_track = r_t;
     }   // setReverseTrack
-    // ------------------------------------------------------------------------
-    void setMajorMode(MajorRaceModeType mode) { m_major_mode = mode; }
     // ------------------------------------------------------------------------
     void setMinorMode(MinorRaceModeType mode)
     {
@@ -539,8 +477,6 @@ public:
     unsigned int getNumNonGhostKarts() const
                                     { return m_num_karts - m_num_ghost_karts; }
     // ------------------------------------------------------------------------
-    MajorRaceModeType getMajorMode() const { return m_major_mode; }
-    // ------------------------------------------------------------------------
     MinorRaceModeType getMinorMode() const { return m_minor_mode; }
     // ------------------------------------------------------------------------
     std::string getMinorModeName() const
@@ -573,13 +509,13 @@ public:
     int getNumLaps() const
     {
         if(modeHasLaps())
-            return m_num_laps[m_track_number];
+            return m_num_laps;
         // else
         return 9999;
     }   // getNumLaps
     // ------------------------------------------------------------------------
     /** \return whether the track should be reversed */
-    bool getReverseTrack() const { return m_reverse_track[m_track_number]; }
+    bool getReverseTrack() const { return m_reverse_track; }
     // ------------------------------------------------------------------------
     /** Returns the difficulty. */
     Difficulty getDifficulty() const { return m_difficulty; }
@@ -613,18 +549,9 @@ public:
         return "";
     }   // getDifficultyName
     // ------------------------------------------------------------------------
-    const std::string& getTrackName() const { return m_tracks[m_track_number];}
-    // ------------------------------------------------------------------------
-    const GrandPrixData& getGrandPrix() const { return m_grand_prix; }
-    // ------------------------------------------------------------------------
     unsigned int getFinishedKarts() const { return m_num_finished_karts; }
     // ------------------------------------------------------------------------
     unsigned int getFinishedPlayers() const { return m_num_finished_players; }
-    // ------------------------------------------------------------------------
-    int getKartGPRank(const int kart_id)const
-    {
-        return m_kart_status[kart_id].m_gp_rank;
-    }   // getKartGPRank
     // ------------------------------------------------------------------------
     const std::string& getKartIdent(int kart) const
     {
@@ -677,9 +604,8 @@ public:
     // ------------------------------------------------------------------------
     float getTimeTarget() const { return m_time_target; }
     // ------------------------------------------------------------------------
-    int getTrackNumber() const { return m_track_number; }
-    // ------------------------------------------------------------------------
-    int getNumOfTracks() const { return (int)m_tracks.size(); }
+    int getNumOfTracks() const { return 1; }
+    const std::string & getTrackName() const { return m_track; }
     // ------------------------------------------------------------------------
     /** Returns the list of AI karts to use. Used for networking, and for
     *  the --ai= command line option. */
@@ -734,12 +660,6 @@ public:
     }   // isSoccerMode
 
     // ------------------------------------------------------------------------
-    bool isTutorialMode() const
-    {
-        return m_minor_mode == MINOR_MODE_TUTORIAL;
-    }   // isTutorialMode
-
-    // ------------------------------------------------------------------------
     bool isFollowMode() const
     {
         return m_minor_mode == MINOR_MODE_FOLLOW_LEADER;
@@ -788,12 +708,6 @@ public:
                m_minor_mode != MINOR_MODE_FOLLOW_LEADER;
     }   // modeHasHighscore
     // ------------------------------------------------------------------------
-    bool raceWasStartedFromOverworld() const
-    {
-        return m_started_from_overworld;
-    }   // raceWasStartedFromOverworld
-
-    // ------------------------------------------------------------------------
     /** \name Callbacks from the race classes
      * These methods are to be used by the classes that manage the various
      *  races, to let the race manager know about current status
@@ -810,27 +724,6 @@ public:
     {
         m_ai_kart_list = rkl;
     }   // setAIKartList
-    // ------------------------------------------------------------------------
-    bool haveKartLastPositionOnOverworld()
-    {
-        return m_have_kart_last_position_on_overworld;
-    }   // haveKartLastPositionOnOverworld
-    // ------------------------------------------------------------------------
-    void setKartLastPositionOnOverworld(const Vec3 &pos)
-    {
-        m_have_kart_last_position_on_overworld = true;
-        m_kart_last_position_on_overworld = pos;
-    }   // setKartLastPositionOnOverworld
-    // ------------------------------------------------------------------------
-    void clearKartLastPositionOnOverworld()
-    {
-        m_have_kart_last_position_on_overworld = false;
-    }   // clearKartLastPositionOnOverworld
-    // ------------------------------------------------------------------------
-    Vec3 getKartLastPositionOnOverworld()
-    {
-        return m_kart_last_position_on_overworld;
-    }   // getKartLastPositionOnOverworld
     // ------------------------------------------------------------------------
     void setRecordRace(bool record)
     {
@@ -881,8 +774,6 @@ public:
     }   // getNumSpareTireKarts
     // ------------------------------------------------------------------------
     void configGrandPrixResultFromNetwork(NetworkString& ns);
-    // ------------------------------------------------------------------------
-    void clearNetworkGrandPrixResult();
     // ------------------------------------------------------------------------
     void setHitCaptureTime(int hc, float time)
     {

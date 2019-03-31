@@ -80,7 +80,7 @@ public:
                const core::vector3df& scale = core::vector3df(1, 1, 1),
                std::shared_ptr<RenderInfo> render_info = nullptr);
     // ------------------------------------------------------------------------
-    ~SPMeshNode();
+    virtual ~SPMeshNode();
     // ------------------------------------------------------------------------
     virtual void render() {}
     // ------------------------------------------------------------------------

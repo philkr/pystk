@@ -19,6 +19,7 @@
 
 #include "items/item.hpp"
 
+#include "config/stk_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/lod_node.hpp"
 #include "graphics/render_info.hpp"

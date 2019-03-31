@@ -17,8 +17,6 @@
 
 #include "graphics/abstract_renderer.hpp"
 #include "graphics/irr_driver.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/scalable_font.hpp"
 
 using namespace irr;
 
@@ -185,11 +183,6 @@ void AbstractRenderer::drawJoint(bool drawline, bool drawname,
         core::vector2di textpos =
             irr_driver->getSceneManager()->getSceneCollisionManager()
             ->getScreenCoordinatesFrom3DPosition(jointpos);
-
-        GUIEngine::getSmallFont()->draw( core::stringw(joint->Name.c_str()),
-                                         core::rect<s32>(textpos,
-                                               core::dimension2d<s32>(500,50)),
-                                         color, false, false );
     }
 } //drawJoint
 

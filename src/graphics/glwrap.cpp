@@ -221,45 +221,9 @@ void initGL()
 
 ScopedGPUTimer::ScopedGPUTimer(GPUTimer &t) : timer(t)
 {
-#ifndef ANDROID
-    if (SP::sp_apitrace)
-    {
-        std::string msg = timer.getName();
-        msg += " begin";
-        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 100,
-            GL_DEBUG_SEVERITY_NOTIFICATION, -1, msg.c_str());
-    }
-#endif
-    if (!UserConfigParams::m_profiler_enabled) return;
-    if (profiler.isFrozen()) return;
-    if (!timer.canSubmitQuery) return;
-#ifdef GL_TIME_ELAPSED
-    if (!timer.initialised)
-    {
-        glGenQueries(1, &timer.query);
-        timer.initialised = true;
-    }
-    glBeginQuery(GL_TIME_ELAPSED, timer.query);
-#endif
 }
 ScopedGPUTimer::~ScopedGPUTimer()
 {
-#ifndef ANDROID
-    if (SP::sp_apitrace)
-    {
-        std::string msg = timer.getName();
-        msg += " end";
-        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_MARKER, 100,
-            GL_DEBUG_SEVERITY_NOTIFICATION, -1, msg.c_str());
-    }
-#endif
-    if (!UserConfigParams::m_profiler_enabled) return;
-    if (profiler.isFrozen()) return;
-    if (!timer.canSubmitQuery) return;
-#ifdef GL_TIME_ELAPSED
-    glEndQuery(GL_TIME_ELAPSED);
-    timer.canSubmitQuery = false;
-#endif
 }
 
 GPUTimer::GPUTimer(const char* name)

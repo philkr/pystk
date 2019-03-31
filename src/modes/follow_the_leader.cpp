@@ -17,13 +17,12 @@
 
 #include "modes/follow_the_leader.hpp"
 
-#include "challenges/unlock_manager.hpp"
+#include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "items/powerup_manager.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "tracks/track.hpp"
 #include "utils/translation.hpp"
 
@@ -142,11 +141,6 @@ void FollowTheLeaderRace::countdownReachedZero()
     }  //
     else
     {
-        if(UserConfigParams::m_ftl_debug)
-        {
-            Log::debug("[FTL", "Eliminiating kart '%s' at position %d.",
-                kart->getIdent().c_str(), position_to_remove);
-        }
         eliminateKart(kart->getWorldKartId());
 
         // In case that the kart on position 1 was removed, we have
@@ -204,7 +198,7 @@ bool FollowTheLeaderRace::isRaceOver()
         }
         else
         {
-            m_is_over_delay -= GUIEngine::getLatestDt();
+            m_is_over_delay -= 0.1;
             return false;
         }
     }
@@ -278,13 +272,3 @@ const std::string& FollowTheLeaderRace::getIdent() const
     return IDENT_FTL;
 }   // getIdent
 
-//-----------------------------------------------------------------------------
-/** Sets the title for all karts that is displayed in the icon list. In
- *  this mode the title for the first kart is set to 'leader'.
- */
-void FollowTheLeaderRace::getKartsDisplayInfo(
-                           std::vector<RaceGUIBase::KartIconDisplayInfo> *info)
-{
-    LinearWorld::getKartsDisplayInfo(info);
-    (*info)[0].special_title = _("Leader");
-}   // getKartsDisplayInfo

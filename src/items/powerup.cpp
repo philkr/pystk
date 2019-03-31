@@ -175,15 +175,6 @@ void Powerup::use()
 
     const KartProperties *kp = m_kart->getKartProperties();
 
-    // The player gets an achievement point for using a powerup
-    if (m_type != PowerupManager::POWERUP_NOTHING      &&
-        m_kart->getController()->canGetAchievements()    )
-    {
-        PlayerManager::increaseAchievement(AchievementsStatus::POWERUP_USED, 1);
-        if (race_manager->isLinearRaceMode())
-            PlayerManager::increaseAchievement(AchievementsStatus::POWERUP_USED_1RACE, 1);
-    }
-
     m_number--;
     World *world = World::getWorld();
     switch (m_type)

@@ -27,7 +27,6 @@
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
 #include "physics/triangle_mesh.hpp"
-#include "states_screens/race_gui.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object_manager.hpp"
 
@@ -177,8 +176,6 @@ void CaptureTheFlag::updateGraphics(float dt)
         }
         m_blue_flag_status = m_blue_flag->getStatus();
     }
-    if (!msg.empty())
-        m_race_gui->addMessage(msg, NULL, 1.5f);
 #endif
 }   // updateGraphics
 
@@ -345,7 +342,6 @@ void CaptureTheFlag::ctfScored(int kart_id, bool red_team_scored,
     // Don't set animation and show message if receiving in live join
     if (isStartPhase())
         return;
-    m_race_gui->addMessage(scored_msg, NULL, 3.0f);
     kart->getKartModel()
         ->setAnimation(KartModel::AF_WIN_START, true/*play_non_loop*/);
 #endif

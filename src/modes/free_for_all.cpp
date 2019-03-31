@@ -169,24 +169,6 @@ bool FreeForAll::isRaceOver()
 }   // isRaceOver
 
 // ----------------------------------------------------------------------------
-/** Returns the data to display in the race gui.
- */
-void FreeForAll::getKartsDisplayInfo(
-                           std::vector<RaceGUIBase::KartIconDisplayInfo> *info)
-{
-    const unsigned int kart_amount = getNumKarts();
-    for (unsigned int i = 0; i < kart_amount ; i++)
-    {
-        RaceGUIBase::KartIconDisplayInfo& rank_info = (*info)[i];
-        rank_info.lap = -1;
-        rank_info.m_outlined_font = true;
-        rank_info.m_color = getColor(i);
-        rank_info.m_text = getKart(i)->getController()->getName() + L" (" +
-            StringUtils::toWString(m_scores[i]) + L")";
-    }
-}   // getKartsDisplayInfo
-
-// ----------------------------------------------------------------------------
 void FreeForAll::terminateRace()
 {
     const unsigned int kart_amount = getNumKarts();
@@ -200,7 +182,7 @@ void FreeForAll::terminateRace()
 // ----------------------------------------------------------------------------
 video::SColor FreeForAll::getColor(unsigned int kart_id) const
 {
-    return GUIEngine::getSkin()->getColor("font::normal");
+    return video::SColor(255,255,128,0);
 }   // getColor
 
 // ----------------------------------------------------------------------------

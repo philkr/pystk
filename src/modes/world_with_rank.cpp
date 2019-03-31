@@ -17,6 +17,7 @@
 
 #include "modes/world_with_rank.hpp"
 
+#include "config/stk_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/spare_tire_ai.hpp"
 #include "karts/kart_properties.hpp"

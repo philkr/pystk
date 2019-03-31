@@ -19,22 +19,18 @@
 
 #include "main_loop.hpp"
 
+#include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_texture_manager.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/message_queue.hpp"
-#include "guiengine/modaldialog.hpp"
-#include "guiengine/screen_keyboard.hpp"
-#include "input/input_manager.hpp"
-#include "modes/profile_world.hpp"
+#include "input/input.hpp"
+#include "modes/linear_world.hpp"
 #include "modes/world.hpp"
 #include "network/rewind_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
-#include "states_screens/state_manager.hpp"
 #include "utils/profiler.hpp"
 #include "utils/time.hpp"
 
@@ -101,13 +97,6 @@ float MainLoop::getLimitedDt()
     m_prev_time = m_curr_time;
     float dt = 0;
 
-    // In profile mode without graphics, run with a fixed dt of 1/60
-    if ((ProfileWorld::isProfileMode() && ProfileWorld::isNoGraphics()) ||
-        UserConfigParams::m_arena_ai_stats)
-    {
-        return 1.0f/60.0f;
-    }
-
     while( 1 )
     {
         m_curr_time = StkTime::getRealTimeMs();
@@ -123,30 +112,11 @@ float MainLoop::getLimitedDt()
         // (minimum time that can be handled by the integer timer) delay here.
         // Only exception is profile mode (typically running without graphics),
         // which we want to run as fast as possible.
-        while (dt <= 0 && !ProfileWorld::isProfileMode())
+        while (dt <= 0)
         {
             StkTime::sleep(1);
             m_curr_time = StkTime::getRealTimeMs();
             dt = (float)(m_curr_time - m_prev_time);
-        }
-
-        const World* const world = World::getWorld();
-        if (UserConfigParams::m_fps_debug && world)
-        {
-            const LinearWorld *lw = dynamic_cast<const LinearWorld*>(world);
-            if (lw)
-            {
-                Log::verbose("fps", "time %f distance %f dt %f fps %f",
-                             lw->getTime(),
-                             lw->getDistanceDownTrackForKart(0, true),
-                             dt*0.001f, 1000.0f / dt);
-            }
-            else
-            {
-                Log::verbose("fps", "time %f dt %f fps %f",
-                             world->getTime(), dt*0.001f, 1000.0f / dt);
-            }
-
         }
 
         // Don't allow the game to run slower than a certain amount.
@@ -159,21 +129,15 @@ float MainLoop::getLimitedDt()
             const float MAX_ELAPSED_TIME = 3.0f*1.0f / 60.0f*1000.0f;
             if (dt > MAX_ELAPSED_TIME) dt = MAX_ELAPSED_TIME;
         }
-        if (!m_throttle_fps || ProfileWorld::isProfileMode()) break;
+        if (!m_throttle_fps) break;
 
         // Throttle fps if more than maximum, which can reduce
         // the noise the fan on a graphics card makes.
         // When in menus, reduce FPS much, it's not necessary to push to the
         // maximum for plain menus
-        const int max_fps = (irr_driver->isRecording() &&
-                             UserConfigParams::m_limit_game_fps )
-                          ? UserConfigParams::m_record_fps 
-                          : ( StateManager::get()->throttleFPS() 
-                              ? 60 
-                              : UserConfigParams::m_max_fps     );
+        const int max_fps = UserConfigParams::m_max_fps;
         const int current_fps = (int)(1000.0f / dt);
-        if (!m_throttle_fps || current_fps <= max_fps ||
-            ProfileWorld::isProfileMode()                )  break;
+        if (!m_throttle_fps || current_fps <= max_fps)  break;
 
         int wait_time = 1000 / max_fps - 1000 / current_fps;
         if (wait_time < 1) wait_time = 1;
@@ -343,12 +307,8 @@ void MainLoop::run()
 #endif
 
             // In case the user opened a race pause dialog
-            GUIEngine::ModalDialog::dismiss();
-            GUIEngine::ScreenKeyboard::dismiss();
-
             if (World::getWorld())
             {
-                race_manager->clearNetworkGrandPrixResult();
                 race_manager->exitRace();
             }
 
@@ -361,7 +321,6 @@ void MainLoop::run()
         if (!m_abort)
         {
             float frame_duration = num_steps * dt;
-            if (!ProfileWorld::isNoGraphics())
             {
                 PROFILER_PUSH_CPU_MARKER("Update race", 0, 255, 255);
                 if (World::getWorld())
@@ -371,11 +330,6 @@ void MainLoop::run()
                 // Render the previous frame, and also handle all user input.
                 PROFILER_PUSH_CPU_MARKER("IrrDriver update", 0x00, 0x00, 0x7F);
                 irr_driver->update(frame_duration);
-                PROFILER_POP_CPU_MARKER();
-
-                PROFILER_PUSH_CPU_MARKER("Input/GUI", 0x7F, 0x00, 0x00);
-                input_manager->update(frame_duration);
-                GUIEngine::update(frame_duration);
                 PROFILER_POP_CPU_MARKER();
             }
             // Some protocols in network will use RequestManager
@@ -449,7 +403,6 @@ void MainLoop::run()
 
             // Handle controller the last to avoid slow PC sending actions too 
             // late
-            if (!ProfileWorld::isNoGraphics())
             {
                 // User aborted (e.g. closed window)
                 bool abort = !irr_driver->getDevice()->run();
@@ -507,7 +460,6 @@ void MainLoop::renderGUI(int phase, int loop_index, int loop_size)
     //             now, dt, phase, loop_index, loop_size);
 
     irr_driver->update(dt, /*is_loading*/true);
-    GUIEngine::update(dt);
     m_request_abort = !irr_driver->getDevice()->run();
     
     //TODO: remove debug output

@@ -283,15 +283,6 @@ void FileManager::discoverPaths()
         if(fileExists(m_root_dirs[i]+"karts/"))
             KartPropertiesManager::addKartSearchDir(m_root_dirs[i]+"karts/");
 
-        // If artist debug mode is enabled, add
-        // work-in-progress tracks and karts
-        if (UserConfigParams::m_artist_debug_mode)
-        {
-            if(fileExists(m_root_dirs[i] + "wip-tracks/"))
-                TrackManager::addTrackSearchDir(m_root_dirs[i] + "wip-tracks/");
-            if(fileExists(m_root_dirs[i] + "wip-karts/"))
-                KartPropertiesManager::addKartSearchDir(m_root_dirs[i] + "wip-karts/");
-        }
         for(unsigned int j=ASSET_MIN; j<=ASSET_MAX; j++)
         {
             if(!dir_found[j] && fileExists(m_root_dirs[i]+m_subdir_name[j]))

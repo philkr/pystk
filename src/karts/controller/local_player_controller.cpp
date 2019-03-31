@@ -26,7 +26,7 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/particle_emitter.hpp"
 #include "graphics/particle_kind.hpp"
-#include "input/input_manager.hpp"
+#include "input/input.hpp"
 #include "items/attachment.hpp"
 #include "items/item.hpp"
 #include "items/powerup.hpp"
@@ -38,7 +38,6 @@
 #include "modes/world.hpp"
 #include "network/rewind_manager.hpp"
 #include "race/history.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
@@ -58,9 +57,10 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
 {
     m_has_started = false;
     m_difficulty = d;
-    m_player = StateManager::get()->getActivePlayer(local_player_id);
-    if(m_player)
-        m_player->setKart(kart);
+    m_player = PlayerManager::get()->getPlayer(local_player_id);
+//     m_player = StateManager::get()->getActivePlayer(local_player_id);
+//     if(m_player)
+//         m_player->setKart(kart);
 
     // Keep a pointer to the camera to remove the need to search for
     // the right camera once per frame later.
@@ -180,21 +180,7 @@ bool LocalPlayerController::action(PlayerAction action, int value,
  */
 void LocalPlayerController::steer(int ticks, int steer_val)
 {
-    if(UserConfigParams::m_gamepad_debug)
-    {
-        RaceGUIBase* gui_base = World::getWorld()->getRaceGUI();
-        gui_base->clearAllMessages();
-        gui_base->addMessage(StringUtils::insertValues(L"steer_val %i", steer_val),
-                             m_kart, 1.0f,
-                             video::SColor(255, 255, 0, 255), false);
-    }
     PlayerController::steer(ticks, steer_val);
-    
-    if(UserConfigParams::m_gamepad_debug)
-    {
-        Log::debug("LocalPlayerController", "  set to: %f\n",
-                   m_controls->getSteer());
-    }
 }   // steer
 
 //-----------------------------------------------------------------------------
@@ -202,13 +188,6 @@ void LocalPlayerController::steer(int ticks, int steer_val)
  */
 void LocalPlayerController::update(int ticks)
 {
-    if (UserConfigParams::m_gamepad_debug)
-    {
-        // Print a dividing line so that it's easier to see which events
-        // get received in which order in the one frame.
-        Log::debug("LocalPlayerController", "irr_driver", "-------------------------------------");
-    }
-
     PlayerController::update(ticks);
 
     // look backward when the player requests or
@@ -259,16 +238,6 @@ void LocalPlayerController::update(int ticks)
 void LocalPlayerController::displayPenaltyWarning()
 {
     PlayerController::displayPenaltyWarning();
-    RaceGUIBase* m=World::getWorld()->getRaceGUI();
-    if (m)
-    {
-        m->addMessage(_("Penalty time!!"), m_kart, 2.0f,
-                      GUIEngine::getSkin()->getColor("font::top"), true /* important */,
-            false /*  big font */, true /* outline */);
-        m->addMessage(_("Don't accelerate before 'Set!'"), m_kart, 2.0f,
-            GUIEngine::getSkin()->getColor("font::normal"), true /* important */,
-            false /*  big font */, true /* outline */);
-    }
 }   // displayPenaltyWarning
 
 //-----------------------------------------------------------------------------
@@ -352,16 +321,11 @@ void LocalPlayerController::nitroNotFullSound()
  */
 bool LocalPlayerController::canGetAchievements() const 
 {
-    return !RewindManager::get()->isRewinding() &&
-        m_player->getConstProfile() == PlayerManager::getCurrentPlayer();
+    return false;
 }   // canGetAchievements
 
 // ----------------------------------------------------------------------------
 core::stringw LocalPlayerController::getName() const
 {
-    core::stringw name = m_player->getProfile()->getName();
-    if (m_difficulty == PLAYER_DIFFICULTY_HANDICAP)
-        name = _("%s (handicapped)", name);
-
-    return name;
+    return m_player->getName();
 }   // getName

@@ -21,9 +21,8 @@
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
-#include "guiengine/modaldialog.hpp"
 #include "karts/abstract_kart.hpp"
-#include "modes/profile_world.hpp"
+#include "modes/world.hpp"
 #include "network/rewind_manager.hpp"
 #include "tracks/track.hpp"
 
@@ -166,14 +165,6 @@ void WorldStatus::updateTime(int ticks)
         case TRACK_INTRO_PHASE:
             m_auxiliary_ticks++;
 
-            if (UserConfigParams::m_artist_debug_mode &&
-                race_manager->getNumberOfKarts() -
-                race_manager->getNumSpareTireKarts() == 1 &&
-                race_manager->getTrackName() != "tutorial")
-            {
-                m_auxiliary_ticks += 6;
-            }
-
             // Wait before ready phase
             if (m_auxiliary_ticks < stk_config->time2Ticks(3.0f))
                 return;
@@ -205,16 +196,6 @@ void WorldStatus::updateTime(int ticks)
 
             m_auxiliary_ticks++;
 
-            // In artist debug mode, when without opponents, skip the
-            // ready/set/go counter faster
-            if (UserConfigParams::m_artist_debug_mode     &&
-                race_manager->getNumberOfKarts() -
-                race_manager->getNumSpareTireKarts() == 1 &&
-                race_manager->getTrackName() != "tutorial")
-            {
-                m_auxiliary_ticks += 6;
-            }
-
             return;   // Do not increase time
         case SET_PHASE:
             if (m_auxiliary_ticks > 2*stk_config->getPhysicsFPS())
@@ -226,29 +207,13 @@ void WorldStatus::updateTime(int ticks)
                 onGo();
                 // In artist debug mode, when without opponents,
                 // skip the ready/set/go counter faster
-                m_start_music_ticks =
-                    UserConfigParams::m_artist_debug_mode &&
-                    race_manager->getNumberOfKarts() -
-                    race_manager->getNumSpareTireKarts() == 1 &&
-                    race_manager->getTrackName() != "tutorial" ?
-                    stk_config->time2Ticks(0.2f) :
-                    stk_config->time2Ticks(1.0f);
+                m_start_music_ticks = stk_config->time2Ticks(1.0f);
                 // how long to display the 'music' message
                 // no graphics mode goes race phase at 3 seconds;
                 m_race_ticks = stk_config->time2Ticks(3.0f);
             }
 
             m_auxiliary_ticks++;
-
-            // In artist debug mode, when without opponents, 
-            // skip the ready/set/go counter faster
-            if (UserConfigParams::m_artist_debug_mode &&
-                race_manager->getNumberOfKarts() -
-                race_manager->getNumSpareTireKarts() == 1 &&
-                race_manager->getTrackName() != "tutorial")
-            {
-                m_auxiliary_ticks += 6;
-            }
 
             return;   // Do not increase time
         case GO_PHASE:

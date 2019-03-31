@@ -38,7 +38,6 @@
 #include "karts/rescue_animation.hpp"
 #include "karts/skidding.hpp"
 #include "modes/linear_world.hpp"
-#include "modes/profile_world.hpp"
 #include "physics/triangle_mesh.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/drive_graph.hpp"
@@ -1488,9 +1487,7 @@ void SkiddingAI::computeNearestKarts()
 
     // Compute distance to nearest player kart
     float max_overall_distance = 0.0f;
-    unsigned int n = ProfileWorld::isProfileMode()
-                   ? 0 : race_manager->getNumPlayers();
-    for(unsigned int i=0; i<n; i++)
+    for(unsigned int i=0; i<race_manager->getNumPlayers(); i++)
     {
         unsigned int kart_id =
             m_world->getPlayerKart(i)->getWorldKartId();

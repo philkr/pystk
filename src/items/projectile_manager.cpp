@@ -164,7 +164,6 @@ std::shared_ptr<Flyable>
     }
     m_active_projectiles[uid] = f;
     m_id_map[uid] = f->getObjectId();
-    printf("New projectile %d\n", f->getObjectId());
     if (RewindManager::get()->isEnabled())
     {
         f->addForRewind(uid);

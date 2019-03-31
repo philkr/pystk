@@ -43,7 +43,6 @@
 #include "graphics/sp/sp_texture_manager.hpp"
 #include "graphics/sp/sp_uniform_assigner.hpp"
 #include "tracks/track.hpp"
-#include "modes/profile_world.hpp"
 #include "utils/log.hpp"
 #include "utils/helpers.hpp"
 #include "utils/profiler.hpp"
@@ -411,10 +410,6 @@ void loadShaders()
 // ----------------------------------------------------------------------------
 void resetEmptyFogColor()
 {
-    if (ProfileWorld::isNoGraphics())
-    {
-        return;
-    }
     glBindBuffer(GL_UNIFORM_BUFFER, sp_fog_ubo);
     std::vector<float> fog_empty;
     fog_empty.resize(8, 0.0f);
@@ -425,11 +420,6 @@ void resetEmptyFogColor()
 // ----------------------------------------------------------------------------
 void init()
 {
-    if (ProfileWorld::isNoGraphics())
-    {
-        return;
-    }
-
     initSkinning();
     for (unsigned i = 0; i < MAX_PLAYER_COUNT; i++)
     {
@@ -1326,12 +1316,16 @@ void draw(RenderPass rp, DrawCallType dct)
         }
         // Only enable used color attachments (without this garbage will be
         // written into unused attachments)
-        std::vector<GLenum> dbuf;
-        for( auto o: p.first->output(rp) ) {
-            if (o.location >= dbuf.size()) dbuf.resize(o.location+1, GL_NONE);
-            dbuf[o.location] = GL_COLOR_ATTACHMENT0+o.location;
+        GLint fbo;
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &fbo);
+        if (fbo) {
+            std::vector<GLenum> dbuf;
+            for( auto o: p.first->output(rp) ) {
+                if (o.location >= dbuf.size()) dbuf.resize(o.location+1, GL_NONE);
+                dbuf[o.location] = GL_COLOR_ATTACHMENT0+o.location;
+            }
+            glDrawBuffers(dbuf.size(), dbuf.data());
         }
-        glDrawBuffers(dbuf.size(), dbuf.data());
         p.first->use(rp);
         static std::vector<SPUniformAssigner*> shader_uniforms;
         p.first->setUniformsPerObject(static_cast<SPPerObjectUniform*>

@@ -21,10 +21,7 @@
 #include "graphics/glwrap.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/2dutils.hpp"
-#include "guiengine/event_handler.hpp"
-#include "guiengine/engine.hpp"
 #include "graphics/irr_driver.hpp"
-#include "guiengine/scalable_font.hpp"
 #include "io/file_manager.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/vs.hpp"
@@ -142,68 +139,12 @@ int Profiler::getThreadID()
 /// Push a new marker that starts now
 void Profiler::pushCPUMarker(const char* name, const video::SColor& colour)
 {
-    // Don't do anything when disabled or frozen
-    if (!UserConfigParams::m_profiler_enabled ||
-         m_freeze_state == FROZEN || m_freeze_state == WAITING_FOR_UNFREEZE )
-        return;
-
-    // We need to look before getting the thread id (since this might
-    // be a new thread which changes the structure).
-    m_lock.lock();
-    int thread_id = getThreadID();
-
-    ThreadData &td = m_all_threads_data[thread_id];
-    AllEventData::iterator i = td.m_all_event_data.find(name);
-    double  start = getTimeMilliseconds() - m_time_last_sync;
-    if (i != td.m_all_event_data.end())
-    {
-        i->second.setStart(m_current_frame, start, (int)td.m_event_stack.size());
-    }
-    else
-    {
-        EventData ed(colour, m_max_frames);
-        ed.setStart(m_current_frame, start, (int)td.m_event_stack.size());
-        td.m_all_event_data[name] = ed;
-        // Ordered headings is used to determine the order in which the
-        // bar graph is drawn. Outer profiling events will be added first,
-        // so they will be drawn first, which gives the proper nested
-        // displayed of events.
-        td.m_ordered_headings.push_back(name);
-    }
-    td.m_event_stack.push_back(name);
-    m_lock.unlock();
 }   // pushCPUMarker
 
 //-----------------------------------------------------------------------------
 /// Stop the last pushed marker
 void Profiler::popCPUMarker()
 {
-    // Don't do anything when disabled or frozen
-    if( !UserConfigParams::m_profiler_enabled ||
-        m_freeze_state == FROZEN || m_freeze_state == WAITING_FOR_UNFREEZE )
-        return;
-    double now = getTimeMilliseconds();
-
-    m_lock.lock();
-    int thread_id = getThreadID();
-    ThreadData &td = m_all_threads_data[thread_id];
-
-    // When the profiler gets enabled (which happens in the middle of the
-    // main loop), there can be some pops without matching pushes (for one
-    // frame) - ignore those events.
-    if (td.m_event_stack.size() == 0)
-    {
-        m_lock.unlock();
-        return;
-    }
-
-    assert(td.m_event_stack.size() > 0);
-
-    const std::string &name = td.m_event_stack.back();
-    td.m_all_event_data[name].setEnd(m_current_frame, now - m_time_last_sync);
-
-    td.m_event_stack.pop_back();
-    m_lock.unlock();
 }   // popCPUMarker
 
 //-----------------------------------------------------------------------------
@@ -211,14 +152,6 @@ void Profiler::popCPUMarker()
  */
 void Profiler::toggleStatus()
 {
-    UserConfigParams::m_profiler_enabled = !UserConfigParams::m_profiler_enabled;
-    // If the profiler would immediately enabled, calls that have started but
-    // not finished would not be registered correctly. So set the state to 
-    // waiting, so the unfreeze started at the next sync frame (which is
-    // outside of the main loop, i.e. all profiling events inside of the main
-    // loop will work as expected.
-    if (m_freeze_state == UNFROZEN)
-        m_freeze_state = WAITING_FOR_UNFREEZE;
 }   // toggleStatus
 
 //-----------------------------------------------------------------------------
@@ -229,66 +162,6 @@ void Profiler::toggleStatus()
  */
 void Profiler::synchronizeFrame()
 {
-    // Don't do anything when frozen
-    if(!UserConfigParams::m_profiler_enabled || m_freeze_state == FROZEN)
-        return;
-
-    // Avoid using several times getTimeMilliseconds(),
-    // which would yield different results
-    double now = getTimeMilliseconds();
-
-    m_lock.lock();
-    // Set index to next frame
-    int next_frame = m_current_frame+1;
-    if (next_frame >= m_max_frames)
-    {
-        next_frame = 0;
-        m_has_wrapped_around = true;
-    }
-
-    // First finish all markers that are currently in progress, and add
-    // a new start marker for the next frame. So e.g. if a thread is busy in
-    // one event while the main thread syncs the frame, this event will get
-    // split into two parts in two consecutive frames
-    for (int i = 0; i < m_threads_used; i++)
-    {
-        ThreadData &td = m_all_threads_data[i];
-        for(unsigned int j=0; j<td.m_event_stack.size(); j++)
-        {
-            EventData &ed = td.m_all_event_data[td.m_event_stack[j]];
-            ed.setEnd(m_current_frame, now-m_time_last_sync);
-            ed.setStart(next_frame, 0, j);
-        }   // for j in event stack
-    }   // for i in threads
-
-    if (m_has_wrapped_around)
-    {
-        // The new entries for the circular buffer need to be cleared
-        // to make sure the new values are not accumulated on top of
-        // the data from a previous frame.
-        for (int i = 0; i < m_threads_used; i++)
-        {
-            ThreadData &td = m_all_threads_data[i];
-            AllEventData &aed = td.m_all_event_data;
-            AllEventData::iterator k;
-            for (k = aed.begin(); k != aed.end(); ++k)
-                k->second.getMarker(next_frame).clear();
-        }
-    }   // is has wrapped around
-
-    m_current_frame = next_frame;
-
-    // Remember the date of last synchronization
-    m_time_between_sync = now - m_time_last_sync;
-    m_time_last_sync    = now;
-
-    // Freeze/unfreeze as needed
-    if(m_freeze_state == WAITING_FOR_FREEZE)
-        m_freeze_state = FROZEN;
-    else if(m_freeze_state == WAITING_FOR_UNFREEZE)
-        m_freeze_state = UNFROZEN;
-
-    m_lock.unlock();
 }   // synchronizeFrame
 
 //-----------------------------------------------------------------------------
@@ -341,9 +214,6 @@ void Profiler::draw()
     const double duration = end - start;
     const double factor = profiler_width / duration;
 
-    // Get the mouse pos
-    core::vector2di mouse_pos = GUIEngine::EventHandler::get()->getMousePos();
-
     std::stack<AllEventData::iterator> hovered_markers;
     for (int i = 0; i < m_threads_used; i++)
     {
@@ -374,12 +244,6 @@ void Profiler::draw()
             pos.LowerRightCorner.Y -= 2 * (int)marker.getLayer();
 
             GL32_draw2DRectangle(j->second.getColour(), pos);
-            // If the mouse cursor is over the marker, get its information
-            if (pos.isPointInside(mouse_pos))
-            {
-                hovered_markers.push(j);
-            }
-
         }   // for j in AllEventdata
     }   // for i in threads
 
@@ -423,13 +287,6 @@ void Profiler::draw()
 
             curr_val += elapsed;
             GL32_draw2DRectangle(colors[i % 6], pos);
-
-            if (pos.isPointInside(mouse_pos))
-            {
-                hovered_gpu_marker = (QueryPerf)i;
-                hovered_gpu_marker_elapsed = m_gpu_times[indx*Q_LAST+i];
-            }
-
         }
 
     }
@@ -444,35 +301,6 @@ void Profiler::draw()
         GL32_draw2DRectangle(video::SColor(0xFF, 0x00, 0x00, 0x00),
                              core::rect<s32>(x_sync, y_up_sync,
                                              x_sync + 1, y_down_sync));
-    }
-
-    // Draw the hovered markers' names
-    gui::ScalableFont* font = GUIEngine::getFont();
-    if (font)
-    {
-        core::stringw text;
-        while(!hovered_markers.empty())
-        {
-            AllEventData::iterator j = hovered_markers.top();
-            const Marker &marker = j->second.getMarker(indx);
-            std::ostringstream oss;
-            oss.precision(4);
-            oss << j->first << " [" << (marker.getDuration()) << " ms / ";
-            oss.precision(3);
-            oss << marker.getDuration()*100.0 / duration << "%]" << std::endl;
-            text += oss.str().c_str();
-            hovered_markers.pop();
-        }
-        font->draw(text, MARKERS_NAMES_POS, video::SColor(0xFF, 0xFF, 0x00, 0x00));
-
-        if (hovered_gpu_marker != Q_LAST)
-        {
-            std::ostringstream oss;
-            oss << irr_driver->getGPUQueryPhaseName(hovered_gpu_marker) << " : "
-                << hovered_gpu_marker_elapsed << " us";
-            font->draw(oss.str().c_str(), GPU_MARKERS_NAMES_POS,
-                       video::SColor(0xFF, 0xFF, 0x00, 0x00));
-        }
     }
 
     PROFILER_POP_CPU_MARKER();

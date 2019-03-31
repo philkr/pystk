@@ -21,7 +21,6 @@
 #include "graphics/shader_files_manager.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "graphics/sp/sp_uniform_assigner.hpp"
-#include "guiengine/message_queue.hpp"
 #include "utils/string_utils.hpp"
 
 #include <map>
@@ -108,13 +107,6 @@ void SPShader::linkShaderFiles(RenderPass rp)
     }
     if (result == GL_FALSE)
     {
-        if (UserConfigParams::m_artist_debug_mode)
-        {
-            core::stringw err = StringUtils::insertValues(L"Shader %s failed"
-                " to link, check stdout.log or console for details",
-                m_name.c_str());
-            MessageQueue::add(MessageQueue::MT_ERROR, err);
-        }
         glDeleteProgram(m_program[rp]);
         m_program[rp] = 0;
     } else {

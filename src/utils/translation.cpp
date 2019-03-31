@@ -387,7 +387,6 @@ Translations::Translations() //: m_dictionary_manager("UTF-16")
             if (!tgtLang)
             {
                 Log::warn("Translation", "Unsupported langage '%s'", language.c_str());
-                UserConfigParams::m_language = "system";
                 m_current_language_name = "Default language";
                 m_current_language_name_code = "en";
                 m_dictionary = m_dictionary_manager.get_dictionary();

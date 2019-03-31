@@ -22,7 +22,6 @@
 #include "karts/kart_gfx.hpp"
 #include "karts/max_speed.hpp"
 #include "modes/three_strikes_battle.hpp"
-#include "states_screens/race_gui.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/arena_node.hpp"
 #include "physics/physics.hpp"
@@ -142,14 +141,14 @@ void SpareTireAI::crashed(const AbstractKart *k)
     // Tell players that they can have at most 3 lives
     if (m_tsb_world->getKartLife(k->getWorldKartId()) == 3)
     {
-        World::getWorld()->getRaceGUI()->addMessage
-            (_("You can have at most 3 lives!"), k, 2.0f);
+//         World::getWorld()->getRaceGUI()->addMessage
+//             (_("You can have at most 3 lives!"), k, 2.0f);
     }
     // Otherwise add one life for that kart 
     else
     {
         m_tsb_world->addKartLife(k->getWorldKartId());
-        World::getWorld()->getRaceGUI()->addMessage(_("+1 life."), k, 2.0f);
+//         World::getWorld()->getRaceGUI()->addMessage(_("+1 life."), k, 2.0f);
     }
     unspawn();
 

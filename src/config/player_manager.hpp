@@ -19,8 +19,6 @@
 #ifndef HEADER_PLAYER_MANAGER_HPP
 #define HEADER_PLAYER_MANAGER_HPP
 
-#include "achievements/achievement.hpp"
-#include "achievements/achievements_status.hpp"
 #include "config/player_profile.hpp"
 #include "utils/no_copy.hpp"
 #include "utils/ptr_vector.hpp"
@@ -29,16 +27,8 @@
 
 #include <cstddef>  // NULL
 
-class AchievementsStatus;
-
-namespace Online
-{
-    class CurrentUser;
-    class HTTPRequest;
-    class OnlineProfile;
-    class XMLRequest;
-}
 class PlayerProfile;
+class XMLNode;
 
 /** A special class that manages all local player accounts. It reads all player
  *  accounts from the players.xml file in the user config directory. For each
@@ -60,10 +50,6 @@ private:
 
     /** A pointer to the current player. */
     PlayerProfile* m_current_player;
-
-    /** Saves the XML tree from players.xml for use in the 2nd
-     * loading stage (initRemainingData). */
-    const XMLNode *m_player_data;
 
     void load();
      PlayerManager();
@@ -89,30 +75,13 @@ public:
 
     void save();
     void initRemainingData();
-    unsigned int getUniqueId() const;
     void addDefaultPlayer();
     PlayerProfile* addNewPlayer(const irr::core::stringw& name);
     void createGuestPlayers(int n);
     void deletePlayer(PlayerProfile *player);
     void setCurrentPlayer(PlayerProfile *player);
-    const PlayerProfile *getPlayerById(unsigned int id);
     void enforceCurrentPlayer();
     unsigned int getNumNonGuestPlayers() const;
-//     static void setUserDetails(Online::HTTPRequest *request,
-//                                const std::string &action,
-//                                const std::string &php_name = "");
-//     static unsigned int getCurrentOnlineId();
-//     static bool isCurrentLoggedIn();
-//     static Online::OnlineProfile* getCurrentOnlineProfile();
-
-//     static PlayerProfile::OnlineState getCurrentOnlineState();
-//     static const irr::core::stringw& getCurrentOnlineUserName();
-//     static void requestOnlinePoll();
-//     static void resumeSavedSession();
-//     static void onSTKQuit();
-//     static void requestSignOut();
-//     static void requestSignIn(const irr::core::stringw &username,
-//                               const irr::core::stringw &password);
 
     // ------------------------------------------------------------------------
     /** Returns the current player. */
@@ -136,34 +105,6 @@ public:
     /** Returns a player with a given unique id. */
     PlayerProfile *getPlayer(unsigned int n)  { return &m_all_players[n];}
     // ------------------------------------------------------------------------
-    /** A handy shortcut funtion. */
-    static AchievementsStatus* getCurrentAchievementsStatus()
-    {
-        return PlayerManager::getCurrentPlayer()->getAchievementsStatus();
-    }   // getCurrentAchievementsStatus
-
-    // ------------------------------------------------------------------------
-    /** A handy shortcut to increase points for an achievement data of the
-     *  current player.
-     *  \param achievement_data_id The achievement data id
-     *  \param increase How much to increase the current value.
-     */
-    static void increaseAchievement(unsigned int achievement_data_id,
-                                    int increase = 1)
-    {
-        getCurrentAchievementsStatus()
-            ->increaseDataVar(achievement_data_id, increase);
-    }   // increaseAchievement
-
-    // ------------------------------------------------------------------------
-    /** Reset an achievement data for current player.
-     *  \param achievement_data_id The achievement data id
-     */
-    static void resetAchievementData(unsigned int achievement_data_id)
-    {
-        getCurrentAchievementsStatus()
-            ->resetDataVar(achievement_data_id);
-    }   // resetAchievementData
 
     // ------------------------------------------------------------------------
     /** Reset achievements which have to be done in one race
@@ -171,29 +112,17 @@ public:
      */
     static void onRaceEnd(bool restart)
     {
-        getCurrentAchievementsStatus()->onRaceEnd(restart);
     }   // onRaceEnd
 
 
     // ----------------------------------------------------------------------------
-    /** Transmit an incrementation request of one of the track event counters
-     *  \param track_ident - the internal name of the track
-     *  \param event - the type of counter to increment */
-    static void trackEvent(std::string track_ident, AchievementsStatus::TrackData event)
-    {
-        getCurrentAchievementsStatus()->trackEvent(track_ident, event);
-    } // trackEvent
-
-    // ----------------------------------------------------------------------------
     static void resetKartHits(int num_karts)
     {
-        getCurrentAchievementsStatus()->resetKartHits(num_karts);
     } // resetKartHits
 
     // ----------------------------------------------------------------------------
     static void addKartHit(int kart_id)
     {
-        getCurrentAchievementsStatus()->addKartHit(kart_id);
     } // addKartHit
 
     // ------------------------------------------------------------------------

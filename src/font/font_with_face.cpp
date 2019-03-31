@@ -27,9 +27,6 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_texture.hpp"
 #include "graphics/stk_tex_manager.hpp"
-#include "guiengine/engine.hpp"
-#include "guiengine/skin.hpp"
-#include "modes/profile_world.hpp"
 #include "utils/string_utils.hpp"
 
 #include <array>
@@ -77,12 +74,6 @@ void FontWithFace::init()
 {
     setDPI();
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-    {
-        reset();
-        return;
-    }
-
     // Get the max height for this face
     assert(m_face_ttf->getTotalFaces() > 0);
     FT_Face cur_face = m_face_ttf->getFace(0);
@@ -133,9 +124,6 @@ void FontWithFace::reset()
 void FontWithFace::loadGlyphInfo(wchar_t c)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     unsigned int font_number = 0;
     unsigned int glyph_index = 0;
     while (font_number < m_face_ttf->getTotalFaces())
@@ -154,9 +142,6 @@ void FontWithFace::loadGlyphInfo(wchar_t c)
 void FontWithFace::createNewGlyphPage()
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     uint8_t* data = new uint8_t[getGlyphPageSize() * getGlyphPageSize() *
     (CVS->isARBTextureSwizzleUsable() ? 1 : 4)]();
 #else
@@ -185,9 +170,6 @@ void FontWithFace::createNewGlyphPage()
 void FontWithFace::insertGlyph(wchar_t c, const GlyphInfo& gi)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     assert(gi.glyph_index > 0);
     assert(gi.font_number < m_face_ttf->getTotalFaces());
     FT_Face cur_face = m_face_ttf->getFace(gi.font_number);
@@ -228,7 +210,7 @@ void FontWithFace::insertGlyph(wchar_t c, const GlyphInfo& gi)
     }
 
     const unsigned int cur_tex = m_spritebank->getTextureCount() -1;
-    if (bits->buffer != NULL && !ProfileWorld::isNoGraphics())
+    if (bits->buffer != NULL)
     {
         video::ITexture* tex = m_spritebank->getTexture(cur_tex);
         glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureName());
@@ -353,12 +335,6 @@ void FontWithFace::setDPI()
     const int screen_width = irr_driver->getActualScreenSize().Width;
     const int screen_height = irr_driver->getActualScreenSize().Height;
 
-    if (UserConfigParams::m_hidpi_enabled)
-    {
-        float scale = screen_height / 480.0f;
-        m_face_dpi = int(getScalingFactorTwo() * getScalingFactorOne() * scale);
-    }
-    else
     {
         float scale = std::max(0, screen_width - 640) / 564.0f;
     
@@ -416,9 +392,6 @@ core::dimension2d<u32> FontWithFace::getDimension(const wchar_t* text,
 #ifdef SERVER_ONLY
     return core::dimension2d<u32>(1, 1);
 #else
-    if (ProfileWorld::isNoGraphics())
-        return core::dimension2d<u32>(1, 1);
-
     const float scale = font_settings ? font_settings->getScale() : 1.0f;
     // Test if lazy load char is needed
     insertCharacters(text);
@@ -511,9 +484,6 @@ void FontWithFace::render(const core::stringw& text,
                           FontCharCollector* char_collector)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-
     const bool black_border = font_settings ?
         font_settings->useBlackBorder() : false;
     const bool colored_border = font_settings ?
@@ -723,9 +693,8 @@ void FontWithFace::render(const core::stringw& text,
 
         if (fallback[n] || isBold())
         {
-            video::SColor top = GUIEngine::getSkin()->getColor("font::top");
-            video::SColor bottom = GUIEngine::getSkin()
-                ->getColor("font::bottom");
+            video::SColor top(255,255,128,0);
+            video::SColor bottom(255,255,220,15);
             top.setAlpha(color.getAlpha());
             bottom.setAlpha(color.getAlpha());
 

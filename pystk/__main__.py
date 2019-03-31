@@ -33,8 +33,8 @@ if args.list_karts:
 
 if args.play:
     config = pystk.GraphicsConfig.sd()
-    config.screen_width = 200
-    config.screen_height = 150
+    config.screen_width = 400
+    config.screen_height = 300
     pystk.init(config)
 
     config = pystk.RaceConfig()
@@ -72,6 +72,8 @@ if args.play:
 
 if args.benchmark:
     for config in [pystk.GraphicsConfig.ld(),pystk.GraphicsConfig.sd(),pystk.GraphicsConfig.hd()]:
+        print( config )
+        t0 = time()
         config.screen_width = 200
         config.screen_height = 150
         pystk.init(config)
@@ -84,15 +86,18 @@ if args.benchmark:
         if args.step_size is not None:
             config.step_size = args.step_size
 
+        t1 = time()
         k = pystk.SuperTuxKart(config)
 
         k.start()
 
-        t0 = time()
+        t2 = time()
         for it in range(1000):
             k.step(k.ai_action)
-            
-        print(1000. / (time()-t0))
+        t3 = time()
+        print( '  graphics', (t1-t0))
+        print( '  load', (t2-t1))
+        print( '  step FPS', 1000. / (t3-t2))
 
         k.stop()
         del k

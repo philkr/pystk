@@ -38,7 +38,6 @@
 #include "karts/rescue_animation.hpp"
 #include "karts/skidding.hpp"
 #include "modes/linear_world.hpp"
-#include "modes/profile_world.hpp"
 #include "physics/triangle_mesh.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/drive_graph.hpp"
@@ -1906,8 +1905,7 @@ void SkiddingAI::computeNearestKarts()
     float own_overall_distance = m_world->getOverallDistance(m_kart->getWorldKartId());
     m_num_players_ahead = 0;
 
-    unsigned int n = ProfileWorld::isProfileMode()
-                   ? 0 : race_manager->getNumPlayers();
+    unsigned int n = race_manager->getNumPlayers();
 
     std::vector<float> overall_distance;
     // Get the players distances
@@ -1927,8 +1925,7 @@ void SkiddingAI::computeNearestKarts()
     }
 
     // Force best driving when profiling and for FTL leaders
-    if(ProfileWorld::isProfileMode() ||
-       (race_manager->getMinorMode() == RaceManager::MINOR_MODE_FOLLOW_LEADER &&
+    if((race_manager->getMinorMode() == RaceManager::MINOR_MODE_FOLLOW_LEADER &&
         m_kart->getWorldKartId() == 0))
         target_overall_distance = 999999.9f;
     // In higher difficulties, rubber band towards the first player,

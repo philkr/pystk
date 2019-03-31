@@ -23,7 +23,6 @@
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_base.hpp"
 #include "io/file_manager.hpp"
-#include "modes/profile_world.hpp"
 
 AttachmentManager *attachment_manager = 0;
 
@@ -101,8 +100,6 @@ void AttachmentManager::loadModels()
                                               /* full_path */     true,
                                               /*make_permanent */ true);
         }
-        if (ProfileWorld::isNoGraphics())
-            mesh->freeMeshVertexBuffer();
     }   // for
 }   // reInit
 

@@ -45,9 +45,6 @@ void Weather::update(float dt)
     if (!Track::getCurrentTrack()->getWeatherLightning())
         return;
         
-    if (World::getWorld()->getRaceGUI() == NULL)
-        return;
-        
     m_next_lightning -= dt;
 
     if (m_next_lightning < 0.0f)

@@ -18,6 +18,7 @@
 #ifndef HEADER_LINEAR_WORLD_HPP
 #define HEADER_LINEAR_WORLD_HPP
 
+#include "config/stk_config.hpp"
 #include "modes/world_with_rank.hpp"
 #include "utils/aligned_array.hpp"
 
@@ -143,9 +144,6 @@ public:
     float         getLiveTimeDifference() const { return m_live_time_difference; }
     bool          hasValidTimeDifference() const { return m_valid_reference_time; }
 
-    virtual  void getKartsDisplayInfo(
-                  std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE;
-
     virtual unsigned int getNumberOfRescuePositions() const OVERRIDE;
     virtual unsigned int getRescuePositionIndex(AbstractKart *kart) OVERRIDE;
     virtual btTransform getRescueTransform(unsigned int index) const OVERRIDE;
@@ -187,7 +185,7 @@ public:
     }
     // ------------------------------------------------------------------------
     /** Returns the kart name that made the fastest lap time */
-    stringw getFastestLapKartName() const
+    core::stringw getFastestLapKartName() const
     {
         return m_fastest_lap_kart_name;
     }

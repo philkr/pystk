@@ -19,8 +19,6 @@
 
 #include "karts/kart.hpp"
 
-#include "challenges/challenge_status.hpp"
-#include "challenges/unlock_manager.hpp"
 #include "config/player_manager.hpp"
 #include "config/user_config.hpp"
 #include "font/bold_face.hpp"
@@ -38,7 +36,6 @@
 #include "graphics/slip_stream.hpp"
 #include "graphics/stk_text_billboard.hpp"
 #include "graphics/stars.hpp"
-#include "guiengine/scalable_font.hpp"
 #include "io/file_manager.hpp"
 #include "items/attachment.hpp"
 #include "items/item_manager.hpp"
@@ -62,8 +59,6 @@
 #include "main_loop.hpp"
 #include "modes/capture_the_flag.hpp"
 #include "modes/linear_world.hpp"
-#include "modes/overworld.hpp"
-#include "modes/profile_world.hpp"
 #include "modes/soccer_world.hpp"
 #include "network/rewind_info.hpp"
 #include "network/rewind_manager.hpp"
@@ -837,23 +832,7 @@ void Kart::finishedRace(float time, bool from_server)
 
     if (is_linear_race && m_controller->isPlayerController() && !m_eliminated)
     {
-        RaceGUIBase* m = World::getWorld()->getRaceGUI();
-        if (m)
-        {
-            bool won_the_race = false;
-            unsigned int win_position = 1;
-
-            if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_FOLLOW_LEADER)
-                win_position = 2;
-
-            if (getPosition() == (int)win_position &&
-                World::getWorld()->getNumKarts() > win_position)
-                won_the_race = true;
-
-            m->addMessage((won_the_race ?
-            _("You won the race!") : _("You finished the race!")) ,
-            this, 2.0f, video::SColor(255, 255, 255, 255), true, true, true);
-        }
+        
     }
 
     if (race_manager->isLinearRaceMode() || race_manager->isBattleMode() ||
@@ -887,17 +866,7 @@ void Kart::setRaceResult()
         if (m_controller->isLocalPlayerController()) // if player is on this computer
         {
             PlayerProfile *player = PlayerManager::getCurrentPlayer();
-            const ChallengeStatus *challenge = player->getCurrentChallengeStatus();
-            // In case of a GP challenge don't make the end animation depend
-            // on if the challenge is fulfilled
-            if (challenge && !challenge->getData()->isGrandPrix())
-            {
-                if (challenge->getData()->isChallengeFulfilled())
-                    m_race_result = true;
-                else
-                    m_race_result = false;
-            }
-            else if (this->getPosition() <= 0.5f *
+            if (this->getPosition() <= 0.5f *
                 World::getWorld()->getCurrentNumKarts() ||
                 this->getPosition() == 1)
                 m_race_result = true;
@@ -1539,16 +1508,6 @@ void Kart::update(int ticks)
             m_max_speed->setSlowdown(MaxSpeed::MS_DECREASE_TERRAIN,
                                      material->getMaxSpeedFraction(),
                                      material->getSlowDownTicks()    );
-#ifdef DEBUG
-            if(UserConfigParams::m_material_debug)
-            {
-                Log::info("Kart","World %d %s\tfraction %f\ttime %d.",
-                       World::getWorld()->getTicksSinceStart(),
-                       material->getTexFname().c_str(),
-                       material->getMaxSpeedFraction(),
-                       material->getSlowDownTicks()       );
-            }
-#endif
         }
     }   // if there is material
     PROFILER_POP_CPU_MARKER();
@@ -2012,22 +1971,6 @@ void Kart::crashed(AbstractKart *k, bool update_attachments)
  */
 void Kart::crashed(const Material *m, const Vec3 &normal)
 {
-#ifdef DEBUG
-    // Simple debug output for people playing without sound.
-    // This makes it easier to see if a kart hit the track (esp.
-    // after a jump).
-    // FIXME: This should be removed once the physics are fixed.
-    if(UserConfigParams::m_physics_debug)
-    {
-        // Add a counter to make it easier to see if a new line of
-        // output was added.
-        static int counter=0;
-        Log::info("Kart","Kart %s hit track: %d material %s.",
-               getIdent().c_str(), counter++,
-               m ? m->getTexFname().c_str() : "None");
-    }
-#endif
-
     const LinearWorld *lw = dynamic_cast<LinearWorld*>(World::getWorld());
     if(m_kart_properties->getTerrainImpulseType()
                              ==KartProperties::IMPULSE_NORMAL &&
@@ -2506,14 +2449,12 @@ void Kart::loadData(RaceManager::KartType type, bool is_animated_model)
 #ifndef SERVER_ONLY
     m_skidmarks = nullptr;
     m_shadow = nullptr;
-    if (!ProfileWorld::isNoGraphics() &&
-        m_kart_properties->getSkidEnabled() && CVS->isGLSL())
+    if (m_kart_properties->getSkidEnabled() && CVS->isGLSL())
     {
         m_skidmarks.reset(new SkidMarks(*this));
     }
 
-    if (!ProfileWorld::isNoGraphics() &&
-        CVS->isGLSL() && !CVS->isShadowEnabled() && m_kart_properties
+    if (CVS->isGLSL() && !CVS->isShadowEnabled() && m_kart_properties
         ->getShadowMaterial()->getSamplerPath(0) != "unicolor_white")
     {
         m_shadow.reset(new Shadow(m_kart_properties->getShadowMaterial(),
@@ -2844,14 +2785,10 @@ btQuaternion Kart::getVisualRotation() const
 void Kart::setOnScreenText(const wchar_t *text)
 {
 #ifndef SERVER_ONLY
-    if (ProfileWorld::isNoGraphics())
-        return;
-        
     BoldFace* bold_face = font_manager->getFont<BoldFace>();
     STKTextBillboard* tb =
-        new STKTextBillboard(
-        GUIEngine::getSkin()->getColor("font::bottom"),
-        GUIEngine::getSkin()->getColor("font::top"),
+        new STKTextBillboard(video::SColor(255, 255, 128, 0),
+        video::SColor(255, 255, 220, 15),
         getNode(), irr_driver->getSceneManager(), -1,
         core::vector3df(0.0f, 1.5f, 0.0f),
         core::vector3df(0.35f, 0.35f, 0.35f));

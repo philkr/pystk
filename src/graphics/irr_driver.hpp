@@ -107,19 +107,6 @@ private:
     /** Matrixes used in several places stored here to avoid recomputation. */
     core::matrix4 m_ViewMatrix, m_InvViewMatrix, m_ProjMatrix, m_InvProjMatrix, m_ProjViewMatrix, m_InvProjViewMatrix;
 
-
-private:
-    /** Flag to indicate if a resolution change is pending (which will be
-     *  acted upon in the next update). None means no change, yes means
-     *  change to new resolution and trigger confirmation dialog.
-     *  Yes_warn means that the new resolution is unsupported and that
-     *  the confirmation dialog needs an additional warning message.
-     *  Same indicates a change of the resolution (back to the original
-     *  one), but no confirmation dialog. */
-    enum {RES_CHANGE_NONE, RES_CHANGE_YES,
-          RES_CHANGE_SAME, RES_CHANGE_YES_WARN} m_resolution_changing;
-
-
 public:
     /** A simple class to store video resolutions. */
     class VideoMode
@@ -267,10 +254,6 @@ public:
     void                  removeCamera(Camera *camera);
     void                  update(float dt, bool loading=false);
     void                  minimalUpdate(float dt);
-    /** Call to change resolution */
-    void                  changeResolution(const int w, const int h, const bool fullscreen);
-  /** Call this to roll back to the previous resolution if a resolution switch attempt goes bad */
-    void                  cancelResChange();
 
     bool                  moveWindow(int x, int y);
 
@@ -519,7 +502,7 @@ public:
                                                          size_t height);
 
     void uploadLightingData();
-    void sameRestart()             { m_resolution_changing = RES_CHANGE_SAME; }
+    void sameRestart()             {}
 
 };   // IrrDriver
 

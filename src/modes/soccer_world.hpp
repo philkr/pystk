@@ -20,7 +20,6 @@
 #define SOCCER_WORLD_HPP
 
 #include "modes/world_with_rank.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "karts/abstract_kart.hpp"
 #include "tracks/check_goal.hpp"
 #include "tracks/check_manager.hpp"
@@ -319,8 +318,6 @@ public:
     virtual btTransform getRescueTransform(unsigned int rescue_pos) const
         OVERRIDE;
     virtual bool useFastMusicNearEnd() const OVERRIDE { return false; }
-    virtual void getKartsDisplayInfo(
-               std::vector<RaceGUIBase::KartIconDisplayInfo> *info) OVERRIDE {}
 
     virtual bool raceHasLaps() OVERRIDE { return false; }
 

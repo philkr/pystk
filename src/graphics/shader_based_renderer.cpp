@@ -41,7 +41,6 @@
 #include "items/powerup_manager.hpp"
 #include "modes/world.hpp"
 #include "physics/physics.hpp"
-#include "states_screens/race_gui_base.hpp"
 #include "tracks/track.hpp"
 #include "utils/profiler.hpp"
 
@@ -511,8 +510,6 @@ void ShaderBasedRenderer::debugPhysics()
     // the bullet debug view.
     if(Physics::getInstance())
     {
-        if (UserConfigParams::m_artist_debug_mode)
-            Physics::getInstance()->draw();
 
         IrrDebugDrawer* debug_drawer = Physics::getInstance()->getDebugDrawer();
         if (debug_drawer != NULL && debug_drawer->debugEnabled())
@@ -553,7 +550,7 @@ void ShaderBasedRenderer::renderPostProcessing(Camera * const camera,
     scene::ICameraSceneNode * const camnode = camera->getCameraSceneNode();
     const core::recti &viewport = camera->getViewport();
 
-    bool isRace = StateManager::get()->getGameState() == GUIEngine::GAME;
+    bool isRace = true;
     FrameBuffer *fbo = m_post_processing->render(camnode, isRace, m_rtts);
 
     // The viewport has been changed using glViewport function directly
@@ -719,9 +716,6 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
     World *world = World::getWorld(); // Never NULL.
     Track *track = Track::getCurrentTrack();
 
-    RaceGUIBase *rg = world->getRaceGUI();
-    if (rg) rg->update(dt);
-
     if (!CVS->isDeferredEnabled())
     {
         prepareForwardRenderer();
@@ -747,7 +741,6 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
         PROFILER_PUSH_CPU_MARKER(oss.str().c_str(), (cam+1)*60,
                                  0x00, 0x00);
         camera->activate(!CVS->isDeferredEnabled());
-        rg->preRenderCallback(camera);   // adjusts start referee
         irr_driver->getSceneManager()->setActiveCamera(camnode);
 
         computeMatrixesAndCameras(camnode, m_rtts->getWidth(), m_rtts->getHeight());
@@ -794,18 +787,6 @@ void ShaderBasedRenderer::render(float dt, bool is_loading)
     m_current_screen_size = core::vector2df(
                                     (float)irr_driver->getActualScreenSize().Width, 
                                     (float)irr_driver->getActualScreenSize().Height);
-
-    for(unsigned int i=0; i<Camera::getNumCameras(); i++)
-    {
-        Camera *camera = Camera::getCamera(i);
-        std::ostringstream oss;
-        oss << "renderPlayerView() for kart " << i;
-
-        PROFILER_PUSH_CPU_MARKER(oss.str().c_str(), 0x00, 0x00, (i+1)*60);
-        rg->renderPlayerView(camera, dt);
-
-        PROFILER_POP_CPU_MARKER();
-    }  // for i<getNumKarts
 
 //     {
 //         ScopedGPUTimer Timer(irr_driver->getGPUTimer(Q_GUI));

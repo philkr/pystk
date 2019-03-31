@@ -16,6 +16,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+#include "config/stk_config.hpp"
 #include "graphics/slip_stream.hpp"
 #include "graphics/central_settings.hpp"
 #include "config/user_config.hpp"
@@ -129,45 +130,6 @@ SlipStream::SlipStream(AbstractKart* kart)
     m_slipstream_inner_quad    = new Quad(p[0], p[1], p[2], p[3]);
     //The position will be corrected in the update anyway
     m_slipstream_outer_quad    = new Quad(p[0], p[1], p[2], p[3]);
-#ifndef SERVER_ONLY
-    if (UserConfigParams::m_slipstream_debug)
-    {
-        m_debug_dc = std::make_shared<SP::SPDynamicDrawCall>
-            (scene::EPT_TRIANGLE_STRIP,
-            SP::SPShaderManager::get()->getSPShader("additive"),
-            material_manager->getDefaultSPMaterial("additive"));
-        m_debug_dc->getVerticesVector().resize(4);
-        video::S3DVertexSkinnedMesh* v =
-            m_debug_dc->getVerticesVector().data();
-        video::SColor red(128, 255, 0, 0);
-        unsigned idx[] = { 0, 3, 1, 2 };
-        for (unsigned i = 0; i < 4; i++)
-        {
-            v[i].m_position = p[idx[i]].toIrrVector();
-            v[i].m_normal = 0x1FF << 10;
-            v[i].m_color = red;
-        }
-        m_debug_dc->recalculateBoundingBox();
-        m_debug_dc->setParent(m_kart->getNode());
-        SP::addDynamicDrawCall(m_debug_dc);
-
-        m_debug_dc2 = std::make_shared<SP::SPDynamicDrawCall>
-            (scene::EPT_TRIANGLE_STRIP,
-            SP::SPShaderManager::get()->getSPShader("additive"),
-            material_manager->getDefaultSPMaterial("additive"));
-        m_debug_dc2->getVerticesVector().resize(4);
-        v = m_debug_dc2->getVerticesVector().data();
-        for (unsigned i = 0; i < 4; i++)
-        {
-            v[i].m_position = p[idx[i]].toIrrVector();
-            v[i].m_normal = 0x1FF << 10;
-            v[i].m_color = red;
-        }
-        m_debug_dc2->recalculateBoundingBox();
-        m_debug_dc2->setParent(m_kart->getNode());
-        SP::addDynamicDrawCall(m_debug_dc2);
-    }
-#endif
 }   // SlipStream
 
 //-----------------------------------------------------------------------------
@@ -564,22 +526,6 @@ void SlipStream::updateQuad()
     //Update the slipstreaming outer quad
     m_slipstream_outer_quad->setQuad(p[0], p[1], p[2], p[3]);
 
-#ifndef SERVER_ONLY
-    //recalculate quad position for debug drawing
-    if (UserConfigParams::m_slipstream_debug)
-    {
-        video::S3DVertexSkinnedMesh* v =
-            m_debug_dc->getVerticesVector().data();
-        unsigned idx[] = { 0, 3, 1, 2 };
-        for (unsigned i = 0; i < 4; i++)
-        {
-            v[i].m_position = p[idx[i]].toIrrVector();
-        }
-        m_debug_dc->recalculateBoundingBox();
-        m_debug_dc->setParent(m_kart->getNode());
-        SP::addDynamicDrawCall(m_debug_dc);
-    }
-#endif
     float inner_factor = m_kart->getKartProperties()->getSlipstreamInnerFactor()*sqrt(speed_factor);
     length = length*inner_factor;
     ew = ew*inner_factor;
@@ -594,24 +540,6 @@ void SlipStream::updateQuad()
 
     //Update the slipstreaming inner quad
     m_slipstream_inner_quad->setQuad(p[0], p[1], p[2], p[3]);
-
-#ifndef SERVER_ONLY
-    //recalculate inner quad position for debug drawing
-    if (UserConfigParams::m_slipstream_debug)
-    {
-        video::S3DVertexSkinnedMesh* v =
-            m_debug_dc2->getVerticesVector().data();
-        unsigned idx[] = { 0, 3, 1, 2 };
-        for (unsigned i = 0; i < 4; i++)
-        {
-            v[i].m_position = p[idx[i]].toIrrVector();
-        }
-        m_debug_dc2->recalculateBoundingBox();
-        m_debug_dc2->setParent(m_kart->getNode());
-        SP::addDynamicDrawCall(m_debug_dc2);
-    }
-#endif
-
 } //updateQuad
 
 //-----------------------------------------------------------------------------
@@ -666,11 +594,6 @@ void SlipStream::update(int ticks)
         }
 #endif
         m_slipstream_mode = SS_NONE;
-        if(UserConfigParams::m_slipstream_debug)
-        {
-            setDebugColor(video::SColor(255, 0, 0, 0),false);
-            setDebugColor(video::SColor(255, 0, 0, 0),true);            
-        }
         return;
     }
 #endif
@@ -716,22 +639,7 @@ void SlipStream::update(int ticks)
 
         // If the kart we are testing against is too slow, no need to test
         // slipstreaming.
-#ifndef DISPLAY_SLIPSTREAM_WITH_0_SPEED_FOR_DEBUGGING
-        if (m_target_kart->getSpeed() < kp_target->getSlipstreamMinSpeed())
-        {
-            if(UserConfigParams::m_slipstream_debug &&
-                m_kart->getController()->isLocalPlayerController())
-            {
-                m_target_kart->getSlipstream()
-                              ->setDebugColor(video::SColor(255, 0, 0, 0), false);
-                m_target_kart->getSlipstream()
-                              ->setDebugColor(video::SColor(255, 0, 0, 0), true);
-            }
-            if (m_previous_target_id >= 0 && (int) i==m_previous_target_id)
-                m_previous_target_id = -1;
-            continue;
-        }
-#endif
+		
         // Quick test: the kart must be not more than
         // slipstream length+0.5*kart_length()+target_kart_length
         // away from the other kart
@@ -758,10 +666,6 @@ void SlipStream::update(int ticks)
             target_value[i]     = 2000.0f - delta.length2();
             continue;
         }
-        if(UserConfigParams::m_slipstream_debug &&
-            m_kart->getController()->isLocalPlayerController())
-            m_target_kart->getSlipstream()
-                         ->setDebugColor(video::SColor(255, 0, 0, 255),true);
 
         // Real test2: if in slipstream quad of other kart
         if(m_target_kart->getSlipstream()->m_slipstream_quad
@@ -775,10 +679,6 @@ void SlipStream::update(int ticks)
         {
             m_previous_target_id = -1;
         }
-        if(UserConfigParams::m_slipstream_debug &&
-            m_kart->getController()->isLocalPlayerController())
-            m_target_kart->getSlipstream()
-                         ->setDebugColor(video::SColor(255, 0, 0, 255),false);
 
         // Real test3: if in outer slipstream quad of other kart
         if(m_target_kart->getSlipstream()->m_slipstream_outer_quad
@@ -834,16 +734,6 @@ void SlipStream::update(int ticks)
 
     if(!is_sstreaming)
     {
-        if(UserConfigParams::m_slipstream_debug &&
-            m_kart->getController()->isLocalPlayerController())
-        {
-            m_target_kart->getSlipstream()
-                         ->setDebugColor(video::SColor(255, 255, 0, 0),false);
-
-            m_target_kart->getSlipstream()
-                         ->setDebugColor(video::SColor(255, 0, 255, 0),true);
-
-        }
         //Reduces the easiness of reusing most of the accumulated time with another kart
         if(is_outer_sstreaming)
             m_slipstream_time -=dt;
@@ -860,19 +750,11 @@ void SlipStream::update(int ticks)
         return;
     }   // if !is_sstreaming
 
-    if(UserConfigParams::m_slipstream_debug &&
-        m_kart->getController()->isLocalPlayerController())
-        m_target_kart->getSlipstream()->setDebugColor(video::SColor(255, 128, 255, 0),false);
-
     // Accumulate slipstream credits now
     //Twice as fast in the inner quad
     if (is_inner_sstreaming)
     {
         m_slipstream_time = m_slipstream_mode==SS_NONE ? 2*dt : m_slipstream_time+2*dt;
-
-        if(UserConfigParams::m_slipstream_debug &&
-        m_kart->getController()->isLocalPlayerController())
-        m_target_kart->getSlipstream()->setDebugColor(video::SColor(255, 0, 255, 128),true);
     }
     else
     {

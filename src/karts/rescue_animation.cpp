@@ -75,13 +75,6 @@ RescueAnimation::RescueAnimation(AbstractKart *kart, bool is_auto_rescue,
         !is_auto_rescue)
     {
         World::getWorld()->kartHit(m_kart->getWorldKartId());
-        if (UserConfigParams::m_arena_ai_stats)
-        {
-            ThreeStrikesBattle* tsb = dynamic_cast<ThreeStrikesBattle*>
-                (World::getWorld());
-            if (tsb)
-                tsb->increaseRescueCount();
-        }
     }
 
     // Allow FTL mode to apply special action when the leader is rescued

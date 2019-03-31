@@ -20,7 +20,6 @@
 
 #include "items/attachment.hpp"
 #include "items/powerup.hpp"
-#include "guiengine/message_queue.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/explosion_animation.hpp"
 #include "karts/rescue_animation.hpp"
@@ -113,7 +112,6 @@ void KartRewinder::computeError()
         // I18N: Message shown in game to tell player left the game in network
         core::stringw msg = _("%s left the game.", player_name);
 
-        MessageQueue::add(MessageQueue::MT_FRIEND, msg);
         World::getWorld()->eliminateKart(kartid,
             false/*notify_of_elimination*/);
         setPosition(World::getWorld()->getCurrentNumKarts() + 1);

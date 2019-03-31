@@ -26,7 +26,6 @@
 #include "io/xml_node.hpp"
 #include "karts/abstract_kart.hpp"
 #include "modes/linear_world.hpp"
-#include "modes/profile_world.hpp"
 #include "modes/world.hpp"
 #include "network/network_string.hpp"
 #include "race/race_manager.hpp"
@@ -75,33 +74,6 @@ CheckLine::CheckLine(const XMLNode &node,  unsigned int index)
         m_min_height = std::min(m_left_point.getY(), m_right_point.getY());
     }
     m_line.setLine(p1, p2);
-    if(UserConfigParams::m_check_debug && !ProfileWorld::isNoGraphics())
-    {
-#ifndef SERVER_ONLY
-        m_debug_dy_dc = std::make_shared<SP::SPDynamicDrawCall>
-            (scene::EPT_TRIANGLE_STRIP,
-            SP::SPShaderManager::get()->getSPShader("additive"),
-            material_manager->getDefaultSPMaterial("additive"));
-        SP::addDynamicDrawCall(m_debug_dy_dc);
-        m_debug_dy_dc->getVerticesVector().resize(4);
-        auto& vertices = m_debug_dy_dc->getVerticesVector();
-        vertices[0].m_position = core::vector3df(p1.X,
-            m_min_height - m_under_min_height, p1.Y);
-        vertices[1].m_position = core::vector3df(p2.X,
-            m_min_height - m_under_min_height, p2.Y);
-        vertices[2].m_position = core::vector3df(p1.X,
-            m_min_height + m_over_min_height, p1.Y);
-        vertices[3].m_position = core::vector3df(p2.X,
-            m_min_height + m_over_min_height, p2.Y);
-        for(unsigned int i = 0; i < 4; i++)
-        {
-            vertices[i].m_color = m_active_at_reset
-                               ? video::SColor(128, 255, 0, 0)
-                               : video::SColor(128, 128, 128, 128);
-        }
-        m_debug_dy_dc->recalculateBoundingBox();
-#endif
-    }
 }   // CheckLine
 
 // ----------------------------------------------------------------------------
@@ -191,18 +163,6 @@ bool CheckLine::isTriggered(const Vec3 &old_pos, const Vec3 &new_pos,
         result = m_ignore_height || 
                         (new_pos.getY()-m_min_height<m_over_min_height   &&
                          new_pos.getY()-m_min_height>-m_under_min_height     );
-        if(UserConfigParams::m_check_debug && !result)
-        {
-            if(World::getWorld()->getNumKarts()>0)
-                Log::info("CheckLine", "Kart %s crosses line, but wrong height "
-                          "(%f vs %f).",
-                          World::getWorld()->getKart(kart_index)->getIdent().c_str(),
-                          new_pos.getY(), m_min_height);
-            else
-                Log::info("CheckLine", "Kart %d crosses line, but wrong height "
-                          "(%f vs %f).",
-                          kart_index, new_pos.getY(), m_min_height);
-        }
     }
     else
         result = false;
