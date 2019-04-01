@@ -40,6 +40,12 @@
 #include <IMeshSceneNode.h>
 #include <ISceneManager.h>
 
+static ObjectType ot(ItemState::ItemType type) {
+    if (type == ItemState::ITEM_BANANA || type == ItemState::ITEM_BUBBLEGUM || type == ItemState::ITEM_BUBBLEGUM_NOLOK)
+        return OT_BOMB;
+    return OT_PICKUP;
+}
+
 
 // ----------------------------------------------------------------------------
 /** Constructor.
@@ -205,8 +211,7 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
     initItem(type, xyz, normal);
     m_graphical_type    = getGrahpicalType();
     m_listener          = NULL;
-    
-    ri_ = std::make_shared<RenderInfo>(0.f, false, makeObjectId(OT_PICKUP, getItemId()+1));
+    ri_ = std::make_shared<RenderInfo>(0.f, false, makeObjectId(ot(getType()), getItemId()+1));
 
     LODNode* lodnode =
         new LODNode("item", irr_driver->getSceneManager()->getRootSceneNode(),
@@ -245,7 +250,7 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
 
 void Item::setItemId(unsigned int n) {
     ItemState::setItemId(n);
-	ri_->setObjectId(makeObjectId(OT_PICKUP, n+1));
+    ri_->setObjectId(makeObjectId(ot(getType()), n+1));
 }
 
 //-----------------------------------------------------------------------------
