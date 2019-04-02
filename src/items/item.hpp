@@ -462,6 +462,7 @@ public:
     {
         return (scene::ISceneNode *) m_node;
     }
+    uint32_t getObjectId() const;
 };   // class Item
 
 #endif

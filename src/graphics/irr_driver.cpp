@@ -50,7 +50,6 @@
 #include "items/projectile_manager.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/kart_properties_manager.hpp"
-#include "main_loop.hpp"
 #include "modes/world.hpp"
 #include "physics/physics.hpp"
 #include "scriptengine/property_animator.hpp"

@@ -44,7 +44,6 @@
 #include "physics/irr_debug_drawer.hpp"
 #include "physics/physics.hpp"
 #include "race/history.hpp"
-#include "main_loop.hpp"
 #include "replay/replay_recorder.hpp"
 #include "scriptengine/script_engine.hpp"
 #include "tracks/track_manager.hpp"
@@ -456,9 +455,6 @@ bool handleContextMenuAction(s32 cmd_id)
         break;
     case DEBUG_PROFILER_WRITE_REPORT:
         profiler.writeToFile();
-        break;
-    case DEBUG_THROTTLE_FPS:
-        main_loop->setThrottleFPS(false);
         break;
     case DEBUG_FONT_DUMP_GLYPH_PAGE:
         font_manager->getFont<BoldFace>()->dumpGlyphPage("bold");

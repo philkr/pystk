@@ -17,7 +17,6 @@
 
 #include "modes/three_strikes_battle.hpp"
 
-#include "main_loop.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"

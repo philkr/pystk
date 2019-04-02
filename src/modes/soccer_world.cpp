@@ -17,7 +17,6 @@
 
 #include "modes/soccer_world.hpp"
 
-#include "main_loop.hpp"
 #include "config/user_config.hpp"
 #include "io/file_manager.hpp"
 #include "graphics/irr_driver.hpp"

@@ -43,7 +43,6 @@
 #include <IEventReceiver.h>
 
 #include "pystk.hpp"
-#include "main_loop.hpp"
 #include "config/hardware_stats.hpp"
 #include "config/player_manager.hpp"
 #include "config/player_profile.hpp"
@@ -219,49 +218,56 @@ void PySTKAction::get(const KartControl * control) {
 	drift = control->getSkidControl() != KartControl::SC_NONE;
 }
 
-int PySuperTuxKart::n_running = 0;
+PySuperTuxKart * PySuperTuxKart::running_kart = 0;
 bool PySuperTuxKart::render_window = 0;
+static int is_init = 0;
 void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
-	if (n_running > 0)
+	if (running_kart)
 		throw std::invalid_argument("Cannot init while supertuxkart is running!");
-	initUserConfig();
-	stk_config->load(file_manager->getAsset("stk_config.xml"));
-	initGraphicsConfig(config);
-	initRest();
-	load();
+	if (is_init) {
+		throw std::invalid_argument("PySTK already initialized! Call clean first!");
+	} else {
+		is_init = 1;
+		initUserConfig();
+		stk_config->load(file_manager->getAsset("stk_config.xml"));
+		initGraphicsConfig(config);
+		initRest();
+		load();
+	}
 }
 void PySuperTuxKart::clean() {
-	if (n_running > 0)
+	if (running_kart)
 		throw std::invalid_argument("Cannot clean up while supertuxkart is running!");
-	cleanSuperTuxKart();
-	Log::flushBuffers();
+	if (is_init) {
+		cleanSuperTuxKart();
+		Log::flushBuffers();
 
 #ifndef WIN32
-	if (user_config) //close logfiles
-	{
-		Log::closeOutputFiles();
+		if (user_config) //close logfiles
+		{
+			Log::closeOutputFiles();
 #endif
-#ifndef ANDROID
-		fclose(stderr);
-		fclose(stdout);
-#endif
+			fclose(stderr);
+			fclose(stdout);
 #ifndef WIN32
-	}
+		}
 #endif
-	delete file_manager;
-	file_manager = NULL;
+		delete file_manager;
+		file_manager = NULL;
+		is_init = 0;
+	}
 }
-int PySuperTuxKart::nRunning() { return n_running; }
+bool PySuperTuxKart::isRunning() { return running_kart; }
 PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
-	if (n_running > 0)
+	if (running_kart)
 		throw std::invalid_argument("Cannot run more than one supertux instance per process!");
-	n_running++;
+	if (!is_init)
+		throw std::invalid_argument("PySTK not initialized yet! Call pystk.init().");
+	running_kart = this;
 	
 	resetObjectId();
 	
 	setupConfig(config);
-	
-	main_loop = new MainLoop(0/*parent_pid*/);
 	
 	render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
 }
@@ -276,12 +282,7 @@ std::vector<std::string> PySuperTuxKart::listKarts() {
 	return std::vector<std::string>();
 }
 PySuperTuxKart::~PySuperTuxKart() {
-	
-    delete main_loop;
-	main_loop = nullptr;
-    Referee::cleanup();
-
-	n_running--;
+	running_kart = nullptr;
 }
 
 void PySuperTuxKart::start() {
@@ -624,6 +625,7 @@ void PySuperTuxKart::cleanSuperTuxKart()
     if(history)                 delete history;
 	history = nullptr;
 	
+    Referee::cleanup();
     ReplayPlay::destroy();
     ReplayRecorder::destroy();
     ParticleKindManager::destroy();

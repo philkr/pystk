@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include "pystk.hpp"
+#include "state.hpp"
 #include "utils/objecttype.h"
 #include "utils/log.hpp"
 
@@ -78,6 +79,9 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		if (ll == "eror") Log::setLogLevel(Log::LL_ERROR);
 		if (ll == "fatal") Log::setLogLevel(Log::LL_FATAL);
 	}
+	
+	// Define the game state
+	defineState(m);
 	
 	{
 		py::enum_<Log::LogLevel>(m, "LogLevel")
@@ -172,7 +176,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def("__str__", [](const PySTKAction & a) -> std::string { return ((std::stringstream&)(std::stringstream() << "<Action S:" << a.steering_angle << "  A:" << a.acceleration << "  b:" << (int) a.brake << "  n:" << (int) a.nitro << "  d:" << (int) a.drift << "  r:" << (int) a.rescue << "  f:" << (int) a.fire << " >")).str();});
 	}
 	
-	m.def("n_running", &PySuperTuxKart::nRunning,"Number of SuperTuxKarts running (0 or 1)");
+	m.def("is_running", &PySuperTuxKart::isRunning,"Is supertuxkart running?");
 	{
 		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> > cls(m, "SuperTuxKart", "SuperTuxKart instance");
 		cls.def(py::init<const PySTKRaceConfig &>(),py::arg("config"));
@@ -190,5 +194,12 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	// Initialize SuperTuxKart
 	m.def("init", &PySuperTuxKart::init);
 	m.def("clean", &PySuperTuxKart::clean);
+	
+	auto atexit = py::module::import("atexit");
+		atexit.attr("register")(py::cpp_function([]() {
+			// A bit ugly
+			PySuperTuxKart::running_kart = nullptr;
+			PySuperTuxKart::clean();
+		}));
 }
 

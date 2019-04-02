@@ -66,7 +66,6 @@ struct PySTKAction {
 
 class PySuperTuxKart {
 protected: // Static methods
-	static int n_running;
 	static bool render_window;
 	static void initRest();
 	static void initUserConfig();
@@ -75,10 +74,11 @@ protected: // Static methods
 	static void cleanUserConfig();
 
 public: // Static methods
+	static PySuperTuxKart * running_kart;
 	static void init(const PySTKGraphicsConfig & config);
 	static void load();
 	static void clean();
-	static int nRunning();
+	static bool isRunning();
 	static std::vector<std::string> listTracks();
 	static std::vector<std::string> listKarts();
 

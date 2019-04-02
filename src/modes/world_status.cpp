@@ -17,7 +17,6 @@
 
 #include "modes/world_status.hpp"
 
-#include "main_loop.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
@@ -31,7 +30,6 @@
 //-----------------------------------------------------------------------------
 WorldStatus::WorldStatus()
 {
-    main_loop->setFrameBeforeLoadingWorld();
     m_clock_mode        = CLOCK_CHRONO;
     m_phase             = SETUP_PHASE;
 

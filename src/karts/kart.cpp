@@ -56,7 +56,6 @@
 #include "karts/max_speed.hpp"
 #include "karts/rescue_animation.hpp"
 #include "karts/skidding.hpp"
-#include "main_loop.hpp"
 #include "modes/capture_the_flag.hpp"
 #include "modes/linear_world.hpp"
 #include "modes/soccer_world.hpp"

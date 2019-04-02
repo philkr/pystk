@@ -253,7 +253,7 @@ endif()
 add_executable(supertuxkart src/main.cpp )
 target_link_libraries(supertuxkart stk)
 
-pybind11_add_module(pystk_cpp pystk/cpp/binding.cpp pystk/cpp/pystk.cpp pystk/cpp/util.cpp)
+pybind11_add_module(pystk_cpp pystk/cpp/binding.cpp pystk/cpp/pystk.cpp pystk/cpp/util.cpp pystk/cpp/state.cpp)
 target_link_libraries(pystk_cpp PRIVATE pybind11::module stk)
 set_target_properties(pystk_cpp PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}"
                                            SUFFIX "${PYTHON_MODULE_EXTENSION}")

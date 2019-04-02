@@ -252,6 +252,9 @@ void Item::setItemId(unsigned int n) {
     ItemState::setItemId(n);
     ri_->setObjectId(makeObjectId(ot(getType()), n+1));
 }
+uint32_t Item::getObjectId() const {
+    return ri_->objectId();
+}
 
 //-----------------------------------------------------------------------------
 
