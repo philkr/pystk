@@ -285,14 +285,74 @@ PySuperTuxKart::~PySuperTuxKart() {
 	running_kart = nullptr;
 }
 
+class LocalPlayerAIController: public Controller {
+public:
+	Controller * ai_controller_;
+public:
+	LocalPlayerAIController(Controller * ai_controller):Controller(ai_controller->getKart()), ai_controller_(ai_controller) {}
+	~LocalPlayerAIController() {
+		if (ai_controller_) delete ai_controller_;
+	}
+    virtual void  reset              ()
+	{ ai_controller_->reset(); }
+    virtual void  update             (int ticks)
+	{ ai_controller_->update(ticks); }
+    virtual void  handleZipper       (bool play_sound)
+	{ ai_controller_->handleZipper(play_sound); }
+    virtual void  collectedItem      (const ItemState &item,
+                                      float previous_energy=0)
+	{ ai_controller_->collectedItem(item, previous_energy); }
+    virtual void  crashed            (const AbstractKart *k)
+	{ ai_controller_->crashed(k); }
+    virtual void  crashed            (const Material *m)
+	{ ai_controller_->crashed(m); }
+    virtual void  setPosition        (int p)
+	{ ai_controller_->setPosition(p); }
+    /** This function checks if this is a local player. A local player will get 
+     *  special graphical effects enabled, has a camera, and sound effects will
+     *  be played with normal volume. */
+    virtual bool  isLocalPlayerController () const { return true; }
+    /** This function checks if this player is not an AI, i.e. it is either a
+     *  a local or a remote/networked player. This is tested e.g. by the AI for
+     *  rubber-banding. */
+    virtual bool  isPlayerController () const { return true; }
+    virtual bool  disableSlipstreamBonus() const
+	{ return ai_controller_->disableSlipstreamBonus(); }
+    virtual void  saveState(BareNetworkString *buffer) const
+	{ ai_controller_->saveState(buffer); }
+    virtual void  rewindTo(BareNetworkString *buffer)
+	{ ai_controller_->rewindTo(buffer); }
+
+    // ------------------------------------------------------------------------
+    /** Default: ignore actions. Only PlayerController get them. */
+    virtual bool action(PlayerAction action, int value, bool dry_run=false)
+	{ return ai_controller_->action(action, value, dry_run); }
+    // ------------------------------------------------------------------------
+    /** Callback whenever a new lap is triggered. Used by the AI
+     *  to trigger a recomputation of the way to use.            */
+    virtual void  newLap(int lap)
+	{ return ai_controller_->newLap(lap); }
+    // ------------------------------------------------------------------------
+    virtual void  skidBonusTriggered()
+	{ return ai_controller_->skidBonusTriggered(); }
+    // ------------------------------------------------------------------------
+    /** Called whan this controller's kart finishes the last lap. */
+    virtual void  finishedRace(float time)
+	{ return ai_controller_->finishedRace(time); }
+};
+
 void PySuperTuxKart::start() {
-	setupRaceStart();
 	race_manager->setupPlayerKartInfo();
 	race_manager->startNew();
 	time_leftover_ = 0.f;
-    if (config_.player_ai) {
-		AbstractKart * player_kart = World::getWorld()->getPlayerKart(0);
-		ai_controller_ = World::getWorld()->loadAIController(player_kart);
+	
+	for(int i=0; i<config_.players.size(); i++) {
+		AbstractKart * player_kart = World::getWorld()->getPlayerKart(i);
+		printf("Player [%d]  control = %d\n", i, config_.players[i].controller);
+		if (config_.players[i].controller == PySTKPlayerConfig::AI_CONTROL)
+			player_kart->setController(new LocalPlayerAIController(World::getWorld()->loadAIController(player_kart)));
+// 		else
+// 			player_kart->setController(NULL);
 	}
 }
 void PySuperTuxKart::stop() {
@@ -311,9 +371,6 @@ void PySuperTuxKart::stop() {
 	{
 		race_manager->exitRace();
 	}
-	
-	if (ai_controller_) delete ai_controller_;
-	ai_controller_ = nullptr;
 }
 void PySuperTuxKart::render(float dt) {
 	SP::SPTextureManager::get()->checkForGLCommand();
@@ -361,14 +418,6 @@ bool PySuperTuxKart::step() {
 		time_leftover_ -= stk_config->ticks2Time(ticks);
 		for(int i=0; i<ticks; i++)
 			World::getWorld()->updateWorld(1);
-		// Update the AI control
-		if (ai_controller_) {
-			KartControl control;
-			ai_controller_->setControls(&control);
-			ai_controller_->update(ticks);
-			ai_controller_->setControls(nullptr);
-			ai_action_.get(&control);
-		}
 	}
 
 	if (!irr_driver->getDevice()->run())
@@ -410,28 +459,6 @@ void PySuperTuxKart::load() {
 	file_manager->popTextureSearchPath();
 }
 
-// ============================================================================
-/** This function sets up all data structure for an immediate race start.
- *  It is used when the -N or -R command line options are used.
- */
-void PySuperTuxKart::setupRaceStart()
-{
-    if (!kart_properties_manager->getKart(UserConfigParams::m_default_kart))
-    {
-        Log::warn("main", "Kart '%s' is unknown so will use the "
-            "default kart.",
-            UserConfigParams::m_default_kart.c_str());
-        race_manager->setPlayerKart(0,
-                           UserConfigParams::m_default_kart.getDefaultValue());
-    }
-    else
-    {
-        // Set up race manager appropriately
-        if (race_manager->getNumPlayers() > 0)
-            race_manager->setPlayerKart(0, UserConfigParams::m_default_kart);
-    }
-}   // setupRaceStart
-
 static RaceManager::MinorRaceModeType translate_mode(PySTKRaceConfig::RaceMode mode) {
 	switch (mode) {
 		case PySTKRaceConfig::NORMAL_RACE: return RaceManager::MINOR_MODE_NORMAL_RACE;
@@ -450,25 +477,13 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 	
 	race_manager->setDifficulty(RaceManager::Difficulty(config.difficulty));
 	race_manager->setMinorMode(translate_mode(config.mode));
-	
-	if (config.kart.length()) {
-		const KartProperties *prop = kart_properties_manager->getKart(config.kart);
-		if (prop)
-		{
-			UserConfigParams::m_default_kart = config.kart;
-
-			// if a player was added with -N, change its kart.
-			// Otherwise, nothing to do, kart choice will be picked
-			// up upon player creation.
-			race_manager->setPlayerKart(0, config.kart);
-			Log::verbose("main", "You chose to use kart '%s'.",
-							config.kart.c_str());
-		}
-		else
-		{
-			Log::warn("main", "Kart '%s' not found, ignored.",
-						config.kart.c_str());
-		}
+	race_manager->setNumPlayers(config.players.size());
+	for(int i=0; i<config.players.size(); i++) {
+		std::string kart = config.players[i].kart.size() ? config.players[i].kart : (std::string)UserConfigParams::m_default_kart;
+		const KartProperties *prop = kart_properties_manager->getKart(kart);
+		if (!prop)
+			kart = UserConfigParams::m_default_kart.getDefaultValue();
+		race_manager->setPlayerKart(i, kart);
 	}
 	if (config.track.length())
 		race_manager->setTrack(config.track);
@@ -476,10 +491,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 	UserConfigParams::m_race_now = true;
 	
 	race_manager->setNumLaps(config.laps);
-	
-// 	stk_config->setPhysicsFPS(30.);
-// 	race_manager->setDefaultAIKartList(l);
-// 	race_manager->setNumKarts( UserConfigParams::m_default_num_karts );
+	race_manager->setNumKarts(config.num_kart);
 }
 
 void PySuperTuxKart::initGraphicsConfig(const PySTKGraphicsConfig & config) {

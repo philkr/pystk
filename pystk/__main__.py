@@ -39,7 +39,10 @@ if args.play:
 
     config = pystk.RaceConfig()
     if args.kart is not None:
-        config.kart = args.kart
+        config.players[0].kart = args.kart
+    print( config.players[0].controller )
+    config.players[0].controller = pystk.PlayerConfig.Controller.AI_CONTROL
+    print( config.players[0].controller )
     if args.track is not None:
         config.track = args.track
     if args.step_size is not None:
@@ -54,8 +57,8 @@ if args.play:
     t0 = time()
     n = 0
     while ui.visible:
-        k.step(ui.current_action)
-        #k.step(k.ai_action)
+        #k.step(ui.current_action)
+        k.step()
         ui.show(k.render_data[0])
         #import numpy as np
         #print( np.vectorize(hex)(np.unique(np.array(k.render_data[0].instance))) )

@@ -20,6 +20,14 @@ struct PySTKGraphicsConfig {
 	static const PySTKGraphicsConfig & sd();
 	static const PySTKGraphicsConfig & ld();
 };
+struct PySTKPlayerConfig {
+	enum Controller {
+		PLAYER_CONTROL,
+		AI_CONTROL,
+	};
+	std::string kart;
+	Controller controller;
+};
 struct PySTKRaceConfig {
 	enum RaceMode {
 		NORMAL_RACE,
@@ -33,12 +41,12 @@ struct PySTKRaceConfig {
 	
 	int difficulty = 2;
 	RaceMode mode = NORMAL_RACE;
-	std::string kart;
+	std::vector<PySTKPlayerConfig> players = {{"",PySTKPlayerConfig::PLAYER_CONTROL}};
 	std::string track;
 	int laps = 3;
 	int seed = 0;
+	int num_kart = 1;
 	float step_size = 0.1;
-	bool player_ai = true;
 };
 
 class PySTKRenderTarget;
@@ -90,8 +98,6 @@ protected:
 	std::vector<std::shared_ptr<PySTKRenderData> > render_data_;
 	PySTKRaceConfig config_;
 	float time_leftover_ = 0;
-	Controller * ai_controller_ = nullptr;
-	PySTKAction ai_action_;
 
 public:
 	PySuperTuxKart(const PySuperTuxKart &) = delete;
@@ -102,6 +108,5 @@ public:
 	bool step(const PySTKAction &);
 	bool step();
 	void stop();
-	const PySTKAction & ai_action() const { return ai_action_; }
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 };

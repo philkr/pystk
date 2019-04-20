@@ -173,7 +173,7 @@ FileManager::FileManager()
     }
     if(exe_path.size()==0 || exe_path[exe_path.size()-1]!='/')
         exe_path += "/";
-    if ( getenv ( "SUPERTUXKART_DATADIR" ) != NULL )
+    if ( getenv ( "SUPERTUXKART_DATADIR" ) != NULL && fileExists((std::string(getenv("SUPERTUXKART_DATADIR"))+"/data/").c_str(), version) )
         root_dir = std::string(getenv("SUPERTUXKART_DATADIR"))+"/data/" ;
 #ifdef __APPLE__
 //    else if( macSetBundlePathIfRelevant( root_dir ) ) { root_dir = root_dir + "data/"; }

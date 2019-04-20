@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 #include <memory>
 #include <string>
 #include <sstream>
@@ -60,6 +61,8 @@ py::memoryview view(const T * v, const std::vector<ssize_t> & shape) {
 	py::buffer_info bi(const_cast<T * >(v), shape, stride);
 	return py::memoryview(bi);
 }
+
+PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
 
 PYBIND11_MODULE(pystk_cpp, m) {
 	m.doc() = "Python SuperTuxKart interface";
@@ -133,6 +136,21 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	}
 	
 	{
+		py::class_<PySTKPlayerConfig, std::shared_ptr<PySTKPlayerConfig>> cls(m, "PlayerConfig", "SuperTuxKart player configuration.");
+	
+		py::enum_<PySTKPlayerConfig::Controller>(cls, "Controller")
+			.value("PLAYER_CONTROL", PySTKPlayerConfig::PLAYER_CONTROL)
+			.value("AI_CONTROL", PySTKPlayerConfig::AI_CONTROL);
+		
+		cls
+		.def(py::init<const std::string&, PySTKPlayerConfig::Controller>(), py::arg("kart")="", py::arg("controller")=PySTKPlayerConfig::PLAYER_CONTROL)
+		.def_readwrite("kart", &PySTKPlayerConfig::kart )
+		.def_readwrite("controller", &PySTKPlayerConfig::controller );
+
+		py::bind_vector<std::vector<PySTKPlayerConfig>>(m, "VectorPlayerConfig");
+	}
+	
+	{
 		py::class_<PySTKRaceConfig, std::shared_ptr<PySTKRaceConfig>> cls(m, "RaceConfig", "SuperTuxKart race configuration.");
 	
 		py::enum_<PySTKRaceConfig::RaceMode>(cls, "RaceMode")
@@ -144,15 +162,16 @@ PYBIND11_MODULE(pystk_cpp, m) {
 			.value("CAPTURE_THE_FLAG", PySTKRaceConfig::RaceMode::CAPTURE_THE_FLAG)
 			.value("SOCCER", PySTKRaceConfig::RaceMode::SOCCER);
 		
-		cls.def(py::init());
-		cls.def_readwrite("difficulty", &PySTKRaceConfig::difficulty );
-		cls.def_readwrite("mode", &PySTKRaceConfig::mode );
-		cls.def_readwrite("kart", &PySTKRaceConfig::kart);
-		cls.def_readwrite("track", &PySTKRaceConfig::track);
-		cls.def_readwrite("laps", &PySTKRaceConfig::laps );
-		cls.def_readwrite("seed", &PySTKRaceConfig::seed );
-		cls.def_readwrite("step_size", &PySTKRaceConfig::step_size );
-		cls.def_readwrite("player_ai", &PySTKRaceConfig::player_ai );
+		cls
+		.def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,int,int,int,float>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1)
+		.def_readwrite("difficulty", &PySTKRaceConfig::difficulty)
+		.def_readwrite("mode", &PySTKRaceConfig::mode)
+		.def_readwrite("players", &PySTKRaceConfig::players)
+		.def_readwrite("track", &PySTKRaceConfig::track)
+		.def_readwrite("laps", &PySTKRaceConfig::laps)
+		.def_readwrite("seed", &PySTKRaceConfig::seed)
+		.def_readwrite("num_kart", &PySTKRaceConfig::num_kart)
+		.def_readwrite("step_size", &PySTKRaceConfig::step_size);
 	}
 
 	{
@@ -178,14 +197,13 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	
 	m.def("is_running", &PySuperTuxKart::isRunning,"Is supertuxkart running?");
 	{
-		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> > cls(m, "SuperTuxKart", "SuperTuxKart instance");
-		cls.def(py::init<const PySTKRaceConfig &>(),py::arg("config"));
-		cls.def("start", &PySuperTuxKart::start,"");
-		cls.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &)) &PySuperTuxKart::step,"Take a step with an action");
-		cls.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step,"Take a step without chaning the action");
-		cls.def("stop", &PySuperTuxKart::stop,"");
-		cls.def_property_readonly("ai_action", &PySuperTuxKart::ai_action, "The action the AI would have taken");
-		cls.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
+		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> >(m, "SuperTuxKart", "SuperTuxKart instance")
+		.def(py::init<const PySTKRaceConfig &>(),py::arg("config"))
+		.def("start", &PySuperTuxKart::start,"")
+		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &)) &PySuperTuxKart::step,"Take a step with an action")
+		.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step,"Take a step without chaning the action")
+		.def("stop", &PySuperTuxKart::stop,"")
+		.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
 	}
 	
 	m.def("list_tracks", &PySuperTuxKart::listTracks);

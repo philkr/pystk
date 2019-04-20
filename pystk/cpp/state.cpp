@@ -241,6 +241,7 @@ struct PyTrack {
 		  R(length)
 		  R(lap_count)
 		  R(path_nodes)
+		  R(path_width)
 #undef R
 		 .def("update", &PyTrack::update) 
 		 .def("__repr__", [](const PyTrack &t) { return "<Track length="+std::to_string(t.length)+" lap_count="+std::to_string(t.lap_count)+">"; });
@@ -260,6 +261,7 @@ struct PyTrack {
 				DriveNode * node = g->getNode(i);
 				memcpy(path_nodes.mutable_data(i,0), node->getLowerCenter().m_floats, 3*sizeof(float));
 				memcpy(path_nodes.mutable_data(i,1), node->getUpperCenter().m_floats, 3*sizeof(float));
+				*path_width.mutable_data(i) = node->getPathWidth();
 			}
 		}
 	}
