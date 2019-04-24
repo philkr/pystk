@@ -138,6 +138,7 @@ struct PyKartState {
 	bool jumping = false;
 	int finished_laps = 0;
 	float overall_distance = 0;
+	float distance_down_track = 0;
 	
 	PyAttachment attachment;
 	
@@ -155,6 +156,9 @@ struct PyKartState {
 		  R(shield_time)
 		  R(race_result)
 		  R(jumping)
+		  R(finished_laps)
+		  R(overall_distance)
+		  R(distance_down_track)
 		  R(attachment)
 		  R(powerup)
 #undef R
@@ -301,6 +305,7 @@ struct PyWorldState {
 				if (lw) {
 					karts[i]->finished_laps = lw->getFinishedLapsOfKart(i);
 					karts[i]->overall_distance = lw->getOverallDistance(i);
+					karts[i]->distance_down_track = lw->getDistanceDownTrackForKart(i, true);
 				}
 			}
 		}
