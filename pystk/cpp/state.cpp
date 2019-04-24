@@ -233,6 +233,7 @@ struct PyTrack {
 	int lap_count;
 	py::array_t<float> path_nodes;
 	py::array_t<float> path_width;
+	py::array_t<float> path_distance;
 	
 	static void define(py::object m) {
 		py::class_<PyTrack >(m, "Track")
@@ -242,6 +243,7 @@ struct PyTrack {
 		  R(lap_count)
 		  R(path_nodes)
 		  R(path_width)
+		  R(path_distance)
 #undef R
 		 .def("update", &PyTrack::update) 
 		 .def("__repr__", [](const PyTrack &t) { return "<Track length="+std::to_string(t.length)+" lap_count="+std::to_string(t.lap_count)+">"; });
@@ -257,11 +259,14 @@ struct PyTrack {
 		if (g) {
 			path_nodes = py::array_t<float>(py::array::ShapeContainer({g->getNumNodes(), 2, 3}));
 			path_width = py::array_t<float>(py::array::ShapeContainer({g->getNumNodes(), 1}));
+			path_distance = py::array_t<float>(py::array::ShapeContainer({g->getNumNodes(), 2}));
 			for(int i=0; i<g->getNumNodes(); i++) {
 				DriveNode * node = g->getNode(i);
 				memcpy(path_nodes.mutable_data(i,0), node->getLowerCenter().m_floats, 3*sizeof(float));
 				memcpy(path_nodes.mutable_data(i,1), node->getUpperCenter().m_floats, 3*sizeof(float));
 				*path_width.mutable_data(i) = node->getPathWidth();
+				*path_distance.mutable_data(i,0) = node->getDistanceFromStart();
+				*path_distance.mutable_data(i,1) = node->getDistanceFromStart() + node->getNodeLength();
 			}
 		}
 	}
