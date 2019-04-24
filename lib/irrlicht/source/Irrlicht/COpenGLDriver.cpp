@@ -44,7 +44,7 @@ namespace irr
 {
 namespace video
 {
-	bool useCoreContext;
+	bool useCoreContext = true;
 // -----------------------------------------------------------------------
 // WINDOWS CONSTRUCTOR
 // -----------------------------------------------------------------------
