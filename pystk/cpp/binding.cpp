@@ -200,8 +200,8 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> >(m, "SuperTuxKart", "SuperTuxKart instance")
 		.def(py::init<const PySTKRaceConfig &>(),py::arg("config"))
 		.def("start", &PySuperTuxKart::start,"")
-		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &)) &PySuperTuxKart::step,"Take a step with an action")
-		.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step,"Take a step without chaning the action")
+		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &, bool)) &PySuperTuxKart::step, py::arg("action"), py::arg("render")=true, "Take a step with an action")
+		.def("step", (bool (PySuperTuxKart::*)(bool)) &PySuperTuxKart::step, py::arg("render")=true, "Take a step without chaning the action")
 		.def("stop", &PySuperTuxKart::stop,"")
 		.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
 	}

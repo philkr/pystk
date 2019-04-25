@@ -105,8 +105,8 @@ public:
 	PySuperTuxKart(const PySTKRaceConfig & config);
 	~PySuperTuxKart();
 	void start();
-	bool step(const PySTKAction &);
-	bool step();
+	bool step(const PySTKAction &, bool);
+	bool step(bool);
 	void stop();
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 };

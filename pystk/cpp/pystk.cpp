@@ -392,25 +392,27 @@ void PySuperTuxKart::render(float dt) {
     }
 }
 
-bool PySuperTuxKart::step(const PySTKAction & a) {
+bool PySuperTuxKart::step(const PySTKAction & a, bool do_render) {
 	KartControl & control = World::getWorld()->getPlayerKart(0)->getControls();
 	a.set(&control);
-	return step();
+	return step(do_render);
 }
-bool PySuperTuxKart::step() {
+bool PySuperTuxKart::step(bool do_render) {
 	const float dt = config_.step_size;
-
-    PropertyAnimator::get()->update(dt);
-	if (World::getWorld())
-		World::getWorld()->updateGraphics(dt);
 	
-	// irr_driver->update alternative
-	if (render_window) {
-		irr_driver->update(dt);
-	} else {
-		irr_driver->minimalUpdate(dt);
+	if (do_render) {
+		PropertyAnimator::get()->update(dt);
+		if (World::getWorld())
+			World::getWorld()->updateGraphics(dt);
+		
+		// irr_driver->update alternative
+		if (render_window) {
+			irr_driver->update(dt);
+		} else {
+			irr_driver->minimalUpdate(dt);
+		}
+		render(dt);
 	}
-	render(dt);
 	
 	if (World::getWorld()) {
 		time_leftover_ += dt;
@@ -420,7 +422,7 @@ bool PySuperTuxKart::step() {
 			World::getWorld()->updateWorld(1);
 	}
 
-	if (!irr_driver->getDevice()->run())
+	if (do_render && !irr_driver->getDevice()->run())
 		return false;
 	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
 }
