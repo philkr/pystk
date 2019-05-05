@@ -418,8 +418,10 @@ bool PySuperTuxKart::step(bool do_render) {
 		time_leftover_ += dt;
 		int ticks = stk_config->time2Ticks(time_leftover_);
 		time_leftover_ -= stk_config->ticks2Time(ticks);
-		for(int i=0; i<ticks; i++)
+		for(int i=0; i<ticks; i++) {
 			World::getWorld()->updateWorld(1);
+			World::getWorld()->updateTime(1);
+		}
 	}
 
 	if (do_render && !irr_driver->getDevice()->run())

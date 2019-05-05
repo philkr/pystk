@@ -137,8 +137,12 @@ struct PyKartState {
 	bool race_result = false;
 	bool jumping = false;
 	int finished_laps = 0;
+	float lap_time = 0;
+	float finish_time = 0;
 	float overall_distance = 0;
 	float distance_down_track = 0;
+	float max_steer_angle = 0;
+	float wheel_base = 0;
 	
 	PyAttachment attachment;
 	
@@ -156,11 +160,15 @@ struct PyKartState {
 		  R(shield_time)
 		  R(race_result)
 		  R(jumping)
+		  R(lap_time)
 		  R(finished_laps)
 		  R(overall_distance)
 		  R(distance_down_track)
+		  R(finish_time)
 		  R(attachment)
 		  R(powerup)
+		  R(max_steer_angle)
+		  R(wheel_base)
 #undef R
 		 .def("__repr__", [](const PyKartState &k) { return "<KartState id=" + std::to_string(k.id)+" player_id=" + std::to_string(k.player_id)+" name='"+k.name+"' ...>"; });
 	}
@@ -180,6 +188,9 @@ struct PyKartState {
 			jumping = k->isJumping();
 			attachment.update(k->getAttachment());
 			powerup.update(k->getPowerup());
+			max_steer_angle = k->getMaxSteerAngle();
+			wheel_base = k->getKartProperties()->getWheelBase();
+			finish_time = k->getFinishTime();
 		}
 	}
 };
@@ -279,6 +290,7 @@ struct PyTrack {
 struct PyWorldState {
 	std::vector<std::shared_ptr<PyKartState> > karts;
 	std::vector<std::shared_ptr<PyItem> > items;
+	float time = 0;
 	
 	static void define(py::object m) {
 		py::class_<PyWorldState >(m, "WorldState")
@@ -286,6 +298,7 @@ struct PyWorldState {
 #define R(x) .def_readonly(#x, &PyWorldState::x)
 		  R(karts)
 		  R(items)
+		  R(time)
 #undef R
 		 .def("update", &PyWorldState::update) 
 		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; });
@@ -306,8 +319,10 @@ struct PyWorldState {
 					karts[i]->finished_laps = lw->getFinishedLapsOfKart(i);
 					karts[i]->overall_distance = lw->getOverallDistance(i);
 					karts[i]->distance_down_track = lw->getDistanceDownTrackForKart(i, true);
+					karts[i]->lap_time = stk_config->ticks2Time(lw->getTicksAtLapForKart(i));
 				}
 			}
+			time = w->getTime();
 		}
 		ItemManager * im = ItemManager::get();
 		if (im) {
