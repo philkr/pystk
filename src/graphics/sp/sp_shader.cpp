@@ -112,15 +112,38 @@ void SPShader::linkShaderFiles(RenderPass rp)
     } else {
         m_outputs[rp].clear();
         GLint num_frag_outputs = 0;
-        glGetProgramInterfaceiv(m_program[rp], GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_frag_outputs);
-        for( int i=0; i<num_frag_outputs; i++ ) {
-            int identifier_length;
-            char identifier[128];            //Where GL will write the variable name
-            glGetProgramResourceName(m_program[rp], GL_PROGRAM_OUTPUT, i, 128, &identifier_length, identifier);
-            GLuint location = glGetProgramResourceLocation(m_program[rp], GL_PROGRAM_OUTPUT, identifier);
-            GLuint index = glGetProgramResourceLocationIndex(m_program[rp], GL_PROGRAM_OUTPUT, identifier);
-            m_outputs[rp].push_back({std::string(identifier), location, index});
-        }
+        if (glewIsSupported("GL_ARB_program_interface_query")) {
+			glGetProgramInterfaceiv(m_program[rp], GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_frag_outputs);
+			for( int i=0; i<num_frag_outputs; i++ ) {
+				int identifier_length;
+				char identifier[128];            //Where GL will write the variable name
+				glGetProgramResourceName(m_program[rp], GL_PROGRAM_OUTPUT, i, 128, &identifier_length, identifier);
+				GLuint location = glGetProgramResourceLocation(m_program[rp], GL_PROGRAM_OUTPUT, identifier);
+				GLuint index = glGetProgramResourceLocationIndex(m_program[rp], GL_PROGRAM_OUTPUT, identifier);
+				m_outputs[rp].push_back({std::string(identifier), location, index});
+			}
+		} else {
+			// Does not exist on Mac OS X
+			// This is very ugly!!
+			// grep -he "^out " -e " out" data/shaders/*.frag | sed 's/.* \(.*\);/"\1",/g' | sort | uniq
+			const char * output_names[] = {"AO",
+"Depth",
+"Diff",
+"Fog",
+"FragColor",
+"Spec",
+"o_diffuse_color",
+"o_final_color",
+"o_frag_color",
+"o_label",
+"o_normal_color"};
+			for(int i=0; i*sizeof(*output_names)<sizeof(output_names); i++) {
+				GLint location = glGetFragDataLocation(m_program[rp], output_names[i]);
+				GLint index = glGetFragDataIndex(m_program[rp], output_names[i]);
+				if (location >=0 && index>=0)
+					m_outputs[rp].push_back({std::string(output_names[i]), (GLuint)location, (GLuint)index});
+			}
+		}
     } 
 #endif
 }   // linkShaderFiles
