@@ -33,16 +33,14 @@ if args.list_karts:
 
 if args.play:
     config = pystk.GraphicsConfig.hd()
-    config.screen_width = 400
-    config.screen_height = 300
+    config.screen_width = 800
+    config.screen_height = 600
     pystk.init(config)
 
     config = pystk.RaceConfig()
     if args.kart is not None:
         config.players[0].kart = args.kart
-    print( config.players[0].controller )
     config.players[0].controller = pystk.PlayerConfig.Controller.AI_CONTROL
-    print( config.players[0].controller )
     if args.track is not None:
         config.track = args.track
     if args.step_size is not None:

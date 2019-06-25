@@ -69,7 +69,8 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	
 	// Make offscreen rendering default
 #ifndef WIN32
-	setenv("IRR_DEVICE_TYPE", "offscreen", 0);
+	if (!getenv("IRR_DEVICE_TYPE"))
+		setenv("IRR_DEVICE_TYPE", "offscreen", 0);
 #endif
 	// Adjust the log level
 	Log::setLogLevel(Log::LL_FATAL);

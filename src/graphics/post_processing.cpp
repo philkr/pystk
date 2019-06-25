@@ -461,21 +461,21 @@ public:
 };   // DepthOfFieldShader
 
 // ============================================================================
-class PassThroughShader : public TextureShader<PassThroughShader, 1, int, int>
+class PassThroughShader : public TextureShader<PassThroughShader, 1, int, int, int>
 {
 public:
     PassThroughShader()
     {
         loadProgram(OBJECT, GL_VERTEX_SHADER, "screenquad.vert",
                             GL_FRAGMENT_SHADER, "passthrough.frag");
-        assignUniforms("width", "height");
+        assignUniforms("width", "height", "srgb");
         assignSamplerNames(0, "tex", ST_BILINEAR_FILTERED);
     }   // PassThroughShader
     // ------------------------------------------------------------------------
-    void render(GLuint tex, unsigned width, unsigned height)
+    void render(GLuint tex, unsigned width, unsigned height, unsigned srgb=false)
     {
         PassThroughShader::getInstance()->setTextureUnits(tex);
-        drawFullScreenEffect(width, height);
+        drawFullScreenEffect(width, height, srgb);
     }   // render
 
 };   // PassThroughShader
@@ -996,6 +996,13 @@ void PostProcessing::renderPassThrough(GLuint tex, unsigned width,
                                        unsigned height) const
 {
     PassThroughShader::getInstance()->render(tex, width, height);
+}   // renderPassThrough
+
+// ----------------------------------------------------------------------------
+void PostProcessing::renderPassThroughSRGB(GLuint tex, unsigned width,
+                                           unsigned height) const
+{
+    PassThroughShader::getInstance()->render(tex, width, height, true);
 }   // renderPassThrough
 
 // ----------------------------------------------------------------------------

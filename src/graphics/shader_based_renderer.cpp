@@ -858,16 +858,9 @@ void ShaderBasedRenderer::renderToTexture(GL3RenderTarget *render_target,
         m_post_processing->begin();
         renderSceneDeferred(camera, dt, track->hasShadows(), true);
 		FrameBuffer *fbo = m_post_processing->render(camera, true, m_rtts);
-		if (irr_driver->getSSAOViz())
-		{
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-			m_post_processing->renderPassThrough(m_rtts->getFBO(FBO_HALF1_R).getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
-		}
-		else
-		{
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-			m_post_processing->renderPassThrough(fbo->getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
-		}
+		m_rtts->getFBO(FBO_COLORS).bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		m_post_processing->renderPassThrough(fbo->getRTT()[0], m_rtts->getWidth(), m_rtts->getHeight());
         render_target->setFrameBuffer(&m_rtts->getFBO(FBO_COLOR_AND_LABEL));
     }
     else
