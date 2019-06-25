@@ -32,7 +32,7 @@ if args.list_karts:
     print()
 
 if args.play:
-    config = pystk.GraphicsConfig.sd()
+    config = pystk.GraphicsConfig.hd()
     config.screen_width = 400
     config.screen_height = 300
     pystk.init(config)
@@ -57,15 +57,12 @@ if args.play:
     t0 = time()
     n = 0
     while ui.visible:
-        #k.step(ui.current_action)
-        k.step()
+        if not ui.pause:
+            k.step(ui.current_action)
         ui.show(k.render_data[0])
-        #import numpy as np
-        #print( np.vectorize(hex)(np.unique(np.array(k.render_data[0].instance))) )
         # Make sure we play in real time
         n += 1
         delta_d = n * config.step_size - (time() - t0)
-        #if n % 100 == 0: ui.sleep(10)
         if delta_d > 0:
             ui.sleep(delta_d)
 
@@ -96,7 +93,7 @@ if args.benchmark:
 
         t2 = time()
         for it in range(1000):
-            k.step(k.ai_action)
+            k.step()
         t3 = time()
         print( '  graphics', (t1-t0))
         print( '  load', (t2-t1))

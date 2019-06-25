@@ -69,11 +69,13 @@ class BaseUI:
     visualization_type: VT
     current_action: pystk.Action
     visible: bool
+    pause: bool
 
     def __init__(self, visualization_type: VT):
         self.visualization_type = visualization_type
         self.current_action = pystk.Action()
         self.visible = False
+        self.pause = False
 
     @staticmethod
     def _format_data(render_data: pystk.RenderData, colorize: bool = True) -> Dict[VT, np.array]:
@@ -89,6 +91,8 @@ class BaseUI:
         self.current_action.brake = 's' in self._ks or 'down' in self._ks
         self.current_action.steer = int('d' in self._ks or 'right' in self._ks) - int('a' in self._ks or 'left' in self._ks)
         self.current_action.fire = ' ' in self._ks
+        if 'p' in self._ks:
+            self.pause = not self.pause
         # TODO: Complete
 
     def show(self, render_data: pystk.RenderData):
