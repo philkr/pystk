@@ -43,6 +43,8 @@
 static ObjectType ot(ItemState::ItemType type) {
     if (type == ItemState::ITEM_BANANA || type == ItemState::ITEM_BUBBLEGUM || type == ItemState::ITEM_BUBBLEGUM_NOLOK)
         return OT_BOMB;
+    if (type == ItemState::ITEM_NITRO_BIG || type == ItemState::ITEM_NITRO_SMALL)
+        return OT_NITRO;
     return OT_PICKUP;
 }
 

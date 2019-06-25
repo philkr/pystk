@@ -104,6 +104,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.value("track", ObjectType::OT_TRACK)
 		.value("background", ObjectType::OT_BACKGROUND)
 		.value("pickup", ObjectType::OT_PICKUP)
+		.value("nitro", ObjectType::OT_NITRO)
 		.value("bomb", ObjectType::OT_BOMB)
 		.value("object", ObjectType::OT_OBJECT)
 		.value("projectile", ObjectType::OT_PROJECTILE)
