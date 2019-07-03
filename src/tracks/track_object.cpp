@@ -54,6 +54,7 @@ TrackObject::TrackObject(const XMLNode &xml_node, scene::ISceneNode* parent,
                          ModelDefinitionLoader& model_def_loader,
                          TrackObject* parent_library)
 {
+    m_render_info     = std::make_shared<RenderInfo>(0.f, false, newObjectId(OT_BACKGROUND));
     init(xml_node, parent, model_def_loader, parent_library);
 }   // TrackObject
 
@@ -262,7 +263,7 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
                 if (hue > 0.0f)
                 {
                     if (m_render_info) m_render_info->setHue(hue);
-                    else m_render_info = std::make_shared<RenderInfo>(hue);
+                    else m_render_info = std::make_shared<RenderInfo>(hue, true, newObjectId(OT_BACKGROUND));
                 }
             }
         }

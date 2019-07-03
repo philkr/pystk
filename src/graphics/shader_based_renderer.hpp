@@ -36,6 +36,7 @@ class RTT;
 class Skybox;
 class SphericalHarmonics;
 class PostProcessing;
+class TrackRenderer;
 
 class ShaderBasedRenderer: public AbstractRenderer
 {
@@ -47,6 +48,7 @@ private:
     LightingPasses              m_lighting_passes;
     ShadowMatrices              m_shadow_matrices;
     PostProcessing             *m_post_processing;
+	TrackRenderer              *m_track_renderer;
 
     void prepareForwardRenderer();
 
@@ -65,6 +67,8 @@ private:
     void renderSSAO() const;
 
     void renderGlow() const;
+
+    void renderTrackLabel(GLuint tex) const;
 
     void renderScene(irr::scene::ICameraSceneNode * const camnode,
                      float dt, bool hasShadows, bool forceRTT);

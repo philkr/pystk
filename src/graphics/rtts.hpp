@@ -28,6 +28,8 @@ enum TypeFBO
 {
     FBO_COLORS,
     FBO_COLOR_AND_LABEL,
+    FBO_COLOR_AND_LABEL_TMP,
+    FBO_LABEL,
     FBO_NORMAL_AND_DEPTHS,
     FBO_SP,
     FBO_RGBA_1,
@@ -96,6 +98,7 @@ enum TypeRTT : unsigned int
     RTT_LENS_128,
     
     RTT_LABEL,
+    RTT_LABEL_TMP,
 
     RTT_COUNT
 };

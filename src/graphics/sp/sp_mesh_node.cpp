@@ -44,7 +44,8 @@ SPMeshNode::SPMeshNode(IAnimatedMesh* mesh, ISceneNode* parent,
           : CAnimatedMeshSceneNode(mesh, parent, mgr, id, position, rotation,
                                    scale)
 {
-    if (!render_info) render_info = std::make_shared<RenderInfo>();
+    if (!render_info)
+		render_info = std::make_shared<RenderInfo>();
     if (render_info->objectId() <= 0)
         render_info->setObjectId(newObjectId(debug_name));
     m_glow_color = video::SColorf(0.0f, 0.0f, 0.0f);

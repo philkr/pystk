@@ -41,6 +41,7 @@
 #include "physics/triangle_mesh.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
+#include "utils/objecttype.h"
 
 /** Initialises the attachment each kart has.
  */
@@ -59,10 +60,11 @@ Attachment::Attachment(AbstractKart* kart)
     if (kart->isGhostKart())
         m_node = irr_driver->addAnimatedMesh(
             attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
-            NULL, std::make_shared<RenderInfo>(0.0f, true));
+            NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
     else
         m_node = irr_driver->addAnimatedMesh(
-            attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb");
+            attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
+            NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
 #ifdef DEBUG
     std::string debug_name = kart->getIdent()+" (attachment)";
     m_node->setName(debug_name.c_str());

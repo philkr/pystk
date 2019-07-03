@@ -35,6 +35,7 @@
 #include "graphics/particle_emitter.hpp"
 #include "graphics/particle_kind.hpp"
 #include "graphics/particle_kind_manager.hpp"
+#include "graphics/render_info.hpp"
 #include "graphics/render_target.hpp"
 #include "graphics/shader_files_manager.hpp"
 #include "graphics/stk_tex_manager.hpp"
@@ -70,6 +71,7 @@
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/mini_glm.hpp"
+#include "utils/objecttype.h"
 #include "utils/string_utils.hpp"
 #include "utils/translation.hpp"
 
@@ -1039,6 +1041,7 @@ bool Track::loadMainTrack(const XMLNode &root)
 
     m_track_mesh      = new TriangleMesh(/*can_be_transformed*/false);
     m_gfx_effect_mesh = new TriangleMesh(/*can_be_transformed*/false);
+	auto ri = std::make_shared<RenderInfo>(0.f, false, makeObjectId(ObjectType::OT_BACKGROUND,0));
 
     const XMLNode *track_node = root.getNode("track");
     std::string model_name;
@@ -1085,7 +1088,7 @@ bool Track::loadMainTrack(const XMLNode &root)
     }
     // The merged mesh is grabbed by the octtree, so we don't need
     // to keep a reference to it.
-    scene_node = irr_driver->addMesh(tangent_mesh, "track_main");
+    scene_node = irr_driver->addMesh(tangent_mesh, "track_main", NULL, ri);
     // We should drop the merged mesh (since it's now referred to in the
     // scene node), but then we need to grab it since it's in the
     // m_all_cached_meshes.
@@ -1173,7 +1176,7 @@ bool Track::loadMainTrack(const XMLNode &root)
 
         if (lod_instance)
         {
-            LODNode* node = lodLoader.instanciateAsLOD(n, NULL, NULL);
+            LODNode* node = lodLoader.instanciateAsLOD(n, NULL, ri);
             if (node != NULL)
             {
                 node->setPosition(xyz);
@@ -1206,7 +1209,7 @@ bool Track::loadMainTrack(const XMLNode &root)
             m_all_cached_meshes.push_back(a_mesh);
             irr_driver->grabAllTextures(a_mesh);
             a_mesh->grab();
-            scene_node = irr_driver->addMesh(a_mesh, model_name);
+            scene_node = irr_driver->addMesh(a_mesh, model_name, NULL, ri);
             scene_node->setPosition(xyz);
             scene_node->setRotation(hpr);
             scene_node->setScale(scale);

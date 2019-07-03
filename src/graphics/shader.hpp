@@ -274,6 +274,15 @@ private:
         setUniformsImpl<N + 1>(arg...);
     }   // setUniformsImpl
 
+    // ------------------------------------------------------------------------
+    /** Implementation for setUniforms for an int uniform. */
+    template<unsigned N = 0, typename... Args1>
+    void setUniformsImpl(unsigned int f, Args1... arg) const
+    {
+        glUniform1ui(m_uniforms[N], f);
+        setUniformsImpl<N + 1>(arg...);
+    }   // setUniformsImpl
+
 
     // printFileList: Variadic template for printing a list of shader filenames
     // ========================================================================

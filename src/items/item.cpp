@@ -226,7 +226,7 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
         lodnode->add(35, meshnode, true);
         scene::ISceneNode* meshnode =
             irr_driver->addMesh(lowres_mesh,
-                                StringUtils::insertValues("item_lo_%i", (int)type, NULL, ri_));
+                                StringUtils::insertValues("item_lo_%i", (int)type), NULL, ri_);
         lodnode->add(100, meshnode, true);
     }
     else

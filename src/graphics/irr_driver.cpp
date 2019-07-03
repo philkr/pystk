@@ -137,6 +137,7 @@ IrrDriver::IrrDriver()
     p.DriverType    = video::EDT_NULL;
     p.WindowSize    = core::dimension2d<u32>(640,480);
     p.Bits          = 16U;
+    p.Stencilbuffer = true;
     p.Fullscreen    = false;
     p.Vsync         = false;
     p.EventReceiver = NULL;
@@ -434,7 +435,7 @@ void IrrDriver::initDevice()
 #if defined(ANDROID)
             params.PrivateData = (void*)global_android_app;
 #endif
-            params.Stencilbuffer = false;
+            params.Stencilbuffer = true;
             params.Bits          = bits;
             params.EventReceiver = this;
             params.Fullscreen    = UserConfigParams::m_fullscreen;

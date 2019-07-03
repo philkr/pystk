@@ -102,7 +102,7 @@
 
 const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 	static PySTKGraphicsConfig config = {600,400,
-		false, true, true, true, true, 
+		true, true, true, true, true, 
 		2,
 		true,
 		true,
