@@ -98,6 +98,7 @@ protected:
 	std::vector<std::shared_ptr<PySTKRenderData> > render_data_;
 	PySTKRaceConfig config_;
 	float time_leftover_ = 0;
+	std::vector<PySTKAction> last_action_;
 
 public:
 	PySuperTuxKart(const PySuperTuxKart &) = delete;
@@ -109,4 +110,5 @@ public:
 	bool step(bool);
 	void stop();
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
+	const std::vector<PySTKAction> & last_action() const { return last_action_; }
 };

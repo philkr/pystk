@@ -423,6 +423,10 @@ bool PySuperTuxKart::step(bool do_render) {
 			World::getWorld()->updateTime(1);
 		}
 	}
+	if (World::getWorld()) {
+		last_action_.resize(1);
+		last_action_[0].get(&World::getWorld()->getPlayerKart(0)->getControls());
+	}
 
 	if (do_render && !irr_driver->getDevice()->run())
 		return false;

@@ -185,7 +185,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 
 	{
 		py::class_<PySTKAction, std::shared_ptr<PySTKAction> >(m, "Action", "SuperTuxKart action")
-		.def(py::init<float,float,bool,bool,bool,bool>(), py::arg("steer") = 0, py::arg("acceleration") = 0, py::arg("nitro") = false, py::arg("drift") = false, py::arg("rescue") = false, py::arg("fire") = false)
+		.def(py::init<float,float,bool,bool,bool,bool,bool>(), py::arg("steer") = 0, py::arg("acceleration") = 0, py::arg("brake") = false, py::arg("nitro") = false, py::arg("drift") = false, py::arg("rescue") = false, py::arg("fire") = false)
 		
 		.def_readwrite("steer", &PySTKAction::steering_angle, "Steering angle, normalize to -1..1")
 		.def_readwrite("acceleration", &PySTKAction::acceleration, "Acceleration, normalize to 0..1.")
@@ -205,7 +205,8 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &, bool)) &PySuperTuxKart::step, py::arg("action"), py::arg("render")=true, "Take a step with an action")
 		.def("step", (bool (PySuperTuxKart::*)(bool)) &PySuperTuxKart::step, py::arg("render")=true, "Take a step without chaning the action")
 		.def("stop", &PySuperTuxKart::stop,"")
-		.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step");
+		.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step")
+		.def_property_readonly("last_action", &PySuperTuxKart::last_action, "the last action the agent took");
 	}
 	
 	m.def("list_tracks", &PySuperTuxKart::listTracks);
