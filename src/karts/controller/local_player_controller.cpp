@@ -19,7 +19,6 @@
 
 #include "karts/controller/local_player_controller.hpp"
 
-#include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
@@ -57,10 +56,6 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
 {
     m_has_started = false;
     m_difficulty = d;
-    m_player = PlayerManager::get()->getPlayer(local_player_id);
-//     m_player = StateManager::get()->getActivePlayer(local_player_id);
-//     if(m_player)
-//         m_player->setKart(kart);
 
     // Keep a pointer to the camera to remove the need to search for
     // the right camera once per frame later.
@@ -327,5 +322,5 @@ bool LocalPlayerController::canGetAchievements() const
 // ----------------------------------------------------------------------------
 core::stringw LocalPlayerController::getName() const
 {
-    return m_player->getName();
+    return "";
 }   // getName

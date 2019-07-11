@@ -44,7 +44,6 @@
 
 #include "pystk.hpp"
 #include "config/hardware_stats.hpp"
-#include "config/player_manager.hpp"
 #include "config/player_profile.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -268,8 +267,8 @@ PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
 	resetObjectId();
 	
 	setupConfig(config);
-	
-	render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player0" )) );
+	for(int i=0; i<config.players.size(); i++)
+		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player"+std::to_string(i))) );
 }
 std::vector<std::string> PySuperTuxKart::listTracks() {
 	if (track_manager)
@@ -424,8 +423,9 @@ bool PySuperTuxKart::step(bool do_render) {
 		}
 	}
 	if (World::getWorld()) {
-		last_action_.resize(1);
-		last_action_[0].get(&World::getWorld()->getPlayerKart(0)->getControls());
+		last_action_.resize(config_.players.size());
+		for(int i=0; i<last_action_.size(); i++)
+			last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
 	}
 
 	if (do_render && !irr_driver->getDevice()->run())
@@ -443,7 +443,6 @@ void PySuperTuxKart::load() {
 	// Reading the rest of the player data needs the unlock manager to
 	// initialise the game slots of all players and the AchievementsManager
 	// to initialise the AchievementsStatus, so it is done only now.
-	PlayerManager::get()->initRemainingData();
 	projectile_manager->loadData();
 
 	// Both item_manager and powerup_manager load models and therefore
@@ -566,13 +565,6 @@ void PySuperTuxKart::initRest()
     font_manager = new FontManager();
     font_manager->loadFonts();
 
-    // The request manager will start the login process in case of a saved
-    // session, so we need to read the main data from the players.xml file.
-    // The rest will be read later (since the rest needs the unlock- and
-    // achievement managers to be created, which can only be created later).
-    PlayerManager::create();
-    PlayerManager::get()->enforceCurrentPlayer();
-
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
     history                 = new History              ();
@@ -649,7 +641,6 @@ void PySuperTuxKart::cleanSuperTuxKart()
     ReplayPlay::destroy();
     ReplayRecorder::destroy();
     ParticleKindManager::destroy();
-    PlayerManager::destroy();
     if(font_manager)            delete font_manager;
 	font_manager = nullptr;
     

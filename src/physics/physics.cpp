@@ -19,7 +19,6 @@
 #include "physics/physics.hpp"
 
 #include "animations/three_d_animation.hpp"
-#include "config/player_manager.hpp"
 #include "config/player_profile.hpp"
 #include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"

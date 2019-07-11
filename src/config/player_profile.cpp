@@ -18,7 +18,6 @@
 
 #include "config/player_profile.hpp"
 
-#include "config/player_manager.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "io/file_manager.hpp"

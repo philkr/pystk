@@ -18,7 +18,6 @@
 #include "modes/linear_world.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/player_manager.hpp"
 #include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/cannon_animation.hpp"

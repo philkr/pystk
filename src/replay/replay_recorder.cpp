@@ -18,7 +18,6 @@
 
 #include "replay/replay_recorder.hpp"
 
-#include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "io/file_manager.hpp"
 #include "items/attachment.hpp"
@@ -404,7 +403,7 @@ void ReplayRecorder::save()
 
         if (kart->getController()->isPlayerController())
         {
-            fprintf(fd, "kart_color: %f\n", PlayerManager::get()->getPlayer(player_count)->getDefaultKartColor());
+            fprintf(fd, "kart_color: 0\n");
             player_count++;
         }
         else

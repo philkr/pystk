@@ -19,7 +19,6 @@
 #include "items/attachment.hpp"
 
 #include <algorithm>
-#include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/explosion.hpp"

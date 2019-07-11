@@ -20,7 +20,6 @@
 
 // #include "addons/addon.hpp"
 #include "config/stk_config.hpp"
-#include "config/player_manager.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/shader_files_manager.hpp"

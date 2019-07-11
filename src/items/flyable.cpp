@@ -26,7 +26,6 @@
 #include <IMeshManipulator.h>
 #include <IMeshSceneNode.h>
 
-#include "config/player_manager.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material.hpp"

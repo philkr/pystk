@@ -172,7 +172,6 @@
 
 #include "main_loop.hpp"
 #include "config/hardware_stats.hpp"
-#include "config/player_manager.hpp"
 #include "config/player_profile.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -470,11 +469,6 @@ void handleEasterEarMode()
  */
 void setupRaceStart()
 {
-    // Skip the start screen. This esp. means that no login screen is
-    // displayed (if necessary), so we have to make sure there is
-    // a current player
-    PlayerManager::get()->enforceCurrentPlayer();
-
     if (!kart_properties_manager->getKart(UserConfigParams::m_default_kart))
     {
         Log::warn("main", "Kart '%s' is unknown so will use the "
@@ -1125,12 +1119,6 @@ void initRest()
     font_manager = new FontManager();
     font_manager->loadFonts();
 
-    // The request manager will start the login process in case of a saved
-    // session, so we need to read the main data from the players.xml file.
-    // The rest will be read later (since the rest needs the unlock- and
-    // achievement managers to be created, which can only be created later).
-    PlayerManager::create();
-
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
     history                 = new History              ();
@@ -1276,11 +1264,6 @@ int main(int argc, char *argv[] )
         handleXmasMode();
         handleEasterEarMode();
 
-        // Reading the rest of the player data needs the unlock manager to
-        // initialise the game slots of all players and the AchievementsManager
-        // to initialise the AchievementsStatus, so it is done only now.
-        PlayerManager::get()->initRemainingData();
-
         projectile_manager->loadData();
 
         // Both item_manager and powerup_manager load models and therefore
@@ -1413,7 +1396,6 @@ static void cleanSuperTuxKart()
     ReplayPlay::destroy();
     ReplayRecorder::destroy();
     delete ParticleKindManager::get();
-    PlayerManager::destroy();
     if(font_manager)            delete font_manager;
 
     // Now finish shutting down objects which a separate thread. The

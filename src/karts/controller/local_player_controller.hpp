@@ -46,8 +46,6 @@ private:
      *  camera object is managed in the Camera class, so no need to free it. */
     int  m_camera_index;
 
-    PlayerProfile * m_player;
-
     PerPlayerDifficulty m_difficulty;
 
     virtual void steer(int, int) OVERRIDE;

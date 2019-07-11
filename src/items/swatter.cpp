@@ -27,7 +27,6 @@
 #include "items/swatter.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/player_manager.hpp"
 #include "graphics/explosion.hpp"
 #include "graphics/irr_driver.hpp"
 #include "io/file_manager.hpp"

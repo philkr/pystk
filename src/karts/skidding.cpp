@@ -21,7 +21,6 @@
 #ifdef SKID_DEBUG
 #  include "graphics/show_curve.hpp"
 #endif
-#include "config/player_manager.hpp"
 #include "karts/kart.hpp"
 #include "karts/kart_gfx.hpp"
 #include "karts/kart_properties.hpp"

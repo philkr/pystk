@@ -21,7 +21,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include "config/player_manager.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
@@ -133,8 +132,7 @@ void RaceManager::setPlayerKart(unsigned int player_id, const RemoteKartInfo& ki
 void RaceManager::setPlayerKart(unsigned int player_id,
                                  const std::string &kart_name)
 {
-    const PlayerProfile* profile = PlayerManager::get()->getPlayer(player_id);
-    RemoteKartInfo rki(player_id, kart_name, profile->getName(), 0, false);
+    RemoteKartInfo rki(player_id, kart_name, "", 0, false);
     m_player_karts[player_id] = rki;
 }   // setPlayerKart
 

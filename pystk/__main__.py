@@ -11,6 +11,7 @@ parser.add_argument('-b', '--benchmark', action='store_true')
 parser.add_argument('-t', '--track')
 parser.add_argument('-k', '--kart')
 parser.add_argument('-s', '--step_size', type=float)
+parser.add_argument('-n', '--num_player', type=int, default=1)
 args = parser.parse_args()
 
 if args.list_tracks:
@@ -41,6 +42,10 @@ if args.play:
     if args.kart is not None:
         config.players[0].kart = args.kart
     config.players[0].controller = pystk.PlayerConfig.Controller.AI_CONTROL
+    
+    for i in range(1, args.num_player):
+        config.players.append(pystk.PlayerConfig("", pystk.PlayerConfig.Controller.AI_CONTROL))
+    
     if args.track is not None:
         config.track = args.track
     if args.step_size is not None:
@@ -50,14 +55,15 @@ if args.play:
 
     k.start()
 
-    ui = gui.UI([gui.VT[x] for x in args.visualization]) # eval FTW
+    uis = [gui.UI([gui.VT[x] for x in args.visualization]) for i in range(args.num_player)]
 
     t0 = time()
     n = 0
-    while ui.visible:
-        if not ui.pause:
-            k.step(ui.current_action)
-        ui.show(k.render_data[0])
+    while all(ui.visible for ui in uis):
+        if not all(ui.pause for ui in uis):
+            k.step(uis[0].current_action)
+        for ui,d in zip(uis,k.render_data):
+            ui.show(d)
         # Make sure we play in real time
         n += 1
         delta_d = n * config.step_size - (time() - t0)
@@ -86,6 +92,9 @@ if args.benchmark:
 
         t1 = time()
         k = pystk.SuperTuxKart(config)
+    
+        for i in range(1, args.num_player):
+            config.players.append(pystk.PlayerConfig("", pystk.PlayerConfig.Controller.AI_CONTROL))
 
         k.start()
 

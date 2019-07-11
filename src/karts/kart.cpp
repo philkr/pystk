@@ -19,7 +19,6 @@
 
 #include "karts/kart.hpp"
 
-#include "config/player_manager.hpp"
 #include "config/user_config.hpp"
 #include "font/bold_face.hpp"
 #include "font/font_manager.hpp"
@@ -864,7 +863,6 @@ void Kart::setRaceResult()
     {
         if (m_controller->isLocalPlayerController()) // if player is on this computer
         {
-            PlayerProfile *player = PlayerManager::getCurrentPlayer();
             if (this->getPosition() <= 0.5f *
                 World::getWorld()->getCurrentNumKarts() ||
                 this->getPosition() == 1)

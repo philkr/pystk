@@ -19,7 +19,6 @@
 #include "modes/world.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/player_manager.hpp"
 #include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/central_settings.hpp"
@@ -292,10 +291,6 @@ void World::reset(bool restart)
         if ((*i)->getController()->canGetAchievements())
         {
             updateAchievementModeCounters(true /*start*/);
-
-            PlayerManager::resetKartHits(getNumKarts());
-            if (restart)
-                PlayerManager::onRaceEnd(true /* previous race aborted */);
         }
     }
 
@@ -380,11 +375,6 @@ std::shared_ptr<AbstractKart> World::createKart
     {
         controller = new LocalPlayerController(new_kart.get(),
             local_player_id, difficulty);
-        const PlayerProfile* p = PlayerManager::get()->getPlayer(local_player_id);
-        if (p && p->getDefaultKartColor() > 0.0f)
-        {
-            ri->setHue(p->getDefaultKartColor());
-        }
         m_num_players ++;
         break;
     }
