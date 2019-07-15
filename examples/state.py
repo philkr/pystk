@@ -12,16 +12,17 @@ state = pystk.WorldState()
 track = pystk.Track()
 
 for it in range(10):
-	k.step(k.ai_action)
+	k.step()
 	state.update()
 	track.update()
-	print( state, state.karts )
+	print(np.asarray(state.players[0].camera.view), np.asarray(state.players[0].camera.projection))
+	print( state, state.karts, state.players )
 	#print( '\n'.join([' * '+str((k.name, k.location, k.front, k.velocity)) for k in state.karts]) )
 	#print( '\n'.join([' * '+str((k.id, k.location, k.type)) for k in state.items]) )
 
 	import pylab as plt
 	from matplotlib import collections  as mc
-	lc = mc.LineCollection(track.nodes[:,:,::2])
+	lc = mc.LineCollection(track.path_nodes[:,:,::2])
 	fig, ax = plt.subplots()
 	ax.add_collection(lc)
 	ax.autoscale()

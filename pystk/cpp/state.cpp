@@ -5,8 +5,10 @@
 #include <pybind11/numpy.h>
 
 #include "config/stk_config.hpp"
+#include "graphics/camera.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
+#include "karts/controller/local_player_controller.hpp"
 #include "karts/kart_properties.hpp"
 #include "items/attachment.hpp"
 #include "items/item.hpp"
@@ -20,6 +22,7 @@
 #include "tracks/drive_node.hpp"
 #include "tracks/track.hpp"
 #include "utils/vec3.hpp"
+#include "view.hpp"
 
 namespace py = pybind11;
 
@@ -51,7 +54,7 @@ struct PyAttachment {
 	Type type = NOTHING;
 	float time_left = 0.f;
 	static void define(py::object m) {
-		py::class_<PyAttachment> c(m, "Attachment");
+		py::class_<PyAttachment, std::shared_ptr<PyAttachment>> c(m, "Attachment");
 		py::enum_<Type> E(c, "Type");
 		E V(NOTHING)
 		  V(PARACHUTE)
@@ -94,7 +97,7 @@ struct PyPowerup {
 	Type type;
 	int num = 0;
 	static void define(py::object m) {
-		py::class_<PyPowerup> c(m, "Powerup");
+		py::class_<PyPowerup, std::shared_ptr<PyPowerup>> c(m, "Powerup");
 		py::enum_<Type> E(c, "Type");
 		E V(NOTHING)
 		  V(BUBBLEGUM)
@@ -243,6 +246,67 @@ struct PyItem {
 	}
 };
 
+struct PyCamera {
+	Camera::Mode mode = Camera::CM_NORMAL;
+	float aspect = 0, fov = 0;
+	core::matrix4 view, projection;
+	
+	static void define(py::object m) {
+		py::class_<PyCamera, std::shared_ptr<PyCamera> > c(m, "Camera");
+		py::enum_<Camera::Mode>(c, "Mode")
+		 .value("NORMAL", Camera::CM_NORMAL)
+		 .value("CLOSEUP", Camera::CM_CLOSEUP)
+		 .value("REVERSE", Camera::CM_REVERSE)
+		 .value("LEADER_MODE", Camera::CM_LEADER_MODE)
+		 .value("SIMPLE_REPLAY", Camera::CM_SIMPLE_REPLAY)
+		 .value("FALLING", Camera::CM_FALLING);
+		c
+         .def(py::init<>())
+#define R(x) .def_readonly(#x, &PyCamera::x)
+		  R(mode)
+		  R(aspect)
+		  R(fov)
+#undef R
+		  .def_property_readonly("view", [](const PyCamera & c) { return py::ro_view(c.view.pointer(), {4, 4}); }, "View matrix")
+		  .def_property_readonly("projection", [](const PyCamera & c) { return py::ro_view(c.projection.pointer(), {4, 4}); }, "Projection matrix")
+		  
+		 .def("__repr__", [](const PyCamera &t) { return "<Camera mode="+std::to_string(t.mode)+">"; });
+	}
+	
+	void update(int id) {
+		Camera * c = Camera::getCamera(id);
+		mode = c->getMode();
+		scene::ICameraSceneNode * n = c->getCameraSceneNode();
+		aspect = n->getAspectRatio();
+		fov = n->getFOV();
+		view = n->getViewMatrix();
+		projection = n->getProjectionMatrix();
+	}
+};
+
+struct PyPlayer {
+	int id = -1;
+	std::shared_ptr<PyKartState> kart;
+	std::shared_ptr<PyCamera> camera;
+	static void define(py::object m) {
+		py::class_<PyPlayer, std::shared_ptr<PyPlayer> >(m, "Player")
+         .def(py::init<>())
+#define R(x) .def_readonly(#x, &PyPlayer::x)
+		  R(kart)
+		  R(camera)
+#undef R
+		 .def("__repr__", [](const PyPlayer &t) { return "<Player id="+std::to_string(t.id)+">"; });
+	}
+	
+	void update(int player_id, std::shared_ptr<PyKartState> k) {
+		id = player_id;
+		kart = k;
+		if (!camera)
+			camera.reset(new PyCamera());
+		camera->update(player_id);
+	}
+};
+
 struct PyTrack {
 	float length;
 	int lap_count;
@@ -251,7 +315,7 @@ struct PyTrack {
 	py::array_t<float> path_distance;
 	
 	static void define(py::object m) {
-		py::class_<PyTrack >(m, "Track")
+		py::class_<PyTrack, std::shared_ptr<PyTrack> >(m, "Track")
          .def(py::init<>())
 #define R(x) .def_readonly(#x, &PyTrack::x)
 		  R(length)
@@ -288,14 +352,16 @@ struct PyTrack {
 };
 
 struct PyWorldState {
+	std::vector<std::shared_ptr<PyPlayer> > players;
 	std::vector<std::shared_ptr<PyKartState> > karts;
 	std::vector<std::shared_ptr<PyItem> > items;
 	float time = 0;
 	
 	static void define(py::object m) {
-		py::class_<PyWorldState >(m, "WorldState")
+		py::class_<PyWorldState, std::shared_ptr<PyWorldState>>(m, "WorldState")
          .def(py::init<>())
 #define R(x) .def_readonly(#x, &PyWorldState::x)
+		  R(players)
 		  R(karts)
 		  R(items)
 		  R(time)
@@ -310,11 +376,21 @@ struct PyWorldState {
 		if (w) {
 			World::KartList k = w->getKarts();
 			karts.resize(k.size());
-			for(int i=0, pid=0; i<k.size(); i++) {
+			players.resize(k.size());
+			int pid = 0;
+			for(int i=0; i<k.size(); i++) {
 				if (!karts[i])
 					karts[i].reset(new PyKartState());
 				karts[i]->update(k[i].get());
-				karts[i]->player_id = k[i]->getController()->isLocalPlayerController() ? pid++ : -1;
+				if (k[i]->getController()->isLocalPlayerController()) {
+					karts[i]->player_id = pid;
+					if (!players[pid])
+						players[pid].reset(new PyPlayer());
+					players[pid]->update(pid, karts[i]);
+					pid++;
+				} else {
+					karts[i]->player_id = -1;
+				}
 				if (lw) {
 					karts[i]->finished_laps = lw->getFinishedLapsOfKart(i);
 					karts[i]->overall_distance = lw->getOverallDistance(i);
@@ -322,6 +398,7 @@ struct PyWorldState {
 					karts[i]->lap_time = stk_config->ticks2Time(lw->getTicksAtLapForKart(i));
 				}
 			}
+			players.resize(pid);
 			time = w->getTime();
 		}
 		ItemManager * im = ItemManager::get();
@@ -342,6 +419,8 @@ void defineState(py::object m) {
 	PyPowerup::define(m);
 	PyKartState::define(m);
 	PyItem::define(m);
+	PyCamera::define(m);
+	PyPlayer::define(m);
 	PyWorldState::define(m);
 	PyTrack::define(m);
 };
