@@ -399,20 +399,7 @@ bool PySuperTuxKart::step(const PySTKAction & a, bool do_render) {
 bool PySuperTuxKart::step(bool do_render) {
 	const float dt = config_.step_size;
 	
-	if (do_render) {
-		PropertyAnimator::get()->update(dt);
-		if (World::getWorld())
-			World::getWorld()->updateGraphics(dt);
-		
-		// irr_driver->update alternative
-		if (render_window) {
-			irr_driver->update(dt);
-		} else {
-			irr_driver->minimalUpdate(dt);
-		}
-		render(dt);
-	}
-	
+	// Update first
 	if (World::getWorld()) {
 		time_leftover_ += dt;
 		int ticks = stk_config->time2Ticks(time_leftover_);
@@ -426,6 +413,21 @@ bool PySuperTuxKart::step(bool do_render) {
 		last_action_.resize(config_.players.size());
 		for(int i=0; i<last_action_.size(); i++)
 			last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
+	}
+	
+	// Then render
+	if (do_render) {
+		PropertyAnimator::get()->update(dt);
+		if (World::getWorld())
+			World::getWorld()->updateGraphics(dt);
+		
+		// irr_driver->update alternative
+		if (render_window) {
+			irr_driver->update(dt);
+		} else {
+			irr_driver->minimalUpdate(dt);
+		}
+		render(dt);
 	}
 
 	if (do_render && !irr_driver->getDevice()->run())
