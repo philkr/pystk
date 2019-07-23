@@ -105,6 +105,7 @@ public:
 	PySuperTuxKart& operator=(const PySuperTuxKart &) = delete;
 	PySuperTuxKart(const PySTKRaceConfig & config);
 	~PySuperTuxKart();
+	void restart();
 	void start();
 	bool step(const PySTKAction &, bool);
 	bool step(bool);

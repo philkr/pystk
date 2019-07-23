@@ -339,6 +339,10 @@ public:
     virtual void  finishedRace(float time)
 	{ return ai_controller_->finishedRace(time); }
 };
+void PySuperTuxKart::restart() {
+// 	race_manager->rerunRace();
+	World::getWorld()->reset(true /* restart */);
+}
 
 void PySuperTuxKart::start() {
 	race_manager->setupPlayerKartInfo();
@@ -347,7 +351,6 @@ void PySuperTuxKart::start() {
 	
 	for(int i=0; i<config_.players.size(); i++) {
 		AbstractKart * player_kart = World::getWorld()->getPlayerKart(i);
-		printf("Player [%d]  control = %d\n", i, config_.players[i].controller);
 		if (config_.players[i].controller == PySTKPlayerConfig::AI_CONTROL)
 			player_kart->setController(new LocalPlayerAIController(World::getWorld()->loadAIController(player_kart)));
 // 		else

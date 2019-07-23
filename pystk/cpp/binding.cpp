@@ -153,6 +153,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	{
 		py::class_<PySuperTuxKart, std::shared_ptr<PySuperTuxKart> >(m, "SuperTuxKart", "SuperTuxKart instance")
 		.def(py::init<const PySTKRaceConfig &>(),py::arg("config"))
+		.def("restart", &PySuperTuxKart::restart,"")
 		.def("start", &PySuperTuxKart::start,"")
 		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &, bool)) &PySuperTuxKart::step, py::arg("action"), py::arg("render")=true, "Take a step with an action")
 		.def("step", (bool (PySuperTuxKart::*)(bool)) &PySuperTuxKart::step, py::arg("render")=true, "Take a step without chaning the action")
