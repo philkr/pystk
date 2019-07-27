@@ -536,27 +536,27 @@ void STKConfig::getAllData(const XMLNode * root)
  */
 void  STKConfig::getAllScores(std::vector<int> *all_scores, int num_karts)
 {
-    std::vector<int> sorted_score_increase;
-
-    if (num_karts == 0) return;
-
-    assert(num_karts <= m_max_karts);
-    all_scores->resize(num_karts);
-    sorted_score_increase.resize(num_karts+1); //sorting function is [begin, end[
-
-    //get increase data into sorted_score_increase
-    for(int i=0; i<num_karts; i++)
-    {
-        sorted_score_increase[i] = m_score_increase[i];
-    }
-
-    std::sort (sorted_score_increase.begin(), sorted_score_increase.end());
-
-    (*all_scores)[num_karts-1] = sorted_score_increase[0];  // last position score
-
-    // Must be signed, in case that num_karts==1
-    for(int i=num_karts-2; i>=0; i--)
-    {
-        (*all_scores)[i] = (*all_scores)[i+1] + sorted_score_increase[num_karts-i];
-    }
+//     std::vector<int> sorted_score_increase;
+// 
+//     if (num_karts == 0) return;
+// 
+//     assert(num_karts <= m_max_karts);
+//     all_scores->resize(num_karts);
+//     sorted_score_increase.resize(num_karts+1); //sorting function is [begin, end[
+// 
+//     //get increase data into sorted_score_increase
+//     for(int i=0; i<num_karts; i++)
+//     {
+//         sorted_score_increase[i] = m_score_increase[i];
+//     }
+// 
+//     std::sort (sorted_score_increase.begin(), sorted_score_increase.end());
+// 
+//     (*all_scores)[num_karts-1] = sorted_score_increase[0];  // last position score
+// 
+//     // Must be signed, in case that num_karts==1
+//     for(int i=num_karts-2; i>=0; i--)
+//     {
+//         (*all_scores)[i] = (*all_scores)[i+1] + sorted_score_increase[num_karts-i];
+//     }
 }   // getAllScores

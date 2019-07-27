@@ -252,7 +252,7 @@ Item::Item(ItemType type, const Vec3& xyz, const Vec3& normal,
 
 void Item::setItemId(unsigned int n) {
     ItemState::setItemId(n);
-    ri_->setObjectId(makeObjectId(ot(getType()), n+1));
+    ri_->setObjectId(makeObjectId(ot(getType()), ItemState::getItemId()+1));
 }
 uint32_t Item::getObjectId() const {
     return ri_->objectId();
@@ -393,6 +393,7 @@ void Item::handleNewMesh(ItemType type)
     Vec3 hpr;
     hpr.setHPR(getOriginalRotation());
     m_node->setRotation(hpr.toIrrHPR());
+    ri_->setObjectId(makeObjectId(ot(getType()), ItemState::getItemId()+1));
 #endif
 }   // handleNewMesh
 
