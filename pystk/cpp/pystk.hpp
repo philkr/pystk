@@ -27,6 +27,7 @@ struct PySTKPlayerConfig {
 	};
 	std::string kart;
 	Controller controller;
+	int team = 0;
 };
 struct PySTKRaceConfig {
 	enum RaceMode: uint8_t {
@@ -107,6 +108,7 @@ public:
 	~PySuperTuxKart();
 	void restart();
 	void start();
+	bool step(const std::vector<PySTKAction> &, bool);
 	bool step(const PySTKAction &, bool);
 	bool step(bool);
 	void stop();

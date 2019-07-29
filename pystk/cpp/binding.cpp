@@ -101,9 +101,10 @@ PYBIND11_MODULE(pystk_cpp, m) {
 			.value("AI_CONTROL", PySTKPlayerConfig::AI_CONTROL);
 		
 		cls
-		.def(py::init<const std::string&, PySTKPlayerConfig::Controller>(), py::arg("kart")="", py::arg("controller")=PySTKPlayerConfig::PLAYER_CONTROL)
+		.def(py::init<const std::string&, PySTKPlayerConfig::Controller, int>(), py::arg("kart")="", py::arg("controller")=PySTKPlayerConfig::PLAYER_CONTROL, py::arg("team")=0)
 		.def_readwrite("kart", &PySTKPlayerConfig::kart )
-		.def_readwrite("controller", &PySTKPlayerConfig::controller );
+		.def_readwrite("controller", &PySTKPlayerConfig::controller )
+		.def_readwrite("team", &PySTKPlayerConfig::team );
 		add_pickle(cls);
 
 		py::bind_vector<std::vector<PySTKPlayerConfig>>(m, "VectorPlayerConfig");
