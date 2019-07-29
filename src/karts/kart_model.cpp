@@ -1198,7 +1198,7 @@ void KartModel::resetVisualWheelPosition()
 //-----------------------------------------------------------------------------
 std::shared_ptr<RenderInfo> KartModel::getRenderInfo()
 {
-    return m_support_colorization ? m_render_info : NULL;
+    return m_render_info;
 }   // getRenderInfo
 
 //-----------------------------------------------------------------------------
