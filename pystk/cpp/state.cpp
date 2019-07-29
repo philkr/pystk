@@ -242,6 +242,7 @@ struct PyItem {
 			id = i->getObjectId();
 			location = P(i->getXYZ());
 			size = i->getAvoidancePoint(0) ? (i->getXYZ() - *i->getAvoidancePoint(0)).length() : 1.1;
+			type = (Type)(int)i->getType();
 		}
 	}
 };
