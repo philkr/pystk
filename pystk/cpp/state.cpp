@@ -23,12 +23,84 @@
 #include "tracks/track.hpp"
 #include "utils/vec3.hpp"
 #include "view.hpp"
+#include "pickle.hpp"
 
 namespace py = pybind11;
+
+// AUTO Generated
+struct PyAttachment;
+void pickle(std::ostream & s, const PyAttachment & o);
+void unpickle(std::istream & s, PyAttachment * o);
+struct PyPowerup;
+void pickle(std::ostream & s, const PyPowerup & o);
+void unpickle(std::istream & s, PyPowerup * o);
+struct PyKartState;
+void pickle(std::ostream & s, const PyKartState & o);
+void unpickle(std::istream & s, PyKartState * o);
+struct PyItem;
+void pickle(std::ostream & s, const PyItem & o);
+void unpickle(std::istream & s, PyItem * o);
+struct PyCamera;
+void pickle(std::ostream & s, const PyCamera & o);
+void unpickle(std::istream & s, PyCamera * o);
+struct PyPlayer;
+void pickle(std::ostream & s, const PyPlayer & o);
+void unpickle(std::istream & s, PyPlayer * o);
+struct PyTrack;
+void pickle(std::ostream & s, const PyTrack & o);
+void unpickle(std::istream & s, PyTrack * o);
+struct PyWorldState;
+void pickle(std::ostream & s, const PyWorldState & o);
+void unpickle(std::istream & s, PyWorldState * o);
+// End AUTO Generated
 
 typedef std::tuple<float, float, float> PyVec3;
 PyVec3 P(const Vec3 & v) {
 	return PyVec3(v.getX(), v.getY(), v.getZ());
+}
+void pickle(std::ostream & s, const PyVec3 & o) {
+	s.write((const char*)&std::get<0>(o), sizeof(std::get<0>(o)));
+	s.write((const char*)&std::get<1>(o), sizeof(std::get<1>(o)));
+	s.write((const char*)&std::get<2>(o), sizeof(std::get<2>(o)));
+}
+void unpickle(std::istream & s, PyVec3 * o) {
+	s.read((char*)&std::get<0>(*o), sizeof(std::get<0>(*o)));
+	s.read((char*)&std::get<1>(*o), sizeof(std::get<1>(*o)));
+	s.read((char*)&std::get<2>(*o), sizeof(std::get<2>(*o)));
+}
+void pickle(std::ostream & s, const core::matrix4 & o) {
+	s.write((const char*)o.pointer(), 16*sizeof(irr::f32));
+}
+void unpickle(std::istream & s, core::matrix4 * o) {
+	s.read((char*)o->pointer(), 16*sizeof(irr::f32));
+}
+template<typename T>
+void pickle(std::ostream & s, const py::array_t<T> & o) {
+	uint32_t n = o.ndim();
+	s.write((const char*)&n, sizeof(n));
+	for(uint32_t i=0; i<n; i++) {
+		uint32_t d = o.shape(i);
+		s.write((const char*)&d, sizeof(d));
+	}
+	s.write((const char*)o.data(), o.nbytes());
+}
+template<typename T>
+void unpickle(std::istream & s, py::array_t<T> * o) {
+	uint32_t n;
+	s.read((char *)&n, sizeof(n));
+	std::vector<uint32_t> shape(n);
+	s.read((char *)&shape[0], sizeof(uint32_t)*n);
+	*o = py::array_t<T>(shape);
+	s.read((char*)o->mutable_data(), o->nbytes());
+}
+template<typename T>
+void pickle(std::ostream & s, const std::shared_ptr<T> & o) {
+	pickle(s, *o);
+}
+template<typename T>
+void unpickle(std::istream & s, std::shared_ptr<T> * o) {
+	*o = std::make_shared<T>();
+	unpickle(s, o->get());
 }
 namespace std {
 	std::string to_string(const PyVec3 & v) {
@@ -43,7 +115,7 @@ namespace std {
 #define V(X) .value(#X, Type::X)
 
 struct PyAttachment {
-	enum Type {
+	enum Type: uint8_t {
 		NOTHING = Attachment::ATTACH_NOTHING,
 		PARACHUTE = Attachment::ATTACH_PARACHUTE,
 		ANVIL = Attachment::ATTACH_ANVIL,
@@ -65,6 +137,7 @@ struct PyAttachment {
 		c.def_readonly("type", &PyAttachment::type)
 		 .def_readonly("time_left", &PyAttachment::time_left)
 		 .def("__repr__", [E](const PyAttachment &a) { return "<Attachment type=" + std::string(py::repr(E(a.type))) + " time_left="+std::to_string(a.time_left)+">"; });
+		add_pickle(c);
 	}
 	PyAttachment(const Attachment * a = nullptr) {
 		update(a);
@@ -81,7 +154,7 @@ struct PyAttachment {
 };
 
 struct PyPowerup {
-	enum Type {
+	enum Type: uint8_t {
 		NOTHING    = PowerupManager::POWERUP_NOTHING,
 		BUBBLEGUM  = PowerupManager::POWERUP_BUBBLEGUM,
 		CAKE       = PowerupManager::POWERUP_CAKE,
@@ -113,6 +186,7 @@ struct PyPowerup {
 		c.def_readonly("type", &PyPowerup::type)
 		 .def_readonly("num" , &PyPowerup::num)
 		 .def("__repr__", [E](const PyPowerup &p) { return "<Powerup type=" + std::string(py::repr(E(p.type))) + " num="+std::to_string(p.num)+">"; });
+		add_pickle(c);
 	}
 	PyPowerup(const Powerup * p = nullptr) {
 		update(p);
@@ -151,8 +225,9 @@ struct PyKartState {
 	
 	PyPowerup powerup;
 	static void define(py::object m) {
+		py::class_<PyKartState, std::shared_ptr<PyKartState>> c(m, "KartState");
+		c
 #define R(x) .def_readonly(#x, &PyKartState::x)
-		py::class_<PyKartState, std::shared_ptr<PyKartState>>(m, "KartState")
 		  R(id)
 		  R(player_id)
 		  R(name)
@@ -174,6 +249,7 @@ struct PyKartState {
 		  R(wheel_base)
 #undef R
 		 .def("__repr__", [](const PyKartState &k) { return "<KartState id=" + std::to_string(k.id)+" player_id=" + std::to_string(k.player_id)+" name='"+k.name+"' ...>"; });
+		add_pickle(c);
 	}
 	PyKartState(const AbstractKart * k = nullptr) {
 		update(k);
@@ -233,6 +309,7 @@ struct PyItem {
 		  R(type)
 #undef R
 		 .def("__repr__", [E](const PyItem &i) { return "<Item id=" + std::to_string(i.id)+" location=" + std::to_string(i.location)+" size="+std::to_string(i.size)+" type="+std::string(py::repr(E(i.type)))+">"; });
+		add_pickle(c);
 	}
 	PyItem(const Item * i = nullptr) {
 		update(i);
@@ -272,6 +349,7 @@ struct PyCamera {
 		  .def_property_readonly("projection", [](const PyCamera & c) { return py::ro_view(c.projection.pointer(), {4, 4}); }, "Projection matrix")
 		  
 		 .def("__repr__", [](const PyCamera &t) { return "<Camera mode="+std::to_string(t.mode)+">"; });
+		add_pickle(c);
 	}
 	
 	void update(int id) {
@@ -290,8 +368,8 @@ struct PyPlayer {
 	std::shared_ptr<PyKartState> kart;
 	std::shared_ptr<PyCamera> camera;
 	static void define(py::object m) {
-		py::class_<PyPlayer, std::shared_ptr<PyPlayer> >(m, "Player")
-         .def(py::init<>())
+		py::class_<PyPlayer, std::shared_ptr<PyPlayer> > c(m, "Player");
+		c.def(py::init<>())
 #define R(x) .def_readonly(#x, &PyPlayer::x)
 		  R(kart)
 		  R(camera)
@@ -299,9 +377,8 @@ struct PyPlayer {
 		 .def("__repr__", [](const PyPlayer &t) { return "<Player id="+std::to_string(t.id)+">"; });
 	}
 	
-	void update(int player_id, std::shared_ptr<PyKartState> k) {
+	void update(int player_id) {
 		id = player_id;
-		kart = k;
 		if (!camera)
 			camera.reset(new PyCamera());
 		camera->update(player_id);
@@ -316,8 +393,8 @@ struct PyTrack {
 	py::array_t<float> path_distance;
 	
 	static void define(py::object m) {
-		py::class_<PyTrack, std::shared_ptr<PyTrack> >(m, "Track")
-         .def(py::init<>())
+		py::class_<PyTrack, std::shared_ptr<PyTrack> > c(m, "Track");
+		c.def(py::init<>())
 #define R(x) .def_readonly(#x, &PyTrack::x)
 		  R(length)
 		  R(lap_count)
@@ -327,6 +404,7 @@ struct PyTrack {
 #undef R
 		 .def("update", &PyTrack::update) 
 		 .def("__repr__", [](const PyTrack &t) { return "<Track length="+std::to_string(t.length)+" lap_count="+std::to_string(t.lap_count)+">"; });
+		add_pickle(c);
 	}
 	
 	void update() {
@@ -359,8 +437,8 @@ struct PyWorldState {
 	float time = 0;
 	
 	static void define(py::object m) {
-		py::class_<PyWorldState, std::shared_ptr<PyWorldState>>(m, "WorldState")
-         .def(py::init<>())
+		py::class_<PyWorldState, std::shared_ptr<PyWorldState>> c(m, "WorldState");
+		c.def(py::init<>())
 #define R(x) .def_readonly(#x, &PyWorldState::x)
 		  R(players)
 		  R(karts)
@@ -369,8 +447,14 @@ struct PyWorldState {
 #undef R
 		 .def("update", &PyWorldState::update) 
 		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; });
+		// TODO: Add pickling and make sure players are updated
+		add_pickle(c);
 	}
-	
+	void assignPlayersKart() {
+		for(auto k: karts) 
+			if (k->player_id >= 0)
+				players[k->player_id]->kart = k;
+	}
 	void update() {
 		World * w = World::getWorld();
 		LinearWorld * lw = dynamic_cast<LinearWorld*>(w);
@@ -387,7 +471,7 @@ struct PyWorldState {
 					karts[i]->player_id = pid;
 					if (!players[pid])
 						players[pid].reset(new PyPlayer());
-					players[pid]->update(pid, karts[i]);
+					players[pid]->update(pid);
 					pid++;
 				} else {
 					karts[i]->player_id = -1;
@@ -400,6 +484,7 @@ struct PyWorldState {
 				}
 			}
 			players.resize(pid);
+			assignPlayersKart();
 			time = w->getTime();
 		}
 		ItemManager * im = ItemManager::get();
@@ -411,9 +496,132 @@ struct PyWorldState {
 					items.push_back(std::make_shared<PyItem>(I));
 			}
 		}
-// 		items ItemManager::getItem();
 	}
 };
+
+// AUTO Generated //
+void pickle(std::ostream & s, const PyAttachment & o) {
+    pickle(s, o.type);
+    pickle(s, o.time_left);
+}
+void unpickle(std::istream & s, PyAttachment * o) {
+    unpickle(s, &o->type);
+    unpickle(s, &o->time_left);
+}
+void pickle(std::ostream & s, const PyPowerup & o) {
+    pickle(s, o.type);
+    pickle(s, o.num);
+}
+void unpickle(std::istream & s, PyPowerup * o) {
+    unpickle(s, &o->type);
+    unpickle(s, &o->num);
+}
+void pickle(std::ostream & s, const PyKartState & o) {
+    pickle(s, o.id);
+    pickle(s, o.player_id);
+    pickle(s, o.name);
+    pickle(s, o.location);
+    pickle(s, o.front);
+    pickle(s, o.velocity);
+    pickle(s, o.size);
+    pickle(s, o.shield_time);
+    pickle(s, o.race_result);
+    pickle(s, o.jumping);
+    pickle(s, o.finished_laps);
+    pickle(s, o.lap_time);
+    pickle(s, o.finish_time);
+    pickle(s, o.overall_distance);
+    pickle(s, o.distance_down_track);
+    pickle(s, o.max_steer_angle);
+    pickle(s, o.wheel_base);
+    pickle(s, o.attachment);
+    pickle(s, o.powerup);
+}
+void unpickle(std::istream & s, PyKartState * o) {
+    unpickle(s, &o->id);
+    unpickle(s, &o->player_id);
+    unpickle(s, &o->name);
+    unpickle(s, &o->location);
+    unpickle(s, &o->front);
+    unpickle(s, &o->velocity);
+    unpickle(s, &o->size);
+    unpickle(s, &o->shield_time);
+    unpickle(s, &o->race_result);
+    unpickle(s, &o->jumping);
+    unpickle(s, &o->finished_laps);
+    unpickle(s, &o->lap_time);
+    unpickle(s, &o->finish_time);
+    unpickle(s, &o->overall_distance);
+    unpickle(s, &o->distance_down_track);
+    unpickle(s, &o->max_steer_angle);
+    unpickle(s, &o->wheel_base);
+    unpickle(s, &o->attachment);
+    unpickle(s, &o->powerup);
+}
+void pickle(std::ostream & s, const PyItem & o) {
+    pickle(s, o.id);
+    pickle(s, o.location);
+    pickle(s, o.size);
+    pickle(s, o.type);
+}
+void unpickle(std::istream & s, PyItem * o) {
+    unpickle(s, &o->id);
+    unpickle(s, &o->location);
+    unpickle(s, &o->size);
+    unpickle(s, &o->type);
+}
+void pickle(std::ostream & s, const PyCamera & o) {
+    pickle(s, o.mode);
+    pickle(s, o.aspect);
+    pickle(s, o.fov);
+    pickle(s, o.view);
+    pickle(s, o.projection);
+}
+void unpickle(std::istream & s, PyCamera * o) {
+    unpickle(s, &o->mode);
+    unpickle(s, &o->aspect);
+    unpickle(s, &o->fov);
+    unpickle(s, &o->view);
+    unpickle(s, &o->projection);
+}
+void pickle(std::ostream & s, const PyTrack & o) {
+    pickle(s, o.length);
+    pickle(s, o.lap_count);
+    ::pickle(s, o.path_nodes);
+    ::pickle(s, o.path_width);
+    ::pickle(s, o.path_distance);
+}
+void unpickle(std::istream & s, PyTrack * o) {
+    unpickle(s, &o->length);
+    unpickle(s, &o->lap_count);
+    unpickle(s, &o->path_nodes);
+    unpickle(s, &o->path_width);
+    unpickle(s, &o->path_distance);
+}
+void pickle(std::ostream & s, const PyPlayer & o) {
+    pickle(s, o.id);
+    pickle(s, o.camera);
+}
+void unpickle(std::istream & s, PyPlayer * o) {
+    unpickle(s, &o->id);
+    unpickle(s, &o->camera);
+}
+void pickle(std::ostream & s, const PyWorldState & o) {
+    pickle(s, o.time);
+    pickle(s, o.players);
+    pickle(s, o.karts);
+    pickle(s, o.items);
+}
+void unpickle(std::istream & s, PyWorldState * o) {
+    unpickle(s, &o->time);
+    unpickle(s, &o->players);
+    unpickle(s, &o->karts);
+    unpickle(s, &o->items);
+	o->assignPlayersKart();
+}
+// End AUTO Generated //
+
+
 
 void defineState(py::object m) {
 	PyAttachment::define(m);

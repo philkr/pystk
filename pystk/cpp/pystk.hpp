@@ -21,7 +21,7 @@ struct PySTKGraphicsConfig {
 	static const PySTKGraphicsConfig & ld();
 };
 struct PySTKPlayerConfig {
-	enum Controller {
+	enum Controller: uint8_t {
 		PLAYER_CONTROL,
 		AI_CONTROL,
 	};
@@ -29,7 +29,7 @@ struct PySTKPlayerConfig {
 	Controller controller;
 };
 struct PySTKRaceConfig {
-	enum RaceMode {
+	enum RaceMode: uint8_t {
 		NORMAL_RACE,
 		TIME_TRIAL,
 		FOLLOW_LEADER,

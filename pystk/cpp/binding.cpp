@@ -1,3 +1,4 @@
+#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
@@ -5,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include "pickle.hpp"
 #include "pystk.hpp"
 #include "state.hpp"
 #include "view.hpp"
@@ -15,6 +17,7 @@ namespace py = pybind11;
 using namespace pybind11::literals;
 
 PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
+
 
 PYBIND11_MODULE(pystk_cpp, m) {
 	m.doc() = "Python SuperTuxKart interface";
@@ -70,19 +73,20 @@ PYBIND11_MODULE(pystk_cpp, m) {
 	{
 		py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
 	
-		cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width);
-		cls.def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height);
-		cls.def_readwrite("glow", &PySTKGraphicsConfig::glow );
-		cls.def_readwrite("dof", &PySTKGraphicsConfig::dof );
-		cls.def_readwrite("particles_effects", &PySTKGraphicsConfig::particles_effects );
-		cls.def_readwrite("animated_characters", &PySTKGraphicsConfig::animated_characters );
-		cls.def_readwrite("motionblur", &PySTKGraphicsConfig::motionblur );
-		cls.def_readwrite("mlaa", &PySTKGraphicsConfig::mlaa );
-		cls.def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression );
-		cls.def_readwrite("ssao", &PySTKGraphicsConfig::ssao );
-		cls.def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL );
-		cls.def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures );
-		cls.def_readwrite("render_window", &PySTKGraphicsConfig::render_window );
+		cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width)
+		.def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height)
+		.def_readwrite("glow", &PySTKGraphicsConfig::glow )
+		.def_readwrite("dof", &PySTKGraphicsConfig::dof )
+		.def_readwrite("particles_effects", &PySTKGraphicsConfig::particles_effects )
+		.def_readwrite("animated_characters", &PySTKGraphicsConfig::animated_characters )
+		.def_readwrite("motionblur", &PySTKGraphicsConfig::motionblur )
+		.def_readwrite("mlaa", &PySTKGraphicsConfig::mlaa )
+		.def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression )
+		.def_readwrite("ssao", &PySTKGraphicsConfig::ssao )
+		.def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL )
+		.def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures )
+		.def_readwrite("render_window", &PySTKGraphicsConfig::render_window );
+		add_pickle(cls);
 		
 		cls.def_static("hd", &PySTKGraphicsConfig::hd,"High-definitaiton graphics settings");
 		cls.def_static("sd", &PySTKGraphicsConfig::sd,"Standard-definition graphics settings");
@@ -100,6 +104,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def(py::init<const std::string&, PySTKPlayerConfig::Controller>(), py::arg("kart")="", py::arg("controller")=PySTKPlayerConfig::PLAYER_CONTROL)
 		.def_readwrite("kart", &PySTKPlayerConfig::kart )
 		.def_readwrite("controller", &PySTKPlayerConfig::controller );
+		add_pickle(cls);
 
 		py::bind_vector<std::vector<PySTKPlayerConfig>>(m, "VectorPlayerConfig");
 	}
@@ -126,17 +131,21 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def_readwrite("seed", &PySTKRaceConfig::seed)
 		.def_readwrite("num_kart", &PySTKRaceConfig::num_kart)
 		.def_readwrite("step_size", &PySTKRaceConfig::step_size);
+		add_pickle(cls);
 	}
 
 	{
-		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> >(m, "RenderData", "SuperTuxKart rendering output")
+		py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
+		cls
 		.def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 3}); }, "Color image of the kart")
 		.def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart")
 		.def_property_readonly("instance", [](const PySTKRenderData & rd) { return py::ro_view(rd.instance_buf_.data(), {rd.height, rd.width}); }, "Instance labels");
+		add_pickle(cls);
 	}
 
 	{
-		py::class_<PySTKAction, std::shared_ptr<PySTKAction> >(m, "Action", "SuperTuxKart action")
+		py::class_<PySTKAction, std::shared_ptr<PySTKAction> > cls(m, "Action", "SuperTuxKart action");
+		cls
 		.def(py::init<float,float,bool,bool,bool,bool,bool>(), py::arg("steer") = 0, py::arg("acceleration") = 0, py::arg("brake") = false, py::arg("nitro") = false, py::arg("drift") = false, py::arg("rescue") = false, py::arg("fire") = false)
 		
 		.def_readwrite("steer", &PySTKAction::steering_angle, "Steering angle, normalize to -1..1")
@@ -147,6 +156,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def_readwrite("rescue", &PySTKAction::rescue, "Call the bird.")
 		.def_readwrite("fire", &PySTKAction::fire, "Fire the current pickup item")
 		.def("__str__", [](const PySTKAction & a) -> std::string { return ((std::stringstream&)(std::stringstream() << "<Action S:" << a.steering_angle << "  A:" << a.acceleration << "  b:" << (int) a.brake << "  n:" << (int) a.nitro << "  d:" << (int) a.drift << "  r:" << (int) a.rescue << "  f:" << (int) a.fire << " >")).str();});
+		add_pickle(cls);
 	}
 	
 	m.def("is_running", &PySuperTuxKart::isRunning,"Is supertuxkart running?");
