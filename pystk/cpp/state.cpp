@@ -55,6 +55,8 @@ void unpickle(std::istream & s, PyWorldState * o);
 // End AUTO Generated
 
 typedef std::tuple<float, float, float> PyVec3;
+typedef std::tuple<float, float, float, float> PyVec4;
+
 PyVec3 P(const Vec3 & v) {
 	return PyVec3(v.getX(), v.getY(), v.getZ());
 }
@@ -207,6 +209,7 @@ struct PyKartState {
 	int id = 0, player_id = -1;
 	std::string name;
 	PyVec3 location = PyVec3(0,0,0);
+	PyVec4 rotation = PyVec4(0,0,0,0);
 	PyVec3 front = PyVec3(0,0,0);
 	PyVec3 velocity = PyVec3(0,0,0);
 	PyVec3 size = PyVec3(0,0,0);
@@ -232,6 +235,7 @@ struct PyKartState {
 		  R(player_id)
 		  R(name)
 		  R(location)
+		  R(rotation)
 		  R(front)
 		  R(velocity)
 		  R(size)
@@ -259,6 +263,7 @@ struct PyKartState {
 			id = k->getWorldKartId();
 			name = k->getKartProperties()->getNonTranslatedName();
 			location = P(k->getXYZ());
+			rotation = PyVec4(k->getRotation().x(),k->getRotation().y(),k->getRotation().z(),k->getRotation().w()); // Roll, Pitch, Yaw
 			front = P(k->getFrontXYZ());
 			velocity = P(k->getVelocity());
 			size = PyVec3(k->getKartWidth(), k->getKartHeight(), k->getKartLength());
