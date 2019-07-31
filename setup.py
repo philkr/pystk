@@ -1,15 +1,18 @@
 import os
-import shutil
-import re
-import sys
-import sysconfig
 import platform
+import re
+import shutil
 import subprocess
-from glob import glob
-
+import sys
 from distutils.version import LooseVersion
-from setuptools import setup, find_packages, Extension
+
+from setuptools import Command
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
+from setuptools.command.build_py import build_py
+
+ASSET_URL = "https://sourceforge.net/projects/supertuxkart/files/stk-assets-mobile/git/full-hd.zip"
+this_directory = os.path.dirname(os.path.abspath(__file__))
 
 
 class CMakeExtension(Extension):
@@ -29,12 +32,13 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)',
-                                         out.decode()).group(1))
+                                                   out.decode()).group(1))
             if cmake_version < '3.1.0':
                 raise RuntimeError("CMake >= 3.1.0 is required on Windows")
 
         for ext in self.extensions:
-            self.build_extension(ext)
+            if isinstance(ext, CMakeExtension):
+                self.build_extension(ext)
 
     def build_extension(self, ext):
         extdir = os.path.abspath(
@@ -49,7 +53,7 @@ class CMakeBuild(build_ext):
             cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(
                 cfg.upper(),
                 extdir)]
-            if sys.maxsize > 2**32:
+            if sys.maxsize > 2 ** 32:
                 cmake_args += ['-A', 'x64']
             build_args += ['--', '/m']
         else:
@@ -69,30 +73,81 @@ class CMakeBuild(build_ext):
         print()
 
 
+class FetchDataCommand(Command):
+    description = "fetch the supertuxkart assets"
+    user_options = [('force', 'r', 'forcibly fetch the data (delete existing assets)')]
+    boolean_options = ['force']
+
+    def initialize_options(self):
+        self.force = 0
+
+    def finalize_options(self, ):
+        pass
+
+    def run(self):
+        import io, requests, zipfile
+        assets_dir = os.path.join(this_directory, 'stk-assets')
+        if not os.path.exists(assets_dir) or self.force:
+            r = requests.get(ASSET_URL, stream=True)
+            total_length = r.headers.get('content-length')
+            content = b''
+            if total_length is None:
+                content = r.content
+            else:
+                dl = 0
+                total_length = int(total_length)
+                print("Fetching assets")
+                for data in r.iter_content(1 << 20):
+                    dl += len(data)
+                    content += data
+                    done = int(50 * dl / total_length)
+                    sys.stdout.write("\r[%s%s] %3d%%" % ('=' * done, ' ' * (50 - done), 100 * dl / total_length))
+                print()
+            z = zipfile.ZipFile(io.BytesIO(content))
+            try:
+                shutil.rmtree(assets_dir)
+            except FileNotFoundError:
+                pass
+            z.extractall(assets_dir)
+        else:
+            print("Using existing assets (overwrite with '--force')")
+
+
+class BuildAndCopyData(build_py):
+    description = "build_py and copy the supertuxkart assets"
+
+    def run(self):
+        super().run()
+        for cmd_name in self.get_sub_commands():
+            self.run_command(cmd_name)
+        import shutil
+        try:
+            shutil.rmtree(os.path.join(self.build_lib, 'data'))
+        except FileNotFoundError:
+            pass
+        data_files = []
+        for base in ['data/', 'stk-assets/']:
+            base = os.path.join(this_directory, base)
+            for root, dirs, files in os.walk(base):
+                target_dir = os.path.join(self.build_lib, self.packages[0], 'data', root[len(base):])
+                try:
+                    os.makedirs(target_dir)
+                except FileExistsError:
+                    pass
+                for f in files:
+                    if '.py' not in f:
+                        self.copy_file(os.path.join(root, f), os.path.join(target_dir, f))
+
+    sub_commands = [('fetch_data', lambda x: True)]
+
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-data = glob('data/**', recursive=True)
-stk_assets = glob('stk-assets/**', recursive=True)
 
 def ignore(base, entries):
-    print( base )
     return [e for e in entries if '.py' in e]
-try:
-    shutil.rmtree('pystk/data')
-except FileNotFoundError:
-    pass
-data_files = []
-for base in ['data/', 'stk-assets/']:
-    for root, dirs, files in os.walk(base):
-        target_data_dir = os.path.join('data', root[len(base):])
-        target_dir = os.path.join('pystk', target_data_dir)
-        try: os.makedirs(target_dir)
-        except FileExistsError: pass
-        for f in files:
-            if '.py' not in f:
-                shutil.copy(os.path.join(root,f), os.path.join(target_dir, f))
-                data_files.append(os.path.join(target_data_dir, f))
+
 
 setup(
     name='pystk',
@@ -105,18 +160,13 @@ setup(
     packages=['pystk', 'pystk.gui'],
     # tell setuptools that all packages will be under the 'src' directory
     # and nowhere else
-    package_dir={'':'.'},
-    package_data={'':['*.md'],'pystk':data_files },
+    package_dir={'': '.'},
+    package_data={'': ['*.md']},
     # TODO: Add more
     # install_requires=['cmake'],
     python_requires='>=3.6',
-#    include_package_data=True,
-    # add an extension module named 'python_cpp_example' to the package
-    # 'python_cpp_example'
     ext_modules=[CMakeExtension('pystk/cpp')],
     # add custom build_ext command
-    cmdclass=dict(build_ext=CMakeBuild),
+    cmdclass=dict(fetch_data=FetchDataCommand, build_py=BuildAndCopyData, build_ext=CMakeBuild),
     zip_safe=False,
 )
-
-shutil.rmtree('pystk/data')
