@@ -2,6 +2,8 @@ import argparse
 from . import pystk_cpp as pystk, gui
 from time import time, sleep
 
+soccer_tracks = {"soccer_field", "icy_soccer_field"}
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-lt', '--list-tracks', action='store_true')
 parser.add_argument('-lk', '--list-karts', action='store_true')
@@ -39,6 +41,7 @@ if args.play:
     pystk.init(config)
 
     config = pystk.RaceConfig()
+    config.num_kart = 2
     if args.kart is not None:
         config.players[0].kart = args.kart
     config.players[0].controller = pystk.PlayerConfig.Controller.AI_CONTROL
@@ -48,6 +51,8 @@ if args.play:
     
     if args.track is not None:
         config.track = args.track
+        if args.track in soccer_tracks:
+            config.mode = config.RaceMode.SOCCER
     if args.step_size is not None:
         config.step_size = args.step_size
 

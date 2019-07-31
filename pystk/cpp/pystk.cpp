@@ -394,6 +394,13 @@ void PySuperTuxKart::render(float dt) {
     }
 }
 
+bool PySuperTuxKart::step(const std::vector<PySTKAction> & a, bool do_render) {
+	for(int i=0; i<a.size(); i++) {
+		KartControl & control = World::getWorld()->getPlayerKart(i)->getControls();
+		a[i].set(&control);
+	}
+	return step(do_render);
+}
 bool PySuperTuxKart::step(const PySTKAction & a, bool do_render) {
 	KartControl & control = World::getWorld()->getPlayerKart(0)->getControls();
 	a.set(&control);
@@ -496,6 +503,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 		if (!prop)
 			kart = UserConfigParams::m_default_kart.getDefaultValue();
 		race_manager->setPlayerKart(i, kart);
+		race_manager->setKartTeam(i, (KartTeam)config.players[i].team);
 	}
 	if (config.track.length())
 		race_manager->setTrack(config.track);
@@ -504,6 +512,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 	
 	race_manager->setNumLaps(config.laps);
 	race_manager->setNumKarts(config.num_kart);
+	race_manager->setMaxGoal(1<<30);
 }
 
 void PySuperTuxKart::initGraphicsConfig(const PySTKGraphicsConfig & config) {
