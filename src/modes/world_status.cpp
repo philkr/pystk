@@ -228,13 +228,11 @@ void WorldStatus::updateTime(int ticks)
             // Start the music here when starting fast
             if (UserConfigParams::m_race_now)
             {
+                onGo();
                 UserConfigParams::m_race_now = false;
             }
-            if (m_race_ticks != -1 && m_count_up_ticks >= m_race_ticks)
-            {
-                m_race_ticks = -1;
-                m_phase = RACE_PHASE;
-            }
+            m_race_ticks = -1;
+            m_phase = RACE_PHASE;
             break;
         }
         case RACE_PHASE:
