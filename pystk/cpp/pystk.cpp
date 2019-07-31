@@ -569,6 +569,7 @@ void PySuperTuxKart::initRest()
 
     font_manager = new FontManager();
     font_manager->loadFonts();
+    SP::loadShaders();
 
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.

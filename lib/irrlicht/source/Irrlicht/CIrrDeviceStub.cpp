@@ -50,7 +50,7 @@ CIrrDeviceStub::CIrrDeviceStub(const SIrrlichtCreationParameters& params)
         FileSystem = io::createFileSystem();
     core::stringc s = "..:: Antarctica Rendering Engine ";
 	s.append("2.0 ::..");
-	os::Printer::log(s.c_str(), ELL_INFORMATION);
+	// os::Printer::log(s.c_str(), ELL_INFORMATION);
 
 	checkVersion(params.SDK_version_do_not_use);
 }
