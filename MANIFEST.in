@@ -1,0 +1,7 @@
+include *.txt *.md *.cmake
+recursive-include src *.cpp *.h *.hpp
+recursive-include pystk *.cpp *.h *.hpp *.py
+recursive-include lib *.cpp *.c *.h *.hpp *.inl *.txt *.cmake *.in *.cmakein README *.md LICENSE* *.prebuilt
+recursive-include stk-assets *
+recursive-include data *
+recursive-include cmake *.cmake
