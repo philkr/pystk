@@ -44,6 +44,7 @@ ContextManagerEGL::ContextManagerEGL()
     m_is_legacy_device = false;
     m_initialized = false;
     eglGetPlatformDisplay = NULL;
+    eglQueryDevices = NULL;
 
     memset(&m_creation_params, 0, sizeof(ContextEGLParams));
 }
@@ -158,11 +159,15 @@ bool ContextManagerEGL::initExtensions()
     {
         eglGetPlatformDisplay = (eglGetPlatformDisplay_t)
                                      eglGetProcAddress("eglGetPlatformDisplay");
+        eglQueryDevices = (eglQueryDevices_t)eglGetProcAddress("eglQueryDevices");
+        eglQueryDeviceString = (eglQueryDeviceString_t)eglGetProcAddress("eglQueryDeviceString");
     }
     else if (hasEGLExtension("EGL_EXT_platform_base"))
     {
         eglGetPlatformDisplay = (eglGetPlatformDisplay_t)
                                   eglGetProcAddress("eglGetPlatformDisplayEXT");
+        eglQueryDevices = (eglQueryDevices_t)eglGetProcAddress("eglQueryDevicesEXT");
+        eglQueryDeviceString = (eglQueryDeviceString_t)eglGetProcAddress("eglQueryDeviceStringEXT");
     }
     
     return true;
@@ -200,6 +205,14 @@ bool ContextManagerEGL::initDisplay()
         break;
     }
     
+    if (m_creation_params.platform == CEGL_PLATFORM_DEVICE && eglQueryDevices != NULL) {
+        EGLint num_devices = 0;
+        eglQueryDevices(0, NULL, &num_devices);
+        std::vector<void*> devices(num_devices+1);
+        eglQueryDevices(num_devices, devices.data(), &num_devices);
+        if (m_creation_params.device_id < num_devices)
+            display = (EGLNativeDisplayType)devices[m_creation_params.device_id];
+    }
     if (m_creation_params.platform != CEGL_PLATFORM_DEFAULT &&
         eglGetPlatformDisplay != NULL)
     {
@@ -221,7 +234,7 @@ bool ContextManagerEGL::initDisplay()
         return false;
     }
 
-m_egl_display = eglGetPlatformDisplay(platform, EGL_DEFAULT_DISPLAY, NULL);
+// m_egl_display = eglGetPlatformDisplay(platform, EGL_DEFAULT_DISPLAY, NULL);
     int egl_version_major = 0;
     int egl_version_minor = 0;
 

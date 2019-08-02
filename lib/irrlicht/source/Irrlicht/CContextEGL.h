@@ -84,6 +84,7 @@ struct ContextEGLParams
     ContextEGLPlatform platform = CEGL_PLATFORM_DEFAULT;
     EGLNativeWindowType window = 0;
     EGLNativeDisplayType display = 0;
+    int device_id = 0;
     bool force_legacy_device = false;
     bool handle_srgb = false;
     bool with_alpha_channel = false;
@@ -109,7 +110,11 @@ private:
     int m_egl_version;
 
     typedef EGLDisplay (*eglGetPlatformDisplay_t) (EGLenum, void*, const EGLint*);
+    typedef EGLDisplay (*eglQueryDevices_t) (EGLint, void*, EGLint*);
+    typedef EGLDisplay (*eglQueryDeviceString_t) (void*, EGLint);
     eglGetPlatformDisplay_t eglGetPlatformDisplay;
+    eglQueryDevices_t eglQueryDevices;
+    eglQueryDeviceString_t eglQueryDeviceString;
     
     bool initExtensions();
     bool initDisplay();

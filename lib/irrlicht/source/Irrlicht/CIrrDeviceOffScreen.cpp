@@ -138,7 +138,7 @@ bool CIrrDeviceOffScreen::initEGL()
     egl_params.with_alpha_channel = CreationParams.WithAlphaChannel;
     egl_params.vsync_enabled = CreationParams.Vsync;
     egl_params.platform = CEGL_PLATFORM_DEVICE;
-    egl_params.display = 0;
+    egl_params.device_id = 0;
 #ifdef NDEBUG
     egl_params.debug = true;
 #else
