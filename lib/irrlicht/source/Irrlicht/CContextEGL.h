@@ -111,7 +111,7 @@ private:
 
     typedef EGLDisplay (*eglGetPlatformDisplay_t) (EGLenum, void*, const EGLint*);
     typedef EGLDisplay (*eglQueryDevices_t) (EGLint, void*, EGLint*);
-    typedef EGLDisplay (*eglQueryDeviceString_t) (void*, EGLint);
+    typedef const char * (*eglQueryDeviceString_t) (void*, EGLint);
     eglGetPlatformDisplay_t eglGetPlatformDisplay;
     eglQueryDevices_t eglQueryDevices;
     eglQueryDeviceString_t eglQueryDeviceString;

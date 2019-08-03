@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <vector>
 
 #ifdef _IRR_COMPILE_WITH_ANDROID_DEVICE_
@@ -212,6 +213,7 @@ bool ContextManagerEGL::initDisplay()
         eglQueryDevices(num_devices, devices.data(), &num_devices);
         if (m_creation_params.device_id < num_devices)
             display = (EGLNativeDisplayType)devices[m_creation_params.device_id];
+//         os::Printer::log(("Using display "+std::to_string(m_creation_params.device_id)+" : "+eglQueryDeviceString(display, EGL_EXTENSIONS)).c_str());
     }
     if (m_creation_params.platform != CEGL_PLATFORM_DEFAULT &&
         eglGetPlatformDisplay != NULL)
