@@ -209,7 +209,7 @@ struct PyKartState {
 	int id = 0, player_id = -1;
 	std::string name;
 	PyVec3 location = PyVec3(0,0,0);
-	PyVec4 rotation = PyVec4(0,0,0,0);
+	PyVec4 rotation = PyVec4(0,0,0,1);
 	PyVec3 front = PyVec3(0,0,0);
 	PyVec3 velocity = PyVec3(0,0,0);
 	PyVec3 size = PyVec3(0,0,0);
@@ -263,7 +263,7 @@ struct PyKartState {
 			id = k->getWorldKartId();
 			name = k->getKartProperties()->getNonTranslatedName();
 			location = P(k->getXYZ());
-			rotation = PyVec4(k->getRotation().x(),k->getRotation().y(),k->getRotation().z(),k->getRotation().w()); // Roll, Pitch, Yaw
+			rotation = PyVec4(k->getRotation().x(),k->getRotation().y(),k->getRotation().z(),k->getRotation().w());
 			front = P(k->getFrontXYZ());
 			velocity = P(k->getVelocity());
 			size = PyVec3(k->getKartWidth(), k->getKartHeight(), k->getKartLength());
