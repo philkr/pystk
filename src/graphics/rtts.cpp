@@ -327,7 +327,8 @@ RTT::RTT(unsigned int width, unsigned int height, float rtt_scale,
 
 RTT::~RTT()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, irr_driver->getDefaultFramebuffer());
+    if (irr_driver)
+        glBindFramebuffer(GL_FRAMEBUFFER, irr_driver->getDefaultFramebuffer());
     glDeleteTextures(RTT_COUNT, m_render_target_textures);
     for (FrameBuffer* fb : m_frame_buffers)
     {

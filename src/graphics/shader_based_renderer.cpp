@@ -779,30 +779,9 @@ void ShaderBasedRenderer::renderPostProcessing(Camera * const camera,
     glBindVertexArray(0);
 } //renderPostProcessing
 
-void GLAPIENTRY MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* userParam )
-{
-	char err[256] = {0};
-	snprintf(err, 256, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            type, severity, message );
-	if (severity >= GL_DEBUG_SEVERITY_HIGH)
-		Log::error("OpenGL error", err);
-}
-
 // ----------------------------------------------------------------------------
 ShaderBasedRenderer::ShaderBasedRenderer()
 {
-#ifdef DEBUG
-	// During init, enable debug output
-	glEnable              ( GL_DEBUG_OUTPUT );
-	glDebugMessageCallback( MessageCallback, 0 );
-#endif
     m_rtts                  = NULL;
     m_skybox                = NULL;
     m_spherical_harmonics   = new SphericalHarmonics(irr_driver->getAmbientLight().toSColor());
