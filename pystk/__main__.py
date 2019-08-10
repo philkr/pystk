@@ -80,9 +80,13 @@ if args.play:
     pystk.clean()
 
 if args.benchmark:
-    for config in [pystk.GraphicsConfig.ld(),pystk.GraphicsConfig.sd(),pystk.GraphicsConfig.hd()]:
+    for config in [pystk.GraphicsConfig.ld(),pystk.GraphicsConfig.sd(),pystk.GraphicsConfig.hd(), None]:
         print( config )
         t0 = time()
+        render = True
+        if config is None:
+            config = pystk.GraphicsConfig.ld()
+            render = False
         config.screen_width = 200
         config.screen_height = 150
         pystk.init(config)
@@ -105,7 +109,7 @@ if args.benchmark:
         start_time, t0 = time()-t0, time()
         
         for it in range(500):
-            k.step()
+            k.step(render)
         step_time, t0 = time()-t0, time()
         for it in range(5):
             k.restart()
