@@ -44,6 +44,7 @@ struct PySTKRaceConfig {
 	RaceMode mode = NORMAL_RACE;
 	std::vector<PySTKPlayerConfig> players = {{"",PySTKPlayerConfig::PLAYER_CONTROL}};
 	std::string track;
+	bool reverse = false;
 	int laps = 3;
 	int seed = 0;
 	int num_kart = 1;

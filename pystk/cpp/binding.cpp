@@ -123,11 +123,12 @@ PYBIND11_MODULE(pystk_cpp, m) {
 			.value("SOCCER", PySTKRaceConfig::RaceMode::SOCCER);
 		
 		cls
-		.def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,int,int,int,float>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1)
+		.def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,bool,int,int,int,float>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("reverse") = false, py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1)
 		.def_readwrite("difficulty", &PySTKRaceConfig::difficulty)
 		.def_readwrite("mode", &PySTKRaceConfig::mode)
 		.def_readwrite("players", &PySTKRaceConfig::players)
 		.def_readwrite("track", &PySTKRaceConfig::track)
+		.def_readwrite("reverse", &PySTKRaceConfig::reverse)
 		.def_readwrite("laps", &PySTKRaceConfig::laps)
 		.def_readwrite("seed", &PySTKRaceConfig::seed)
 		.def_readwrite("num_kart", &PySTKRaceConfig::num_kart)

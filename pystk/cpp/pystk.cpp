@@ -505,6 +505,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 		race_manager->setPlayerKart(i, kart);
 		race_manager->setKartTeam(i, (KartTeam)config.players[i].team);
 	}
+	race_manager->setReverseTrack(config.reverse);
 	if (config.track.length())
 		race_manager->setTrack(config.track);
 	
