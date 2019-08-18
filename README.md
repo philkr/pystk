@@ -1,6 +1,6 @@
 # Python SuperTuxKart
 
-This is a heavily modified version of the free SuperTuxKart racing game for sensorimotor control experiments.
+This is a heavily modified version of the free [SuperTuxKart](https://github.com/supertuxkart/stk-code) racing game for sensorimotor control experiments.
 
 Many parts that make SuperTuxKart fun and entertaining to play were removed, and replaced with a highly efficient and customizable python interface to the game.
 The python interface supports the full rendering engine and all assets of the original game, but no longer contains any sound playback, networking, or user interface.
