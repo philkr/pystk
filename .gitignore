@@ -72,3 +72,10 @@ supertuxkart/
 pystk/*.pyd
 /stk-assets
 /CMakeSettings.json
+dbuild
+**/_build
+dist
+Pipfile
+**.so
+**.idea
+pystk.egg-info
