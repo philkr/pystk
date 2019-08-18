@@ -340,6 +340,7 @@ public:
 	{ return ai_controller_->finishedRace(time); }
 };
 void PySuperTuxKart::restart() {
+	UserConfigParams::m_race_now = true;
 // 	race_manager->rerunRace();
 	World::getWorld()->reset(true /* restart */);
 }

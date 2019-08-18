@@ -116,4 +116,5 @@ public:
 	void stop();
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 	const std::vector<PySTKAction> & last_action() const { return last_action_; }
+	const PySTKRaceConfig & config() const { return config_; }
 };

@@ -173,7 +173,8 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step, "Take a step without changing the action")
 		.def("stop", &PySuperTuxKart::stop,"")
 		.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step")
-		.def_property_readonly("last_action", &PySuperTuxKart::last_action, "the last action the agent took");
+		.def_property_readonly("last_action", &PySuperTuxKart::last_action, "the last action the agent took")
+		.def_property_readonly("config", &PySuperTuxKart::config,"The current race configuration");
 	}
 	
 	m.def("list_tracks", &PySuperTuxKart::listTracks);
