@@ -49,6 +49,7 @@ struct PySTKRaceConfig {
 	int seed = 0;
 	int num_kart = 1;
 	float step_size = 0.1;
+	bool render = true;
 };
 
 class PySTKRenderTarget;
@@ -109,9 +110,9 @@ public:
 	~PySuperTuxKart();
 	void restart();
 	void start();
-	bool step(const std::vector<PySTKAction> &, bool);
-	bool step(const PySTKAction &, bool);
-	bool step(bool);
+	bool step(const std::vector<PySTKAction> &);
+	bool step(const PySTKAction &);
+	bool step();
 	void stop();
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 	const std::vector<PySTKAction> & last_action() const { return last_action_; }

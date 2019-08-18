@@ -35,7 +35,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		if (ll == "verbose") Log::setLogLevel(Log::LL_VERBOSE);
 		if (ll == "info") Log::setLogLevel(Log::LL_INFO);
 		if (ll == "warn") Log::setLogLevel(Log::LL_WARN);
-		if (ll == "eror") Log::setLogLevel(Log::LL_ERROR);
+		if (ll == "error") Log::setLogLevel(Log::LL_ERROR);
 		if (ll == "fatal") Log::setLogLevel(Log::LL_FATAL);
 	}
 	
@@ -48,7 +48,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.value("verbose", Log::LL_VERBOSE)
 		.value("info", Log::LL_INFO)
 		.value("warn", Log::LL_WARN)
-		.value("eror", Log::LL_ERROR)
+		.value("error", Log::LL_ERROR)
 		.value("fatal", Log::LL_FATAL);
 		
 		m.def("set_log_level", Log::setLogLevel);
@@ -123,7 +123,7 @@ PYBIND11_MODULE(pystk_cpp, m) {
 			.value("SOCCER", PySTKRaceConfig::RaceMode::SOCCER);
 		
 		cls
-		.def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,bool,int,int,int,float>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("reverse") = false, py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1)
+		.def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,bool,int,int,int,float,bool>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("reverse") = false, py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1, py::arg("render") = true)
 		.def_readwrite("difficulty", &PySTKRaceConfig::difficulty)
 		.def_readwrite("mode", &PySTKRaceConfig::mode)
 		.def_readwrite("players", &PySTKRaceConfig::players)
@@ -132,7 +132,8 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def_readwrite("laps", &PySTKRaceConfig::laps)
 		.def_readwrite("seed", &PySTKRaceConfig::seed)
 		.def_readwrite("num_kart", &PySTKRaceConfig::num_kart)
-		.def_readwrite("step_size", &PySTKRaceConfig::step_size);
+		.def_readwrite("step_size", &PySTKRaceConfig::step_size)
+		.def_readwrite("render", &PySTKRaceConfig::render);
 		add_pickle(cls);
 	}
 
@@ -167,8 +168,9 @@ PYBIND11_MODULE(pystk_cpp, m) {
 		.def(py::init<const PySTKRaceConfig &>(),py::arg("config"))
 		.def("restart", &PySuperTuxKart::restart,"")
 		.def("start", &PySuperTuxKart::start,"")
-		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &, bool)) &PySuperTuxKart::step, py::arg("action"), py::arg("render")=true, "Take a step with an action")
-		.def("step", (bool (PySuperTuxKart::*)(bool)) &PySuperTuxKart::step, py::arg("render")=true, "Take a step without chaning the action")
+		.def("step", (bool (PySuperTuxKart::*)(const std::vector<PySTKAction> &)) &PySuperTuxKart::step, py::arg("action"), "Take a step with an action per agent")
+		.def("step", (bool (PySuperTuxKart::*)(const PySTKAction &)) &PySuperTuxKart::step, py::arg("action"), "Take a step with an action for agent 0")
+		.def("step", (bool (PySuperTuxKart::*)()) &PySuperTuxKart::step, "Take a step without changing the action")
 		.def("stop", &PySuperTuxKart::stop,"")
 		.def_property_readonly("render_data", &PySuperTuxKart::render_data, "rendering data from the last step")
 		.def_property_readonly("last_action", &PySuperTuxKart::last_action, "the last action the agent took");
