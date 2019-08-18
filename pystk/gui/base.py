@@ -100,3 +100,11 @@ class BaseUI:
 
     def sleep(self, s: float):
         raise NotImplemented
+
+
+class NoUI(BaseUI):
+    def show(self, render_data: pystk.RenderData):
+        pass
+
+    def sleep(self, s: float):
+        pass

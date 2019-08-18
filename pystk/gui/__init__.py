@@ -1,4 +1,7 @@
-from .base import VT, class_color, instance_color
-from . import mpl as _mlp
+from .base import VT, class_color, instance_color, NoUI
 
-UI = _mlp.MplUI
+try:
+    from . import mpl as _mlp
+    UI = _mlp.MplUI
+except ImportError:
+    UI = NoUI
