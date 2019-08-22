@@ -149,8 +149,8 @@ def ignore(base, entries):
 
 
 setup(
-    name='pystk',
-    version='1.0',
+    name='PySuperTuxKart',
+    version='1.0a1',
     author='Philipp Krähenbühl',
     author_email='philkr@utexas.edu',
     description='Python SuperTuxKart inferface',
@@ -171,9 +171,9 @@ setup(
  
     # tell setuptools that all packages will be under the 'src' directory
     # and nowhere else
-    packages=['.'],
-    package_dir={'': '.'},
-    package_data={'': ['*.md', 'docs/*', 'examples/*.py']},
+    packages=['pystk_data'],
+    package_dir={'pystk_data': '.'},
+    package_data={'pystk_data': ['*.md', 'docs/*', 'examples/*.py']},
     # TODO: Add more
     #install_requires=['cmake'],
     python_requires='>=3.6',

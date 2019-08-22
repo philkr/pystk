@@ -6,7 +6,7 @@ Using pip
 
 .. code-block:: bash
 
-   pip install pystk
+   pip install PySuperTuxKart
 
 From source
 -----------

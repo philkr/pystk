@@ -113,7 +113,7 @@ if (NOT SERVER_ONLY)
 	add_subdirectory("${PROJECT_SOURCE_DIR}/lib/libpng")
 	include_directories("${PROJECT_SOURCE_DIR}/lib/libpng")
 
-	set(PNG_PNG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/lib/libpng/")
+	set(PNG_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/lib/libpng/")
 	set(PNG_LIBRARY png_static)
 	
 	add_subdirectory("${PROJECT_SOURCE_DIR}/lib/jpeglib")

@@ -1,10 +1,8 @@
 # CMakeLists.txt for Irrlicht in STK
 if(NOT SERVER_ONLY)
-    find_package(PNG REQUIRED)
-    find_package(JPEG REQUIRED)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
                         "${JPEG_INCLUDE_DIR}"
-                        "${PNG_INCLUDE_DIRS}"
+                        "${PNG_INCLUDE_DIR}"
                         "${ZLIB_INCLUDE_DIR}"
                         "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
     include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32

@@ -1,8 +1,7 @@
 include *.txt *.md *.cmake
 recursive-include src *.cpp *.h *.hpp
-recursive-include pystk *.cpp *.h *.hpp *.py
+recursive-include pystk_cpp *.cpp *.h *.hpp
 recursive-include lib *.cpp *.c *.h *.hpp *.inl *.txt *.cmake *.in *.cmakein README *.md LICENSE* *.prebuilt
-recursive-include stk-assets *
 recursive-include examples *.py
 recursive-include docs *.rst Makefile conf.py
 recursive-include data *
