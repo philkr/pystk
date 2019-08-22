@@ -70,7 +70,6 @@ class CMakeBuild(build_ext):
                               cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args,
                               cwd=self.build_temp)
-        print()
 
 
 class FetchDataCommand(Command):
@@ -156,16 +155,29 @@ setup(
     author_email='philkr@utexas.edu',
     description='Python SuperTuxKart inferface',
     long_description=long_description,
-    # tell setuptools to look for any packages under 'src'
-    packages=['pystk', 'pystk.gui'],
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    ],
+ 
     # tell setuptools that all packages will be under the 'src' directory
     # and nowhere else
+    packages=['.'],
     package_dir={'': '.'},
-    package_data={'': ['*.md']},
+    package_data={'': ['*.md', 'docs/*', 'examples/*.py']},
     # TODO: Add more
-    # install_requires=['cmake'],
+    #install_requires=['cmake'],
     python_requires='>=3.6',
-    ext_modules=[CMakeExtension('pystk/cpp')],
+    ext_modules=[CMakeExtension('pystk_cpp')],
     # add custom build_ext command
     cmdclass=dict(fetch_data=FetchDataCommand, build_py=BuildAndCopyData, build_ext=CMakeBuild),
     zip_safe=False,

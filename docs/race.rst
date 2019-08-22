@@ -1,9 +1,10 @@
-.. automodule:: pystk
-
 .. _race:
 
 Race
 ====
+
+.. automodule:: pystk
+   :noindex:
 
 To start a race create a new Race object.
 You can configure your race using the ``RaceConfig`` object, see :ref:`race_config`.
@@ -40,36 +41,11 @@ To check if there is already a race running use the ``is_running`` function.
 
 .. autofunction:: is_running
 
-.. _race_config:
 
-Configuration
-*************
-
-The player configuration is used to add agents to the race.
-Each agent can be an AI or player controlled, and produces a separate ``render_data`` output.
-
-.. autoclass:: PlayerConfig
-   :members:
-   :undoc-members:
-
-The main race configuration specified everything from the track to use, the race type, number of agents and additional AI agents.
-
-.. autoclass:: RaceConfig
-   :members:
-   :undoc-members:
-
-.. autofunction:: list_tracks
-
-.. autofunction:: list_karts
-
-
-.. _race_action:
-
-Action
-******
-
-The `Race.step` function takes an optional action or list of actions as an input.
-
-.. autoclass:: Action
-   :members:
-   :special-members: __init__
+.. toctree::
+   :hidden:
+   
+   config
+   action
+   data
+   state
