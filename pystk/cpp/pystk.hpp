@@ -12,7 +12,7 @@ struct PySTKGraphicsConfig {
 	bool mlaa = true;
 	bool texture_compression = true;
 	bool ssao = true;
-	bool degraded_IBL = true;
+	bool degraded_IBL = false;
 	int high_definition_textures = 2 | 1;
 	bool render_window = false; // Render the main game window
 	
@@ -75,7 +75,7 @@ struct PySTKAction {
 	void get(const KartControl * control);
 };
 
-class PySuperTuxKart {
+class PySTKRace {
 protected: // Static methods
 	static bool render_window;
 	static void initRest();
@@ -85,7 +85,7 @@ protected: // Static methods
 	static void cleanUserConfig();
 
 public: // Static methods
-	static PySuperTuxKart * running_kart;
+	static PySTKRace * running_kart;
 	static void init(const PySTKGraphicsConfig & config);
 	static void load();
 	static void clean();
@@ -104,10 +104,10 @@ protected:
 	std::vector<PySTKAction> last_action_;
 
 public:
-	PySuperTuxKart(const PySuperTuxKart &) = delete;
-	PySuperTuxKart& operator=(const PySuperTuxKart &) = delete;
-	PySuperTuxKart(const PySTKRaceConfig & config);
-	~PySuperTuxKart();
+	PySTKRace(const PySTKRace &) = delete;
+	PySTKRace& operator=(const PySTKRace &) = delete;
+	PySTKRace(const PySTKRaceConfig & config);
+	~PySTKRace();
 	void restart();
 	void start();
 	bool step(const std::vector<PySTKAction> &);

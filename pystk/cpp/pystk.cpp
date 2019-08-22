@@ -108,7 +108,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 		true,
 		true,
 		true,
-		true,
+		false,
 		1 | 2,
 	};
 	return config;
@@ -122,7 +122,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
 		true,
 		true,
 		true,
-		true,
+		false,
 		1 | 2,
 	};
 	return config;
@@ -143,7 +143,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
 }
 
 class PySTKRenderTarget {
-	friend class PySuperTuxKart;
+	friend class PySTKRace;
 
 private:
 	std::unique_ptr<RenderTarget> rt_;
@@ -217,10 +217,10 @@ void PySTKAction::get(const KartControl * control) {
 	drift = control->getSkidControl() != KartControl::SC_NONE;
 }
 
-PySuperTuxKart * PySuperTuxKart::running_kart = 0;
-bool PySuperTuxKart::render_window = 0;
+PySTKRace * PySTKRace::running_kart = 0;
+bool PySTKRace::render_window = 0;
 static int is_init = 0;
-void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
+void PySTKRace::init(const PySTKGraphicsConfig & config) {
 	if (running_kart)
 		throw std::invalid_argument("Cannot init while supertuxkart is running!");
 	if (is_init) {
@@ -234,7 +234,7 @@ void PySuperTuxKart::init(const PySTKGraphicsConfig & config) {
 		load();
 	}
 }
-void PySuperTuxKart::clean() {
+void PySTKRace::clean() {
 	if (running_kart)
 		throw std::invalid_argument("Cannot clean up while supertuxkart is running!");
 	if (is_init) {
@@ -256,8 +256,8 @@ void PySuperTuxKart::clean() {
 		is_init = 0;
 	}
 }
-bool PySuperTuxKart::isRunning() { return running_kart; }
-PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
+bool PySTKRace::isRunning() { return running_kart; }
+PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
 	if (running_kart)
 		throw std::invalid_argument("Cannot run more than one supertux instance per process!");
 	if (!is_init)
@@ -270,17 +270,17 @@ PySuperTuxKart::PySuperTuxKart(const PySTKRaceConfig & config) {
 	for(int i=0; i<config.players.size(); i++)
 		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player"+std::to_string(i))) );
 }
-std::vector<std::string> PySuperTuxKart::listTracks() {
+std::vector<std::string> PySTKRace::listTracks() {
 	if (track_manager)
 		return track_manager->getAllTrackIdentifiers();
 	return std::vector<std::string>();
 }
-std::vector<std::string> PySuperTuxKart::listKarts() {
+std::vector<std::string> PySTKRace::listKarts() {
 	if (kart_properties_manager)
 		return kart_properties_manager->getAllAvailableKarts();
 	return std::vector<std::string>();
 }
-PySuperTuxKart::~PySuperTuxKart() {
+PySTKRace::~PySTKRace() {
 	running_kart = nullptr;
 }
 
@@ -339,13 +339,13 @@ public:
     virtual void  finishedRace(float time)
 	{ return ai_controller_->finishedRace(time); }
 };
-void PySuperTuxKart::restart() {
+void PySTKRace::restart() {
 	UserConfigParams::m_race_now = true;
 // 	race_manager->rerunRace();
 	World::getWorld()->reset(true /* restart */);
 }
 
-void PySuperTuxKart::start() {
+void PySTKRace::start() {
 	race_manager->setupPlayerKartInfo();
 	race_manager->startNew();
 	time_leftover_ = 0.f;
@@ -358,7 +358,7 @@ void PySuperTuxKart::start() {
 // 			player_kart->setController(NULL);
 	}
 }
-void PySuperTuxKart::stop() {
+void PySTKRace::stop() {
 	render_targets_.clear();
 	if (CVS->isGLSL())
 	{
@@ -375,7 +375,7 @@ void PySuperTuxKart::stop() {
 		race_manager->exitRace();
 	}
 }
-void PySuperTuxKart::render(float dt) {
+void PySTKRace::render(float dt) {
 	SP::SPTextureManager::get()->checkForGLCommand();
 
 	World *world = World::getWorld();
@@ -395,19 +395,19 @@ void PySuperTuxKart::render(float dt) {
     }
 }
 
-bool PySuperTuxKart::step(const std::vector<PySTKAction> & a) {
+bool PySTKRace::step(const std::vector<PySTKAction> & a) {
 	for(int i=0; i<a.size(); i++) {
 		KartControl & control = World::getWorld()->getPlayerKart(i)->getControls();
 		a[i].set(&control);
 	}
 	return step();
 }
-bool PySuperTuxKart::step(const PySTKAction & a) {
+bool PySTKRace::step(const PySTKAction & a) {
 	KartControl & control = World::getWorld()->getPlayerKart(0)->getControls();
 	a.set(&control);
 	return step();
 }
-bool PySuperTuxKart::step() {
+bool PySTKRace::step() {
 	const float dt = config_.step_size;
 	
 	// Update first
@@ -446,7 +446,7 @@ bool PySuperTuxKart::step() {
 	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
 }
 
-void PySuperTuxKart::load() {
+void PySTKRace::load() {
 	
 	material_manager->loadMaterial();
 	// Preload the explosion effects (explode.png)
@@ -492,7 +492,7 @@ static RaceManager::MinorRaceModeType translate_mode(PySTKRaceConfig::RaceMode m
 	return RaceManager::MINOR_MODE_NORMAL_RACE;
 }
 
-void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
+void PySTKRace::setupConfig(const PySTKRaceConfig & config) {
 	config_ = config;
 	
 	race_manager->setDifficulty(RaceManager::Difficulty(config.difficulty));
@@ -517,7 +517,7 @@ void PySuperTuxKart::setupConfig(const PySTKRaceConfig & config) {
 	race_manager->setMaxGoal(1<<30);
 }
 
-void PySuperTuxKart::initGraphicsConfig(const PySTKGraphicsConfig & config) {
+void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 	UserConfigParams::m_fullscreen = false;
 	UserConfigParams::m_prev_width  = UserConfigParams::m_width  = config.screen_width;
 	UserConfigParams::m_prev_height = UserConfigParams::m_height = config.screen_height;
@@ -542,7 +542,7 @@ void PySuperTuxKart::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 //=============================================================================
 /** Initialises the minimum number of managers to get access to user_config.
  */
-void PySuperTuxKart::initUserConfig()
+void PySTKRace::initUserConfig()
 {
     file_manager = new FileManager();
     user_config  = new UserConfig();     // needs file_manager
@@ -558,7 +558,7 @@ void PySuperTuxKart::initUserConfig()
 }   // initUserConfig
 
 //=============================================================================
-void PySuperTuxKart::initRest()
+void PySTKRace::initRest()
 {
     SP::setMaxTextureSize();
     irr_driver = new IrrDriver();
@@ -629,7 +629,7 @@ void PySuperTuxKart::initRest()
 //=============================================================================
 /** Frees all manager and their associated memory.
  */
-void PySuperTuxKart::cleanSuperTuxKart()
+void PySTKRace::cleanSuperTuxKart()
 {
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
@@ -678,7 +678,7 @@ void PySuperTuxKart::cleanSuperTuxKart()
 /**
  * Frees all the memory of initUserConfig()
  */
-void PySuperTuxKart::cleanUserConfig()
+void PySTKRace::cleanUserConfig()
 {
     if(stk_config)              delete stk_config;
 	stk_config = nullptr;

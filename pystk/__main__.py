@@ -67,7 +67,7 @@ if args.play:
     while all(ui.visible for ui in uis):
         if not all(ui.pause for ui in uis):
             k.step(uis[0].current_action)
-        for ui,d in zip(uis,k.render_data):
+        for ui,d in zip(uis, k.render_data):
             ui.show(d)
         # Make sure we play in real time
         n += 1
@@ -80,7 +80,7 @@ if args.play:
     pystk.clean()
 
 if args.benchmark:
-    for config in [pystk.GraphicsConfig.ld(),pystk.GraphicsConfig.sd(),pystk.GraphicsConfig.hd(), None]:
+    for config in [pystk.GraphicsConfig.ld(), pystk.GraphicsConfig.sd(), pystk.GraphicsConfig.hd(), None]:
         print( config )
         t0 = time()
         render = True
@@ -92,7 +92,7 @@ if args.benchmark:
         pystk.init(config)
         init_time, t0 = time()-t0, time()
 
-        config = pystk.RaceConfig()
+        config = pystk.RaceConfig(render=render)
         if args.kart is not None:
             config.kart = args.kart
         if args.track is not None:
@@ -109,7 +109,7 @@ if args.benchmark:
         start_time, t0 = time()-t0, time()
         
         for it in range(500):
-            k.step(render)
+            k.step()
         step_time, t0 = time()-t0, time()
         for it in range(5):
             k.restart()
