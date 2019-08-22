@@ -5,6 +5,8 @@ This is a heavily modified version of the free [SuperTuxKart](https://github.com
 Many parts that make SuperTuxKart fun and entertaining to play were removed, and replaced with a highly efficient and customizable python interface to the game.
 The python interface supports the full rendering engine and all assets of the original game, but no longer contains any sound playback, networking, or user interface.
 
+See [https://pystk.readthedocs.io](https://pystk.readthedocs.io) for a full documentation.
+
 If you find a bug in this version of supertuxkart please do not report it to the original project, this project significantly diverged from the original intention of the video game.
 
 ## Hardware Requirements

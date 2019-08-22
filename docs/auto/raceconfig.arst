@@ -1,0 +1,11 @@
+.. automodule:: pystk
+   :noindex:
+
+.. autoclass:: RaceConfig
+   :members:
+   :undoc-members:
+
+.. autofunction:: list_tracks
+
+.. autofunction:: list_karts
+

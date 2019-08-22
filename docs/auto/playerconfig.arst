@@ -1,0 +1,6 @@
+.. automodule:: pystk
+   :noindex:
+
+.. autoclass:: PlayerConfig
+   :members:
+   :undoc-members:

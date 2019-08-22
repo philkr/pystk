@@ -1,0 +1,126 @@
+
+.. py:class:: pystk.GraphicsConfig
+
+   SuperTuxKart graphics configuration.
+
+
+   .. py:method:: animated_characters
+      :property:
+
+      Animate characters (bool)
+
+
+   .. py:method:: bloom
+      :property:
+
+      Enable the bloom effect (bool)
+
+
+   .. py:method:: degraded_IBL
+      :property:
+
+      Disable specular IBL (bool)
+
+
+   .. py:method:: dof
+      :property:
+
+      Depth of field effect (bool)
+
+
+   .. py:method:: dynamic_lights
+      :property:
+
+      Enable dynamic lighting (bool)
+
+
+   .. py:method:: glow
+      :property:
+
+      Enable glow around pickup objects (bool)
+
+
+   .. py:method:: hd() -> pystk.GraphicsConfig
+
+      High-definitaiton graphics settings
+
+
+   .. py:method:: high_definition_textures
+      :property:
+
+      Enable high definition textures 0 / 2
+
+
+   .. py:method:: ld() -> pystk.GraphicsConfig
+
+      Low-definition graphics settings
+
+
+   .. py:method:: light_shaft
+      :property:
+
+      Enable light shafts (bool)
+
+
+   .. py:method:: mlaa
+      :property:
+
+      Enable anti-aliasing (bool)
+
+
+   .. py:method:: motionblur
+      :property:
+
+      Enable motion blur (bool)
+
+
+   .. py:method:: particles_effects
+      :property:
+
+      Particle effect 0 (none) to 2 (full)
+
+
+   .. py:method:: render_window
+      :property:
+
+      Show the rendering window (bool)
+
+
+   .. py:method:: screen_height
+      :property:
+
+      Height of the rendering surface (int)
+
+
+   .. py:method:: screen_width
+      :property:
+
+      Width of the rendering surface (int)
+
+
+   .. py:method:: sd() -> pystk.GraphicsConfig
+
+      Standard-definition graphics settings
+
+
+   .. py:method:: ssao
+      :property:
+
+      Enable screen space ambient occlusion (bool)
+
+
+   .. py:method:: texture_compression
+      :property:
+
+      Use texture compression (bool)
+
+
+.. py:function:: pystk.init(config: pystk.GraphicsConfig) -> None
+
+   Initialize Python SuperTuxKart. Only call this function once per process. Calling it twice will cause a crash.
+
+
+.. py:function:: pystk.clean() -> None
+
+   Free Python SuperTuxKart, call this once at exit (optional). Will be called atexit otherwise.
+

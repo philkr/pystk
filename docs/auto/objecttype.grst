@@ -1,0 +1,27 @@
+
+.. py:class:: pystk.ObjectType
+
+   .. py:attribute:: object_type_shift
+
+      Number of bits for the instance label (shift of the object type)
+
+
+   .. py:attribute:: N
+
+   .. py:attribute:: background
+
+   .. py:attribute:: bomb
+
+   .. py:attribute:: kart
+
+   .. py:attribute:: nitro
+
+   .. py:attribute:: object
+
+   .. py:attribute:: pickup
+
+   .. py:attribute:: projectile
+
+   .. py:attribute:: track
+
+   .. py:attribute:: unknown

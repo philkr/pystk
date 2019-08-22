@@ -1,0 +1,23 @@
+
+.. py:class:: pystk.RenderData
+
+   SuperTuxKart rendering output
+
+
+   .. py:method:: depth
+      :property:
+
+      Depth image of the kart (memoryview[float] screen_height x screen_width)
+
+
+   .. py:method:: image
+      :property:
+
+      Color image of the kart (memoryview[uint8] screen_height x screen_width x 3)
+
+
+   .. py:method:: instance
+      :property:
+
+      Instance labels (memoryview[uint32] screen_height x screen_width)
+

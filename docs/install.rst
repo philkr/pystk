@@ -20,6 +20,7 @@ From source
 Development
 -----------
 
+Clone the repository `https://github.com/philkr/pystk <https://github.com/philkr/pystk>`_.
 For easier development, it is recommended to install pystk directly through ``cmake``.
 
 .. code-block:: bash
@@ -45,3 +46,11 @@ Documentation
    cd docs
    make html
 
+PySTK does not compile on `readthedocs.org <http://readthedocs.org>`_ due to some missing dependencies.
+This means that autodoc does not work there. In order to circumvent this, the autodoc parts of the documentation are split off and can be built using
+
+.. code-block:: bash
+
+   make rst
+
+Make sure to build the html again after.

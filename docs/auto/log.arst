@@ -1,0 +1,8 @@
+.. automodule:: pystk
+   :noindex:
+   
+.. autoclass:: LogLevel
+   :members:
+   :undoc-members:
+
+.. autofunction:: set_log_level 

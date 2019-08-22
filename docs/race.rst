@@ -3,9 +3,6 @@
 Race
 ====
 
-.. automodule:: pystk
-   :noindex:
-
 To start a race create a new Race object.
 You can configure your race using the ``RaceConfig`` object, see :ref:`race_config`.
 You need to set the graphics settings before starting a race, see :ref:`graphics`.
@@ -30,17 +27,12 @@ You need to set the graphics settings before starting a race, see :ref:`graphics
     # You may start a new race after you delete the old race object
     pystk.clean()
 
-
-
-.. autoclass:: Race
-   :members:
-   :special-members: __init__
+.. include:: auto/race.grst
 
 SuperTuxKart uses several global variables and thus only allows one game instance to run per process.
 To check if there is already a race running use the ``is_running`` function.
 
-.. autofunction:: is_running
-
+.. include:: auto/is_running.grst
 
 .. toctree::
    :hidden:

@@ -1,0 +1,22 @@
+
+.. py:class:: pystk.LogLevel
+
+   Global logging level
+
+
+   .. py:attribute:: debug
+
+   .. py:attribute:: error
+
+   .. py:attribute:: fatal
+
+   .. py:attribute:: info
+
+   .. py:attribute:: verbose
+
+   .. py:attribute:: warn
+
+.. py:function:: pystk.set_log_level(arg0: int) -> None
+
+   Set the global log level
+

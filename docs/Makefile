@@ -18,3 +18,8 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+rst: Makefile
+	@$(SPHINXBUILD) -M rst "$(SOURCEDIR)/auto" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	cp -f "$(BUILDDIR)"/rst/*.grst auto/
+

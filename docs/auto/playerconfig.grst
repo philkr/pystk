@@ -1,0 +1,32 @@
+
+.. py:class:: pystk.PlayerConfig
+
+   SuperTuxKart player configuration
+
+
+   .. py:class:: Controller
+
+      Let the player or AI drive, AI ignores step(action)
+
+
+      .. py:attribute:: AI_CONTROL
+
+      .. py:attribute:: PLAYER_CONTROL
+
+   .. py:method:: controller
+      :property:
+
+      Controller type (PlayerConfig.Controller)
+
+
+   .. py:method:: kart
+      :property:
+
+      Kart type (string), see list_karts for a list of kart types
+
+
+   .. py:method:: team
+      :property:
+
+      Team of the player (int) 0 or 1
+

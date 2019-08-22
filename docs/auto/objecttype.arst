@@ -1,0 +1,10 @@
+.. automodule:: pystk
+   :noindex:
+
+.. autoclass:: ObjectType
+   :members:
+   :undoc-members:
+
+   .. attribute:: object_type_shift
+
+      Number of bits for the instance label (shift of the object type)

@@ -1,0 +1,5 @@
+.. automodule:: pystk
+   :noindex:
+
+.. autofunction:: is_running
+

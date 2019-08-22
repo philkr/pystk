@@ -1,0 +1,91 @@
+
+.. py:class:: pystk.RaceConfig
+
+   SuperTuxKart race configuration.
+
+
+   .. py:class:: RaceMode
+
+      .. py:attribute:: CAPTURE_THE_FLAG
+
+      .. py:attribute:: FOLLOW_LEADER
+
+      .. py:attribute:: FREE_FOR_ALL
+
+      .. py:attribute:: NORMAL_RACE
+
+      .. py:attribute:: SOCCER
+
+      .. py:attribute:: THREE_STRIKES
+
+      .. py:attribute:: TIME_TRIAL
+
+   .. py:method:: difficulty
+      :property:
+
+      Skill of AI players 0..2 (int)
+
+
+   .. py:method:: laps
+      :property:
+
+      Number of laps the race runs for (int)
+
+
+   .. py:method:: mode
+      :property:
+
+      Specify the type of race (RaceMode)
+
+
+   .. py:method:: num_kart
+      :property:
+
+      Total number of karts, fill the race with num_kart - len(players) AI karts (int)
+
+
+   .. py:method:: players
+      :property:
+
+      List of all agent players (List[PlayerConfig])
+
+
+   .. py:method:: render
+      :property:
+
+      Is rendering enabled? (bool)
+
+
+   .. py:method:: reverse
+      :property:
+
+      Reverse the track (bool)
+
+
+   .. py:method:: seed
+      :property:
+
+      Random seed (int)
+
+
+   .. py:method:: step_size
+      :property:
+
+      Game time between different step calls (float)
+
+
+   .. py:method:: track
+      :property:
+
+      Track name (str)
+
+
+.. py:function:: pystk.list_tracks() -> List[str]
+
+   Return a list of track names (possible values for RaceConfig.track)
+
+
+.. py:function:: pystk.list_karts() -> List[str]
+
+   Return a list of karts to play as (possible values for PlayerConfig.kart
+

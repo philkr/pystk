@@ -1,0 +1,6 @@
+.. automodule:: pystk
+   :noindex:
+
+.. autoclass:: Race
+   :members:
+   :special-members: __init__

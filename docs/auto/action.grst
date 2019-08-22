@@ -1,0 +1,47 @@
+
+.. py:class:: pystk.Action
+
+   SuperTuxKart action
+
+
+   .. py:method:: acceleration
+      :property:
+
+      Acceleration, normalize to 0..1 (float)
+
+
+   .. py:method:: brake
+      :property:
+
+      Hit the brakes (bool)
+
+
+   .. py:method:: drift
+      :property:
+
+      Drift while turning (bool)
+
+
+   .. py:method:: fire
+      :property:
+
+      Fire the current pickup item (bool)
+
+
+   .. py:method:: nitro
+      :property:
+
+      Use nitro (bool)
+
+
+   .. py:method:: rescue
+      :property:
+
+      Call the rescue bird (bool)
+
+
+   .. py:method:: steer
+      :property:
+
+      Steering angle, normalize to -1..1 (float)
+

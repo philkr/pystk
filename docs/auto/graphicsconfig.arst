@@ -1,0 +1,9 @@
+.. automodule:: pystk
+   :noindex:
+
+.. autoclass:: GraphicsConfig
+   :members:
+
+.. autofunction:: init
+
+.. autofunction:: clean
