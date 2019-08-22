@@ -1,9 +1,10 @@
-.. automodule:: pystk
-
 .. _state:
 
 Game state
 ==========
+
+.. automodule:: pystk
+   :noindex:
 
 PySTK also exposes the internal state of the game.
 

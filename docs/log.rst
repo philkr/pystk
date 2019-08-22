@@ -1,10 +1,10 @@
-.. automodule:: pystk
-
 .. _logging:
 
 Logging
 =======
 
+.. automodule:: pystk
+   :noindex:
 
 PySTK uses a global logging mechanism.
 You can select one of the log levels below.

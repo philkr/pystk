@@ -19,7 +19,7 @@ using namespace pybind11::literals;
 PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
 
 
-PYBIND11_MODULE(pystk_cpp, m) {
+PYBIND11_MODULE(pystk, m) {
 	m.doc() = "Python SuperTuxKart interface";
 	
 	// Make offscreen rendering default

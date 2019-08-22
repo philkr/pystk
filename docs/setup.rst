@@ -1,9 +1,9 @@
-.. automodule:: pystk
-
 .. _graphics:
 
 Graphics Setup
 ==============
+
+.. automodule:: pystk
 
 Before you can use pystk you need to setup the OpenGL rendering engine and graphics settings.
 There are three default settings ``GraphicsConfig::ld`` (lowest),  ``GraphicsConfig::sd`` (medium),  ``GraphicsConfig::hd`` (high).

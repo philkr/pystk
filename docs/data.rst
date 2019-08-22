@@ -1,9 +1,10 @@
-.. automodule:: pystk
-
 .. _data:
 
 Data
 ====
+
+.. automodule:: pystk
+   :noindex:
 
 .. autoclass:: RenderData
    :members:
