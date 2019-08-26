@@ -18,6 +18,7 @@
 #include "items/powerup_manager.hpp"
 #include "modes/world.hpp"
 #include "modes/linear_world.hpp"
+#include "modes/soccer_world.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"
 #include "tracks/track.hpp"
@@ -437,6 +438,7 @@ struct PyWorldState {
 	std::vector<std::shared_ptr<PyKart> > karts;
 	std::vector<std::shared_ptr<PyItem> > items;
 	float time = 0;
+	std::vector<int> soccer_score;
 	
 	static void define(py::object m) {
 		py::class_<PyWorldState, std::shared_ptr<PyWorldState>> c(m, "WorldState");
@@ -446,6 +448,7 @@ struct PyWorldState {
 		  R(karts, "State of karts (List[Kart])")
 		  R(items, "State of items (List[Item])")
 		  R(time, "Game time")
+		  R(soccer_score, "Score of the soccer match")
 #undef R
 		 .def("update", &PyWorldState::update, "Update this object with the current world state")
 		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; });
@@ -460,6 +463,7 @@ struct PyWorldState {
 	void update() {
 		World * w = World::getWorld();
 		LinearWorld * lw = dynamic_cast<LinearWorld*>(w);
+		SoccerWorld * sw = dynamic_cast<SoccerWorld*>(w);
 		if (w) {
 			World::KartList k = w->getKarts();
 			karts.resize(k.size());
@@ -488,6 +492,9 @@ struct PyWorldState {
 			players.resize(pid);
 			assignPlayersKart();
 			time = w->getTime();
+			if (sw) {
+				soccer_score = {sw->getScore((KartTeam)0), sw->getScore((KartTeam)1)};
+			}
 		}
 		ItemManager * im = ItemManager::get();
 		if (im) {

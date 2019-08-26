@@ -491,7 +491,6 @@ void PySTKRace::load() {
 	material_manager->loadMaterial();
 	// Preload the explosion effects (explode.png)
 	ParticleKindManager::get()->getParticles("explosion.xml");
-	kart_properties_manager -> loadAllKarts    ();
 
 	// Reading the rest of the player data needs the unlock manager to
 	// initialise the game slots of all players and the AchievementsManager
