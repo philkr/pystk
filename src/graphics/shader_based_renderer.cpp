@@ -242,6 +242,7 @@ public:
 		glBindVertexArray(vao_);
 		track_stencil_shader_.setUniforms(0.5f);
 		glDrawArrays(GL_TRIANGLES, 0, n_vert_);
+        glBindVertexArray(0);
 	}
 	void copyTexture(GLuint tex) {
 		track_shader_.setTextureUnits(tex);
@@ -289,15 +290,17 @@ public:
 		
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 		
 		if (!vao_) {
 			glGenVertexArrays(1, &vao_);
 			glBindVertexArray(vao_);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-			glEnableVertexAttribArray(0);
+//			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 			glBindVertexArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 	}
 };
@@ -332,14 +335,13 @@ void ShaderBasedRenderer::renderTrackLabel(GLuint tex) const
     
 	// Disable the draw buffer
 	m_track_renderer->render();
-	
 
 	glDisable(GL_DEPTH_TEST);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 	// Copy texture first (stencil test off)
 	m_track_renderer->copyTexture(tex);
-	
+
 	// Only override the background class
 	glStencilFunc(GL_NOTEQUAL, 0x0, 0xFF);
 	m_track_renderer->drawStencil(tex);

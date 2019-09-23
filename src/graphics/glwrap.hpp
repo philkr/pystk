@@ -149,7 +149,8 @@ void draw3DLine(const core::vector3df& start,
 
 bool hasGLExtension(const char* extension);
 const std::string getGLExtensions();
-bool checkGLError();
+bool _checkGLError(const char * fn, int ln);
+#define checkGLError() _checkGLError(__FILE__, __LINE__)
 
 #endif
 

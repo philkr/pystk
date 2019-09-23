@@ -347,39 +347,40 @@ const std::string getGLExtensions()
 /** Executes glGetError and prints error to the console
  * \return True if error ocurred
  */
-bool checkGLError()
+bool _checkGLError(const char * fn, int ln)
 {
     GLenum err = glGetError();
+    std::string nfo = std::string(fn) + ":" + std::to_string(ln);
     
     switch (err)
     {
     case GL_NO_ERROR:
         break;
     case GL_INVALID_ENUM:
-        Log::warn("GLWrap", "glGetError: GL_INVALID_ENUM");
+        Log::warn(nfo.c_str(), "glGetError: GL_INVALID_ENUM");
         break;
     case GL_INVALID_VALUE:
-        Log::warn("GLWrap", "glGetError: GL_INVALID_VALUE");
+        Log::warn(nfo.c_str(), "glGetError: GL_INVALID_VALUE");
         break;
     case GL_INVALID_OPERATION:
-        Log::warn("GLWrap", "glGetError: GL_INVALID_OPERATION");
+        Log::warn(nfo.c_str(), "glGetError: GL_INVALID_OPERATION");
         break;
     case GL_INVALID_FRAMEBUFFER_OPERATION:
-        Log::warn("GLWrap", "glGetError: GL_INVALID_FRAMEBUFFER_OPERATION");
+        Log::warn(nfo.c_str(), "glGetError: GL_INVALID_FRAMEBUFFER_OPERATION");
         break;
     case GL_OUT_OF_MEMORY:
-        Log::warn("GLWrap", "glGetError: GL_OUT_OF_MEMORY");
+        Log::warn(nfo.c_str(), "glGetError: GL_OUT_OF_MEMORY");
         break;
 #if !defined(USE_GLES2)
     case GL_STACK_UNDERFLOW:
-        Log::warn("GLWrap", "glGetError: GL_STACK_UNDERFLOW");
+        Log::warn(nfo.c_str(), "glGetError: GL_STACK_UNDERFLOW");
         break;
     case GL_STACK_OVERFLOW:
-        Log::warn("GLWrap", "glGetError: GL_STACK_OVERFLOW");
+        Log::warn(nfo.c_str(), "glGetError: GL_STACK_OVERFLOW");
         break;
 #endif
     default:
-        Log::warn("GLWrap", "glGetError: %i", (int)err);
+        Log::warn(nfo.c_str(), "glGetError: %i", (int)err);
         break;
     }
     
