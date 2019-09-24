@@ -99,6 +99,15 @@
 #include "utils/objecttype.h"
 #include "util.hpp"
 
+#ifdef RENDERDOC
+#include "renderdoc_app.h"
+#ifdef _WIN32
+#include <windows.h>
+#elif defined(__linux__)
+#include <dlfcn.h>
+#endif
+#endif
+
 const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 	static PySTKGraphicsConfig config = {600,400,
 		true, true, true, true, true, 
@@ -220,6 +229,9 @@ void PySTKAction::get(const KartControl * control) {
 PySTKRace * PySTKRace::running_kart = 0;
 bool PySTKRace::render_window = 0;
 static int is_init = 0;
+#ifdef RENDERDOC
+static RENDERDOC_API_1_1_2 *rdoc_api = NULL;
+#endif
 void PySTKRace::init(const PySTKGraphicsConfig & config) {
 	if (running_kart)
 		throw std::invalid_argument("Cannot init while supertuxkart is running!");
@@ -233,6 +245,26 @@ void PySTKRace::init(const PySTKGraphicsConfig & config) {
 		initRest();
 		load();
 	}
+#ifdef RENDERDOC
+
+#ifdef _WIN32
+	if(HMODULE mod = GetModuleHandleA("renderdoc.dll"))
+	{
+		pRENDERDOC_GetAPI RENDERDOC_GetAPI =
+			(pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
+		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api);
+		assert(ret == 1);
+	}
+#elif defined(__linux__)
+	if(void *mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD))
+	{
+		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api);
+		assert(ret == 1);
+	}
+#endif
+
+#endif
 }
 void PySTKRace::clean() {
 	if (running_kart)
@@ -269,6 +301,7 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
 	setupConfig(config);
 	for(int i=0; i<config.players.size(); i++)
 		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player"+std::to_string(i))) );
+	
 }
 std::vector<std::string> PySTKRace::listTracks() {
 	if (track_manager)
@@ -410,6 +443,10 @@ bool PySTKRace::step(const PySTKAction & a) {
 bool PySTKRace::step() {
 	const float dt = config_.step_size;
 	
+#ifdef RENDERDOC
+	if(rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
+#endif
+
 	// Update first
 	if (World::getWorld()) {
 		time_leftover_ += dt;
@@ -443,6 +480,9 @@ bool PySTKRace::step() {
 
 	if (config_.render && !irr_driver->getDevice()->run())
 		return false;
+#ifdef RENDERDOC
+	if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
+#endif
 	return race_manager && race_manager->getFinishedPlayers() < race_manager->getNumPlayers();
 }
 

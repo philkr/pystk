@@ -242,8 +242,10 @@ endif()
 
 add_executable(supertuxkart src/main.cpp )
 target_link_libraries(supertuxkart stk)
-
 pybind11_add_module(pystk pystk_cpp/binding.cpp pystk_cpp/pystk.cpp pystk_cpp/util.cpp pystk_cpp/state.cpp pystk_cpp/pickle.cpp)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(pystk PUBLIC RENDERDOC)
+endif()
 target_link_libraries(pystk PRIVATE pybind11::module stk)
 set_target_properties(pystk PROPERTIES PREFIX "${PYTHON_MODULE_PREFIX}" SUFFIX "${PYTHON_MODULE_EXTENSION}")
 add_custom_command(TARGET pystk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pystk> ${PROJECT_SOURCE_DIR}/ )

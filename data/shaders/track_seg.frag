@@ -8,6 +8,6 @@ void main(void)
 {
 	uint l = texelFetch(tex, ivec2(gl_FragCoord.xy), 0).x;
 	if ((l>>24) == background_label)
-		l = (l & 0xffffff) | (track_label<<24);
+		l = ((l<<8)>>8) | (track_label<<24);
 	o_label = l;
 }
