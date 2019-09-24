@@ -341,6 +341,9 @@ bool CentralVideoSettings::isEXTTextureCompressionS3TCSRGBUsable() const
 
 bool CentralVideoSettings::isARBBufferStorageUsable() const
 {
+#ifdef RENDERDOC
+    return false;
+#endif
     return hasBufferStorage;
 }
 

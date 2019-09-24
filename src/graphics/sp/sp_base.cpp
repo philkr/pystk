@@ -587,7 +587,8 @@ void destroy()
         CVS->isARBBufferStorageUsable())
     {
         glBindBuffer(GL_TEXTURE_BUFFER, g_skinning_buf);
-        glUnmapBuffer(GL_TEXTURE_BUFFER);
+        if (g_joint_ptr)
+            glUnmapBuffer(GL_TEXTURE_BUFFER);
         glBindBuffer(GL_TEXTURE_BUFFER, 0);
     }
     glDeleteBuffers(1, &g_skinning_buf);
@@ -1196,6 +1197,7 @@ void uploadSkinningMatrices()
     {
         glUnmapBuffer(GL_TEXTURE_BUFFER);
         glBindBuffer(GL_TEXTURE_BUFFER, 0);
+        g_joint_ptr = NULL;
     }
 #endif
 }
