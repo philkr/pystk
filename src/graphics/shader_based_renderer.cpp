@@ -284,13 +284,14 @@ public:
 			}
 		}
 		n_vert_ = vertices.size();
+		printf("%d \n%f %f %f\n%f %f %f\n", n_vert_, vertices[0], vertices[1], vertices[2], vertices[3], vertices[4], vertices[5]);
 		
 		if (!vbo_)
 			glGenBuffers(1, &vbo_);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(float), vertices.data(), GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 		
 		if (!vao_) {
