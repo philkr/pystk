@@ -284,7 +284,6 @@ public:
 			}
 		}
 		n_vert_ = vertices.size();
-		printf("%d \n%f %f %f\n%f %f %f\n", n_vert_, vertices[0], vertices[1], vertices[2], vertices[3], vertices[4], vertices[5]);
 		
 		if (!vbo_)
 			glGenBuffers(1, &vbo_);
