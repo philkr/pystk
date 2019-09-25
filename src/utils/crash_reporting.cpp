@@ -172,7 +172,7 @@
         // --------------------------------------------------------------------
         void getCallStackWithContext(std::string& callstack, PCONTEXT pContext)
         {
-            HINSTANCE hDbgHelpDll = LoadLibrary(L"DbgHelp.dll");
+            HINSTANCE hDbgHelpDll = LoadLibraryW(L"DbgHelp.dll");
             if (!hDbgHelpDll)
             {
                 Log::warn("CrashReporting", "Failed to load DLL dbghelp.dll");

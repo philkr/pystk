@@ -13,6 +13,10 @@
 #include "utils/objecttype.h"
 #include "utils/log.hpp"
 
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 namespace py = pybind11;
 using namespace pybind11::literals;
 
@@ -20,18 +24,20 @@ PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
 
 void path_and_init(const PySTKGraphicsConfig & config) {
 	auto sys = py::module::import("sys"), os = py::module::import("os");
-	auto path = os.attr("path"), environ = os.attr("environ");
+	auto path = os.attr("path"), env = os.attr("environ");
 	auto module_path = path.attr("join")(path.attr("dirname")(path.attr("abspath")(sys.attr("modules")["pystk"].attr("__file__"))), "pystk_data");
 	// Give supertuxkart a hint where the assets are
-	environ["SUPERTUXKART_DATADIR"] = module_path;
+	env["SUPERTUXKART_DATADIR"] = module_path;
 	PySTKRace::init(config);
 }
 PYBIND11_MODULE(pystk, m) {
 	m.doc() = "Python SuperTuxKart interface";
-	
+
 	// Make offscreen rendering default
-#ifndef WIN32
 	if (!getenv("IRR_DEVICE_TYPE"))
+#ifdef WIN32
+		_putenv_s("IRR_DEVICE_TYPE", "offscreen");
+#else
 		setenv("IRR_DEVICE_TYPE", "offscreen", 0);
 #endif
 	// Adjust the log level

@@ -101,7 +101,7 @@ SeparateProcess::~SeparateProcess()
 #if defined(WIN32)
     core::stringw class_name = "separate_process";
     class_name += StringUtils::toWString(m_child_pid);
-    HWND hwnd = FindWindowEx(HWND_MESSAGE, NULL, class_name.c_str(), NULL);
+    HWND hwnd = FindWindowExW(HWND_MESSAGE, NULL, class_name.c_str(), NULL);
     if (hwnd != NULL)
     {
         PostMessage(hwnd, WM_DESTROY, 0, 0);
@@ -225,7 +225,7 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
         }
     }
     PROCESS_INFORMATION piProcInfo;
-    STARTUPINFO siStartInfo;
+    STARTUPINFOW siStartInfo;
 
     // Set up members of the PROCESS_INFORMATION structure.
 
@@ -234,10 +234,10 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
     // Set up members of the STARTUPINFO structure.
     // This structure specifies the STDIN and STDOUT handles for redirection.
 
-    ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
+    ZeroMemory(&siStartInfo, sizeof(STARTUPINFOW));
     if (create_pipe)
     {
-        siStartInfo.cb = sizeof(STARTUPINFO);
+        siStartInfo.cb = sizeof(STARTUPINFOW);
         siStartInfo.hStdError = m_child_stdout_write;
         siStartInfo.hStdOutput = m_child_stdout_write;
         siStartInfo.hStdInput = m_child_stdin_read;
@@ -248,7 +248,7 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
     std::string cmd = exe + argument + " --parent-process=" +
         StringUtils::toString(GetCurrentProcessId());
     core::stringw cmd_w = StringUtils::utf8ToWide(cmd);
-    bool success = CreateProcess(NULL,
+    bool success = CreateProcessW(NULL,
         cmd_w.data(),          // command line
         NULL,                  // process security attributes
         NULL,                  // primary thread security attributes

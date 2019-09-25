@@ -28,10 +28,6 @@
 
 namespace HardwareStats
 {
-    // ========================================================================
-    void reportHardwareStats();
-    const std::string& getOSVersion();
-    int getNumProcessors();
 };   // HardwareStats
 
 #endif

@@ -898,7 +898,7 @@ void FileManager::checkAndCreateConfigDir()
         std::vector<wchar_t> env;
         // An environment variable has a maximum size limit of 32,767 characters
         env.resize(32767, 0);
-        DWORD length = GetEnvironmentVariable(L"APPDATA", env.data(), 32767);
+        DWORD length = GetEnvironmentVariableW(L"APPDATA", env.data(), 32767);
         if (length != 0)
         {
             m_user_config_dir = StringUtils::wideToUtf8(env.data());
@@ -1467,7 +1467,7 @@ bool FileManager::removeDirectory(const std::string &name) const
     }
 
 #if defined(WIN32)
-    return RemoveDirectory(StringUtils::utf8ToWide(name).c_str())==TRUE;
+    return RemoveDirectoryW(StringUtils::utf8ToWide(name).c_str())==TRUE;
 #else
     return remove(name.c_str())==0;
 #endif

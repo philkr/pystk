@@ -823,8 +823,8 @@ IFileList* CFileSystem::createFileList(const io::path& directory)
 		std::string searchPath = Path.c_str();
 		searchPath += '*';
 		core::stringw search_path_w = StringUtils::utf8ToWide(searchPath);
-		struct _tfinddata_t c_file;
-		if( (hFile = _tfindfirst(search_path_w.c_str(), &c_file )) != -1L )
+		struct _wfinddata_t c_file;
+		if( (hFile = _wfindfirst(search_path_w.c_str(), &c_file )) != -1L )
 		{
 			do
 			{
@@ -832,7 +832,7 @@ IFileList* CFileSystem::createFileList(const io::path& directory)
 				full_path += StringUtils::wideToUtf8(c_file.name);
 				r->addItem(full_path.c_str(), 0, c_file.size, (_A_SUBDIR & c_file.attrib) != 0, 0);
 			}
-			while( _tfindnext( hFile, &c_file ) == 0 );
+			while( _wfindnext( hFile, &c_file ) == 0 );
 
 			_findclose( hFile );
 		}

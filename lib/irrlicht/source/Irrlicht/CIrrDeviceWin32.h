@@ -33,7 +33,7 @@ namespace irr
 	public:
 
 		//! constructor
-		CIrrDeviceWin32(const SIrrlichtCreationParameters& params);
+		CIrrDeviceWin32(const SIrrlichtCreationParameters& params, bool offscreen = false);
 
 		//! destructor
 		virtual ~CIrrDeviceWin32();
@@ -409,6 +409,7 @@ namespace irr
 
 		bool ChangedToFullScreen;
 		bool Resized;
+		bool offscreen;
 		bool ExternalWindow;
 		CCursorControl* Win32CursorControl;
 		DEVMODE DesktopMode;
