@@ -150,7 +150,7 @@ def ignore(base, entries):
 
 setup(
     name='PySuperTuxKart',
-    version='1.0a4',
+    version='1.0a5',
     author='Philipp Krähenbühl',
     author_email='philkr@utexas.edu',
     description='Python SuperTuxKart inferface',
@@ -176,7 +176,7 @@ setup(
     package_dir={'pystk_data': '.'},
     package_data={'pystk_data': ['*.md', 'docs/*', 'examples/*.py']},
     # TODO: Add more
-    install_requires=['cmake', 'requests'],
+    install_requires=['requests'],
     python_requires='>=3.6',
     ext_modules=[CMakeExtension('pystk_cpp')],
     # add custom build_ext command
