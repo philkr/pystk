@@ -71,14 +71,14 @@ MainLoop::MainLoop(unsigned parent_pid, bool download_assets)
     {
         core::stringw class_name = L"separate_process";
         class_name += StringUtils::toWString(GetCurrentProcessId());
-        WNDCLASSEX wx = {};
+        WNDCLASSEXW wx = {};
         wx.cbSize = sizeof(WNDCLASSEX);
         wx.lpfnWndProc = separateProcessProc;
         wx.hInstance = GetModuleHandle(0);
         wx.lpszClassName = class_name.c_str();
-        if (RegisterClassEx(&wx))
+        if (RegisterClassExW(&wx))
         {
-            CreateWindowEx(0, class_name.c_str(), L"stk_server_only",
+            CreateWindowExW(0, class_name.c_str(), L"stk_server_only",
                 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
         }
     }

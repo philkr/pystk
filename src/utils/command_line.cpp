@@ -38,7 +38,7 @@ void CommandLine::init(unsigned int argc, char *argv[])
 {
 #if defined(WIN32)
     wchar_t path[MAX_PATH] = {0};
-    GetModuleFileName(NULL, path, MAX_PATH);
+    GetModuleFileNameW(NULL, path, MAX_PATH);
     m_exec_name = StringUtils::wideToUtf8(path);
 #else
     if (argc > 0)

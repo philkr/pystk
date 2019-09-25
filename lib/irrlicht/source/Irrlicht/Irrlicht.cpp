@@ -100,7 +100,7 @@ namespace irr
 			device_type = EIDT_WAYLAND;
 		}
 #endif
-#if defined(_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_) || defined(_IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_)
+#if defined(_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_) || defined(_IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_) || defined(_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
 		if (strcmp(irr_device_type, "offscreen") == 0)
 		{
 			device_type = EIDT_OFFSCREEN;
@@ -187,6 +187,10 @@ namespace irr
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
 		if (creation_params.DeviceType == EIDT_OFFSCREEN || (!dev && creation_params.DeviceType == EIDT_BEST))
 			dev = new CIrrDeviceOffScreenMacOSX(creation_params);
+#endif
+#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+		if (creation_params.DeviceType == EIDT_OFFSCREEN || (!dev && creation_params.DeviceType == EIDT_BEST))
+			dev = new CIrrDeviceWin32(creation_params, true);
 #endif
 
 

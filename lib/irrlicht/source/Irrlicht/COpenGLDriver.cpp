@@ -33,6 +33,7 @@ extern bool GLContextDebugBit;
 #endif
 
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+#include <tchar.h>
 #include "CIrrDeviceWin32.h"
 #endif
 
@@ -216,7 +217,7 @@ static HGLRC getMeAGLContext(HDC HDc, bool force_legacy_context)
 bool COpenGLDriver::initDriver(CIrrDeviceWin32* device)
 {
 	// Create a window to test antialiasing support
-	const wchar_t* ClassName = L"GLCIrrDeviceWin32";
+	const _TCHAR* ClassName = _T("GLCIrrDeviceWin32");
 	HINSTANCE lhInstance = GetModuleHandle(0);
 
 	// Register Class
@@ -254,7 +255,7 @@ bool COpenGLDriver::initDriver(CIrrDeviceWin32* device)
 	const s32 windowLeft = (GetSystemMetrics(SM_CXSCREEN) - realWidth) / 2;
 	const s32 windowTop = (GetSystemMetrics(SM_CYSCREEN) - realHeight) / 2;
 
-	HWND temporary_wnd=CreateWindow(ClassName, L"", style, windowLeft,
+	HWND temporary_wnd=CreateWindow(ClassName, _T(""), style, windowLeft,
 			windowTop, realWidth, realHeight, NULL, NULL, lhInstance, NULL);
 
 	if (!temporary_wnd)

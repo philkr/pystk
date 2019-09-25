@@ -262,15 +262,8 @@ set(BASE_SRCS
   src/winfonts/winfnt.c
 )
 
-if (WIN32)
-  enable_language(RC)
-  list(APPEND BASE_SRCS builds/windows/ftdebug.c
-                        src/base/ftver.rc)
-elseif (WINCE)
-  list(APPEND BASE_SRCS builds/wince/ftdebug.c)
-else ()
-  list(APPEND BASE_SRCS src/base/ftdebug.c)
-endif ()
+
+list(APPEND BASE_SRCS src/base/ftdebug.c)
 
 if (BUILD_FRAMEWORK)
   list(APPEND BASE_SRCS builds/mac/freetype-Info.plist)
