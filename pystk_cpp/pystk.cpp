@@ -273,16 +273,6 @@ void PySTKRace::clean() {
 		cleanSuperTuxKart();
 		Log::flushBuffers();
 
-#ifndef WIN32
-		if (user_config) //close logfiles
-		{
-			Log::closeOutputFiles();
-#endif
-			fclose(stderr);
-			fclose(stdout);
-#ifndef WIN32
-		}
-#endif
 		delete file_manager;
 		file_manager = NULL;
 		is_init = 0;
