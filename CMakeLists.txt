@@ -33,8 +33,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 # Define install paths
 set(STK_INSTALL_BINARY_DIR "bin" CACHE
     STRING "Install executable to this directory, absolute or relative to CMAKE_INSTALL_PREFIX")
-#set(STK_INSTALL_DATA_DIR "share/supertuxkart" CACHE
-#    STRING "Install data folder to this directory, absolute or relative to CMAKE_INSTALL_PREFIX")
+set(STK_INSTALL_DATA_DIR "share/supertuxkart" CACHE
+   STRING "Install data folder to this directory, absolute or relative to CMAKE_INSTALL_PREFIX")
 
 # Define dependencies path
 if(MSVC)
