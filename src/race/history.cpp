@@ -112,15 +112,7 @@ void History::updateReplay(int world_ticks)
     {
         Log::info("History", "Replay finished");
         m_event_index= 0;
-        // This is useful to use a reproducable rewind problem:
-        // replay it with history, for debugging only
-#undef DO_REWIND_AT_END_OF_HISTORY
-#ifdef DO_REWIND_AT_END_OF_HISTORY
-        RewindManager::get()->rewindTo(5.0f);
-        exit(-1);
-#else
         world->reset();
-#endif
     }   // if m_event_index >= m_all_input_events.size()
 
 }   // updateReplay

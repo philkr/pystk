@@ -481,7 +481,7 @@ bool SeparateProcess::createChildProcess(const std::string& exe,
         // if we get here at all, an error occurred, but we are in the child
         // process, so just exit
         perror("SeparateProcess: execl error");
-        exit(-1);
+        throw std::runtime_error("execl error");
     }
     else if (child > 0)
     {

@@ -519,24 +519,21 @@ int XMLNode::get(const std::string &attribute, InterpolationArray *value) const
         std::vector<std::string> pair = StringUtils::split(pairs[i],':');
         if(pair.size()!=2)
         {
-            Log::fatal("[XMLNode]", "Incorrect interpolation pair '%s' in '%s'.",
+            Log::error("[XMLNode]", "Incorrect interpolation pair '%s' in '%s'.",
                         pairs[i].c_str(), attribute.c_str());
             Log::fatal("[XMLNode]", "Must be x:y.");
-            exit(-1);
         }
         float x;
         if(!StringUtils::fromString(pair[0], x))
         {
             Log::fatal("[XMLNode]", "Incorrect x in pair '%s' of '%s'.",
                    pairs[i].c_str(), attribute.c_str());
-            exit(-1);
         }
         float y;
         if(!StringUtils::fromString(pair[1], y))
         {
             Log::fatal("[XMLNode]", "Incorrect y in pair '%s' in '%s'.",
                   pair[1].c_str(), attribute.c_str());
-            exit(-1);
         }
         if(!value->push_back(x, y))
         {

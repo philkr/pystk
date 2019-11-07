@@ -34,7 +34,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(STK_INSTALL_BINARY_DIR "bin" CACHE
     STRING "Install executable to this directory, absolute or relative to CMAKE_INSTALL_PREFIX")
 set(STK_INSTALL_DATA_DIR "share/supertuxkart" CACHE
-    STRING "Install data folder to this directory, absolute or relative to CMAKE_INSTALL_PREFIX")
+   STRING "Install data folder to this directory, absolute or relative to CMAKE_INSTALL_PREFIX")
 
 # Define dependencies path
 if(MSVC)
@@ -240,8 +240,8 @@ if(NOT SERVER_ONLY)
 
 endif()
 
-add_executable(supertuxkart src/main.cpp )
-target_link_libraries(supertuxkart stk)
+#add_executable(supertuxkart src/main.cpp )
+#target_link_libraries(supertuxkart stk)
 pybind11_add_module(pystk pystk_cpp/binding.cpp pystk_cpp/pystk.cpp pystk_cpp/util.cpp pystk_cpp/state.cpp pystk_cpp/pickle.cpp)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(pystk PUBLIC RENDERDOC)
@@ -253,7 +253,7 @@ add_custom_command(TARGET pystk POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TA
 
 if(APPLE)
    target_link_libraries(pystk PRIVATE "-framework CoreFoundation -framework Cocoa")
-   target_link_libraries(supertuxkart "-framework CoreFoundation -framework Cocoa")
+#   target_link_libraries(supertuxkart "-framework CoreFoundation -framework Cocoa")
 endif()
 
 # ==== Checking if data folder exists ====
