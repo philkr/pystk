@@ -140,7 +140,6 @@ void PowerupManager::loadPowerupsModels()
             Log::fatal("PowerupManager",
                        "Can't find item '%s' from powerup.xml, entry %d.",
                        name.c_str(), i+1);
-            exit(-1);
         }
     }
     

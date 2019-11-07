@@ -52,8 +52,7 @@ void EasterEggHunt::init()
     // check for possible problems if AI karts were incorrectly added
     if((getNumKarts() - gk) > race_manager->getNumPlayers())
     {
-        Log::error("EasterEggHunt]", "No AI exists for this game mode");
-        exit(1);
+        Log::fatal("EasterEggHunt]", "No AI exists for this game mode");
     }
 
     if (getNumKarts() == gk)

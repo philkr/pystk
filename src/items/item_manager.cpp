@@ -105,7 +105,6 @@ void ItemManager::loadDefaultItemMeshes()
         {
             Log::fatal("[ItemManager]", "Item model '%s' in items.xml could not be loaded "
                         "- aborting", name.c_str());
-            exit(-1);
         }
 #ifndef SERVER_ONLY
         SP::uploadSPM(mesh);

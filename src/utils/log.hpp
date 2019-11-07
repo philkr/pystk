@@ -23,6 +23,7 @@
 #include "utils/synchronised.hpp"
 
 #include <assert.h>
+#include <exception>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,8 +106,7 @@ public:
                                                                      \
         if (LEVEL == LL_FATAL)                                       \
         {                                                            \
-            assert(false);                                           \
-            exit(1);                                                 \
+            throw std::runtime_error("Log::fatal");                  \
         }                                                            \
     }
     LOG(verbose, LL_VERBOSE);

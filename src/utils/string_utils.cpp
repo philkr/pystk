@@ -211,9 +211,7 @@ namespace StringUtils
             {
                 Log::error("StringUtils", "Split : %s", result[n].c_str());
             }
-
-            assert(false); // in debug mode, trigger debugger
-            exit(1);
+            Log::fatal("StringUtils", "");
         }
     }   // split
 
@@ -272,9 +270,7 @@ namespace StringUtils
                 Log::error("StringUtils", "Split : %s",
                            wideToUtf8(utf32ToWide(result[n])).c_str());
             }
-
-            assert(false); // in debug mode, trigger debugger
-            exit(1);
+            Log::fatal("StringUtils", "");
         }
     }   // split
 
@@ -327,7 +323,6 @@ namespace StringUtils
             Log::fatal("StringUtils",
                        "Fatal error in split(stringw) : %s @ line %i : '%s'.",
                        __FILE__, __LINE__, e.what());
-            exit(1);
         }
     }   // split
 
@@ -395,7 +390,6 @@ namespace StringUtils
             Log::fatal("StringUtils",
                 "Fatal error in splitPath : %s @ line %i: '%s'.",
                         __FILE__, __LINE__, path.c_str());
-            exit(1);
         }
     }   // splitPath
 
@@ -466,7 +460,6 @@ namespace StringUtils
             Log::fatal("StringUtils",
                        "Fatal error in insertValues(std::string) : %s @ "
                        "line %i: '%s'", __FILE__, __LINE__, s.c_str());
-            exit(1);
         }
     }
 
@@ -553,7 +546,6 @@ namespace StringUtils
             Log::fatal("StringUtils",
                        "Fatal error in insertValues(stringw) : %s @ line %i.",
                        __FILE__, __LINE__);
-            exit(1);
         }
     }
 
