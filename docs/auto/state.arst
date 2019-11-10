@@ -32,3 +32,12 @@
 .. autoclass:: Attachment
    :members:
    :undoc-members:
+
+.. autoclass:: Soccer
+   :members:
+   :undoc-members:
+
+.. autoclass:: SoccerBall
+   :members:
+   :undoc-members:
+

@@ -16,7 +16,6 @@ from docutils.io import StringOutput
 
 from sphinx.builders import Builder
 from sphinx.util.osutil import ensuredir, os_path, SEP
-from .writer import RstWriter
 
 def get_text(e):
     return ''.join(str(c) for c in e.children)

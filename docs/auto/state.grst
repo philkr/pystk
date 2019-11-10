@@ -19,6 +19,12 @@
       State of active players (List[Player])
 
 
+   .. py:method:: soccer
+      :property:
+
+      Soccer match info
+
+
    .. py:method:: time
       :property:
 
@@ -342,4 +348,44 @@
       :property:
 
       Attachment type (Attachment.Type)
+
+
+.. py:class:: pystk.Soccer
+
+   .. py:method:: ball
+      :property:
+
+      Soccer ball information
+
+
+   .. py:method:: goal_line
+      :property:
+
+      Start and end of the goal line for each team
+
+
+   .. py:method:: score
+      :property:
+
+      Score of the soccer match
+
+
+.. py:class:: pystk.SoccerBall
+
+   .. py:method:: id
+      :property:
+
+      Object id of the soccer ball
+
+
+   .. py:method:: location
+      :property:
+
+      3D world location of the item (float 3)
+
+
+   .. py:method:: size
+      :property:
+
+      Size of the ball (float)
 
