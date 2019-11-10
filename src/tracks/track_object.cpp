@@ -134,6 +134,9 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
 
     m_soccer_ball = false;
     xml_node.get("soccer_ball", &m_soccer_ball);
+    if (m_soccer_ball && m_render_info) {
+        m_render_info->setObjectId(newObjectId(OT_PROJECTILE));
+    }
     
     std::string type;
     xml_node.get("type",    &type );
@@ -787,3 +790,7 @@ bool TrackObject::joinToMainTrack()
     m_physical_object.reset();
     return true;
 }   // joinToMainTrack
+
+uint32_t TrackObject::objectID() const {
+    return m_render_info? m_render_info->objectId() : 0;
+}

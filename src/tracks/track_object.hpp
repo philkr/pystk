@@ -252,6 +252,7 @@ public:
     void movePhysicalBodyToGraphicalNode(const core::vector3df& xyz, const core::vector3df& hpr);
     // ------------------------------------------------------------------------
     bool joinToMainTrack();
+    uint32_t objectID() const;
     LEAK_CHECK()
 };   // TrackObject
 

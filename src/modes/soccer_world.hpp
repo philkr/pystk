@@ -422,6 +422,8 @@ public:
         int diff = m_ticks_back_to_own_goal - getTicksSinceStart();
         return diff > 0 && diff < stk_config->time2Ticks(3.0f);
     }
+    // ------------------------------------------------------------------------
+    virtual const uint32_t ballID() const;
 };   // SoccerWorld
 
 

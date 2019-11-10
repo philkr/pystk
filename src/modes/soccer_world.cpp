@@ -655,3 +655,7 @@ void SoccerWorld::restoreCompleteState(const BareNetworkString& b)
     m_reset_ball_ticks = b.getTime();
     m_ticks_back_to_own_goal = b.getTime();
 }   // restoreCompleteState
+
+const uint32_t SoccerWorld::ballID() const {
+	return m_ball->objectID();
+}

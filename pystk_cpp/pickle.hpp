@@ -21,6 +21,15 @@ void pickle(std::ostream & s, const std::vector<T> & o) {
     for(uint32_t i = 0; i < n; i++)
         pickle(s, o[i]);
 }
+template<typename T, std::size_t N> void pickle(std::ostream & s, const std::array<T, N> & o) {
+    for(size_t i=0; i<N; i++)
+        pickle(s, o[i]);
+}
+template<std::size_t I=0, typename... T> inline typename std::enable_if<I == sizeof...(T), void>::type pickle(std::ostream &, const std::tuple<T...> &) {}
+template<std::size_t I=0, typename... T> inline typename std::enable_if<I < sizeof...(T), void>::type pickle(std::ostream & s, const std::tuple<T...> & o) {
+    pickle(s, std::get<I>(o));
+    pickle<I+1, T...>(o);
+}
 void pickle(std::ostream & s, const std::string & o);
 template<typename T>
 void unpickle(std::istream & s, T * o) {
@@ -34,6 +43,15 @@ void unpickle(std::istream & s, std::vector<T> * o) {
     o->resize(n);
     for(uint32_t i = 0; i < n; i++)
         unpickle(s, &(*o)[i]);
+}
+template<typename T, std::size_t N> void unpickle(std::istream & s, std::array<T, N> * o) {
+    for(size_t i=0; i<N; i++)
+        unpickle(s, &((*o)[i]));
+}
+template<std::size_t I=0, typename... T> inline typename std::enable_if<I == sizeof...(T), void>::type unpickle(std::istream &, std::tuple<T...> *) {}
+template<std::size_t I=0, typename... T> inline typename std::enable_if<I < sizeof...(T), void>::type unpickle(std::istream & s, std::tuple<T...> * o) {
+    unpickle(s, &std::get<I>(*o));
+    unpickle<I+1, T...>(o);
 }
 void unpickle(std::istream & s, std::string * o);
 

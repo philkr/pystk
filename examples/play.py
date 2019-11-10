@@ -51,7 +51,9 @@ if __name__ == "__main__":
             race.step(uis[0].current_action)
             state.update()
             if args.verbose and config.mode == config.RaceMode.SOCCER:
-                print('Score ', state.soccer_score)
+                print('Score ', state.soccer.score)
+                print('      ', state.soccer.ball)
+                print('      ', state.soccer.goal_line)
         for ui, d in zip(uis, race.render_data):
             ui.show(d)
         # Make sure we play in real time
