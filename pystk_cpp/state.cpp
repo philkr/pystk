@@ -389,26 +389,27 @@ struct PySoccer {
 	}
 };
 
-struct PyFree {
+struct PyFFA {
 	std::vector<int> scores;
 
 	static void define(py::object m) {
-		py::class_<PyFree, std::shared_ptr<PyFree>> c(m, "Free");
-#define R(x, d) .def_readonly(#x, &PyFree::x, d)
+		py::class_<PyFFA, std::shared_ptr<PyFFA>> c(m, "FFA");
+#define R(x, d) .def_readonly(#x, &PyFFA::x, d)
 		c R(scores, "Score of every kart")
 #undef R
-		 .def("__repr__", [](const PyFree &s) { return "<Free score_size=" + std::to_string(s.scores.size()) +">"; });
+		 .def("__repr__", [](const PyFFA &s) { return "<Free score_size=" + std::to_string(s.scores.size()) +">"; });
 		add_pickle(c);
 	}
-	PyFree(const FreeForAll * w = nullptr) {
+	PyFFA(const FreeForAll * w = nullptr) {
 		update(w);
 	}
 	void update(const FreeForAll * w) {
 		if (w) {
 			World::KartList karts = w->getKarts();
-			if (scores.size() == 0) for (auto k: karts) scores.push_back(0);
 			for (auto k: karts) {
 				unsigned int kart_id = k->getWorldKartId();
+				if (kart_id <= scores.size())
+    				scores.resize(kart_id+1, 0);
 				scores[kart_id] = w->getKartScore(kart_id);
 			}
 		}
@@ -524,7 +525,7 @@ struct PyWorldState {
 	std::vector<std::shared_ptr<PyItem> > items;
 	float time = 0;
 	std::shared_ptr<PySoccer> soccer;
-	std::shared_ptr<PyFree> free;
+	std::shared_ptr<PyFFA> ffa;
 	
 	static void define(py::object m) {
 		py::class_<PyWorldState, std::shared_ptr<PyWorldState>> c(m, "WorldState");
@@ -535,7 +536,7 @@ struct PyWorldState {
 		  R(items, "State of items (List[Item])")
 		  R(time, "Game time")
 		  R(soccer, "Soccer match info")
-		  R(free, "Free for all match info")
+		  R(ffa, "Free for all match info")
 #undef R
 		 .def("update", &PyWorldState::update, "Update this object with the current world state")
 		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; });
@@ -587,9 +588,9 @@ struct PyWorldState {
 			}
 
 			if (fw) {
-				if (!free)
-					free = std::make_shared<PyFree>();
-				free->update(fw);
+				if (!ffa)
+					ffa = std::make_shared<PyFFA>();
+				ffa->update(fw);
 			}
 		}
 		ItemManager * im = ItemManager::get();
@@ -729,10 +730,10 @@ void unpickle(std::istream & s, PySoccer * o) {
     unpickle(s, &o->ball);
     unpickle(s, &o->goal_line);
 }
-void pickle(std::ostream & s, const PyFree& o) {
+void pickle(std::ostream & s, const PyFFA& o) {
     pickle(s, o.scores);
 }
-void unpickle(std::istream & s, PyFree * o) {
+void unpickle(std::istream & s, PyFFA * o) {
     unpickle(s, &o->scores);
 }
 void pickle(std::ostream & s, const PyWorldState & o) {
@@ -765,6 +766,6 @@ void defineState(py::object m) {
 	PyTrack::define(m);
 	PySoccerBall::define(m);
 	PySoccer::define(m);
-	PyFree::define(m);
+	PyFFA::define(m);
 };
 
