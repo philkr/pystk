@@ -391,7 +391,6 @@ struct PySoccer {
 
 struct PyFree {
 	std::vector<int> scores;
-	// std::array<int, 2> score = {0, 0}; // Hack.
 
 	static void define(py::object m) {
 		py::class_<PyFree, std::shared_ptr<PyFree>> c(m, "Free");
@@ -407,9 +406,10 @@ struct PyFree {
 	void update(const FreeForAll * w) {
 		if (w) {
 			World::KartList karts = w->getKarts();
+			if (scores.size() == 0) for (auto k: karts) scores.push_back(0);
 			for (auto k: karts) {
 				unsigned int kart_id = k->getWorldKartId();
-				scores.insert(scores.begin()+kart_id, w->getKartScore(kart_id));
+				scores[kart_id] = w->getKartScore(kart_id);
 			}
 		}
 	}
