@@ -20,6 +20,7 @@
 #include "modes/linear_world.hpp"
 #include "modes/soccer_world.hpp"
 #include "modes/free_for_all.hpp"
+#include "modes/three_strikes_battle.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"
 #include "tracks/track.hpp"
@@ -224,6 +225,7 @@ struct PyKart {
 	float distance_down_track = 0;
 	float max_steer_angle = 0;
 	float wheel_base = 0;
+	int lives = 0;
 	
 	PyAttachment attachment;
 	
@@ -252,6 +254,7 @@ struct PyKart {
 		  R(powerup, "Powerup collected (Powerup)")
 		  R(max_steer_angle, "Maximum steering angle (float)")
 		  R(wheel_base, "Wheel base (float)")
+		  R(lives, "Lives in three strikes battle (int)")
 #undef R
 		 .def("__repr__", [](const PyKart &k) { return "<Kart id=" + std::to_string(k.id)+" player_id=" + std::to_string(k.player_id)+" name='"+k.name+"' ...>"; });
 		add_pickle(c);
@@ -553,6 +556,7 @@ struct PyWorldState {
 		LinearWorld * lw = dynamic_cast<LinearWorld*>(w);
 		SoccerWorld * sw = dynamic_cast<SoccerWorld*>(w);
 		FreeForAll  * fw = dynamic_cast<FreeForAll*>(w);
+		ThreeStrikesBattle * tw = dynamic_cast<ThreeStrikesBattle*>(w);
 		if (w) {
 			World::KartList k = w->getKarts();
 			karts.resize(k.size());
@@ -576,6 +580,9 @@ struct PyWorldState {
 					karts[i]->overall_distance = lw->getOverallDistance(i);
 					karts[i]->distance_down_track = lw->getDistanceDownTrackForKart(i, true);
 					karts[i]->lap_time = stk_config->ticks2Time(lw->getTicksAtLapForKart(i));
+				}
+				if (tw) {
+					karts[i]->lives = tw->getKartLife(i);
 				}
 			}
 			players.resize(pid);
@@ -642,6 +649,7 @@ void pickle(std::ostream & s, const PyKart & o) {
     pickle(s, o.wheel_base);
     pickle(s, o.attachment);
     pickle(s, o.powerup);
+    pickle(s, o.lives);
 }
 void unpickle(std::istream & s, PyKart * o) {
     unpickle(s, &o->id);
@@ -663,6 +671,7 @@ void unpickle(std::istream & s, PyKart * o) {
     unpickle(s, &o->wheel_base);
     unpickle(s, &o->attachment);
     unpickle(s, &o->powerup);
+    unpickle(s, &o->lives);
 }
 void pickle(std::ostream & s, const PyItem & o) {
     pickle(s, o.id);
