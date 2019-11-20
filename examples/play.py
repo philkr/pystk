@@ -5,7 +5,7 @@ from . import gui
 
 if __name__ == "__main__":
     soccer_tracks = {"soccer_field", "icy_soccer_field"}
-    arena_tracks = {"battleisland"}
+    arena_tracks = {"battleisland", "stadium"}
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--track')
