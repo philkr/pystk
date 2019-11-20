@@ -13,6 +13,7 @@ def action_dict(action):
 
 if __name__ == "__main__":
     soccer_tracks = {"soccer_field", "icy_soccer_field"}
+    arena_tracks = {"battleisland"}
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--track')
@@ -50,6 +51,8 @@ if __name__ == "__main__":
         config.track = args.track
         if args.track in soccer_tracks:
             config.mode = config.RaceMode.SOCCER
+        elif args.track in arena_tracks:
+            config.mode = config.RaceMode.THREE_STRIKES
     if args.step_size is not None:
         config.step_size = args.step_size
 
