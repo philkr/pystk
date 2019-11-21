@@ -7,10 +7,8 @@ import numpy as np
 from . import gui
 
 
-def action_to_numpy(action):
-    return ' '.join(map(str, [
-        action.acceleration, action.brake, action.steer,
-        action.fire, action.drift]))
+def action_dict(action):
+    return {k: getattr(action, k) for k in ['acceleration', 'brake', 'steer', 'fire', 'drift']}
 
 
 if __name__ == "__main__":
@@ -19,6 +17,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--track')
     parser.add_argument('-k', '--kart', default='')
+    parser.add_argument('--team', type=int, default=0, choices=[0, 1])
     parser.add_argument('-s', '--step_size', type=float)
     parser.add_argument('-n', '--num_player', type=int, default=1)
     parser.add_argument('-v', '--visualization', type=str, choices=list(gui.VT.__members__), nargs='+',
@@ -39,10 +38,13 @@ if __name__ == "__main__":
     config.num_kart = 2
     if args.kart is not None:
         config.players[0].kart = args.kart
+
     config.players[0].controller = pystk.PlayerConfig.Controller.PLAYER_CONTROL
+    config.players[0].team = args.team
 
     for i in range(1, args.num_player):
-        config.players.append(pystk.PlayerConfig(args.kart, pystk.PlayerConfig.Controller.AI_CONTROL))
+        config.players.append(
+                pystk.PlayerConfig(args.kart, pystk.PlayerConfig.Controller.AI_CONTROL, (args.team + 1) % 2))
 
     if args.track is not None:
         config.track = args.track
@@ -73,10 +75,10 @@ if __name__ == "__main__":
 
         if args.save_dir:
             image = np.array(race.render_data[0].image)
-            action = action_to_numpy(uis[0].current_action)
+            action = action_dict(uis[0].current_action)
 
             Image.fromarray(image).save(args.save_dir / ('image_%06d.png' % n))
-            Path(str(args.save_dir / ('action_%06d.txt' % n))).write_text(action)
+            (args.save_dir / ('action_%06d.txt' % n)).write_text(str(action))
 
         # Make sure we play in real time
         n += 1
