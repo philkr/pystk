@@ -12,6 +12,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.build_py import build_py
 
 ASSET_URL = "http://www.cs.utexas.edu/~bzhou/stk-assets.zip"
+# ASSET_URL = "http://www.cs.utexas.edu/~philkr/stk-assets20191122.zip"
 this_directory = os.path.dirname(os.path.abspath(__file__))
 
 
