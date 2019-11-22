@@ -1,6 +1,12 @@
 
 .. py:class:: pystk.WorldState
 
+   .. py:method:: ffa
+      :property:
+
+      Free for all match info
+
+
    .. py:method:: items
       :property:
 
@@ -210,6 +216,12 @@
       :property:
 
       Time to completion for last lap (float)
+
+
+   .. py:method:: lives
+      :property:
+
+      Lives in three strikes battle (int)
 
 
    .. py:method:: location
