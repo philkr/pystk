@@ -13,13 +13,16 @@ if __name__ == "__main__":
     for config in [pystk.GraphicsConfig.ld(), pystk.GraphicsConfig.sd(), pystk.GraphicsConfig.hd(), None]:
         print(config)
         t0 = time()
-        if config is not None:
-            config.screen_width = 160
-            config.screen_height = 120
+        render = True
+        if config is None:
+            config = pystk.GraphicsConfig.ld()
+            render = False
+        config.screen_width = 320
+        config.screen_height = 240
         pystk.init(config)
         init_time, t0 = time() - t0, time()
 
-        config = pystk.RaceConfig()
+        config = pystk.RaceConfig(render=render)
         if args.kart != '':
             config.players[0].kart = args.kart
         if args.track is not None:
