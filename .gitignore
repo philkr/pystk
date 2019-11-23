@@ -79,3 +79,4 @@ Pipfile
 **.so
 **.idea
 pystk.egg-info
+PySuperTuxKart.egg-info

@@ -483,6 +483,13 @@ int SoccerWorld::getBallNode() const
 }   // getBallNode
 
 //-----------------------------------------------------------------------------
+void SoccerWorld::setBallPosition(const Vec3& position) {
+    m_ball_body->setLinearVelocity(Vec3(0, 0, 0));
+    btTransform alteredCenterOfMass = btTransform(m_ball_body->getCenterOfMassTransform());
+    alteredCenterOfMass.setOrigin(position);
+    m_ball_body->setCenterOfMassTransform(alteredCenterOfMass);
+}
+//-----------------------------------------------------------------------------
 bool SoccerWorld::isCorrectGoal(unsigned int kart_id, bool first_goal) const
 {
     KartTeam team = getKartTeam(kart_id);
