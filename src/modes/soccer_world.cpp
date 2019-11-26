@@ -66,6 +66,8 @@ SoccerWorld::~SoccerWorld()
 {
     delete m_ball_track_sector;
     m_ball_track_sector = NULL;
+    delete m_ball_init_override;
+    m_ball_init_override = NULL;
 }   // ~SoccerWorld
 
 //-----------------------------------------------------------------------------
@@ -81,6 +83,7 @@ void SoccerWorld::init()
     m_ball_hitter  = -1;
     m_ball         = NULL;
     m_ball_body    = NULL;
+    m_ball_init_override = NULL;
     m_goal_target  = race_manager->getMaxGoal();
 
     Track *track = Track::getCurrentTrack();
@@ -147,6 +150,9 @@ void SoccerWorld::reset(bool restart)
     m_bgd.reset();
     m_ticks_back_to_own_goal = -1;
     m_ball->setEnabled(false);
+    
+    delete m_ball_init_override;
+    m_ball_init_override = NULL;
 
 }   // reset
 
@@ -155,6 +161,11 @@ void SoccerWorld::onGo()
 {
     m_ball->setEnabled(true);
     m_ball->reset();
+    if (m_ball_init_override) {
+        m_ball_body->setCenterOfMassTransform(*m_ball_init_override);
+        delete m_ball_init_override;
+        m_ball_init_override = NULL;
+    }
     WorldWithRank::onGo();
 }   // onGo
 
@@ -485,9 +496,17 @@ int SoccerWorld::getBallNode() const
 //-----------------------------------------------------------------------------
 void SoccerWorld::setBallPosition(const Vec3& position) {
     m_ball_body->setLinearVelocity(Vec3(0, 0, 0));
+    m_ball_body->setAngularVelocity(Vec3(0, 0, 0));
     btTransform alteredCenterOfMass = btTransform(m_ball_body->getCenterOfMassTransform());
     alteredCenterOfMass.setOrigin(position);
     m_ball_body->setCenterOfMassTransform(alteredCenterOfMass);
+    if(UserConfigParams::m_race_now) {
+        // If m_race_now is set then the ball position will be reset to it's origin
+        // on the next step when onGo is called.  This is a workaround so setting the ball
+        // location on this tick works as expected.
+        delete m_ball_init_override;
+        m_ball_init_override = new btTransform(alteredCenterOfMass);
+    }
 }
 //-----------------------------------------------------------------------------
 bool SoccerWorld::isCorrectGoal(unsigned int kart_id, bool first_goal) const

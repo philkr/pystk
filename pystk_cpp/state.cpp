@@ -342,8 +342,9 @@ struct PySoccerBall {
 #define R(x, d) .def_readonly(#x, &PySoccerBall::x, d)
 		c R(id, "Object id of the soccer ball")
 		  R(size, "Size of the ball (float)")
+		  R(location, "3D world location of the item (float 3)")
 #undef R
-		 .def_property("location", &PySoccerBall::getLocation, &PySoccerBall::setLocation, "3D world location of the item (float 3)")
+		 .def("set_location", &PySoccerBall::setLocation, "Sets the location of the ball")
 		 .def("__repr__", [](const PySoccerBall &i) { return "<SoccerBall id=" + std::to_string(i.id)+" location=" + std::to_string(i.location)+" size="+std::to_string(i.size)+">"; });
 		add_pickle(c);
 	}
@@ -351,16 +352,12 @@ struct PySoccerBall {
 		update(w);
 	}
 
-	const PyVec3& getLocation() const {
-		return location;
-	}
-
-	void setLocation(const PyVec3 newLocation) {
+	void setLocation(const float x, const float y, const float z) {
 		SoccerWorld* world = dynamic_cast<SoccerWorld*>(World::getWorld());
 		if (world) {
-			Vec3 vecLocation = Vec3(newLocation[0], newLocation[1], newLocation[2]);
+			Vec3 vecLocation = Vec3(x, y, z);
 			world->setBallPosition(vecLocation);
-			location = newLocation;
+			location = PyVec3{x, y, z};
 		}
 	}
 

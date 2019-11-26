@@ -264,6 +264,7 @@ private:
     /** Keep a pointer to the track object of soccer ball */
     TrackObject* m_ball;
     btRigidBody* m_ball_body;
+    btTransform* m_ball_init_override;
 
     /** Number of goals needed to win */
     int m_goal_target;
