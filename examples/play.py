@@ -58,10 +58,12 @@ if __name__ == "__main__":
 
     race = pystk.Race(config)
     race.start()
+    race.step()
 
     uis = [gui.UI([gui.VT[x] for x in args.visualization]) for i in range(args.num_player)]
 
     state = pystk.WorldState()
+    state.update()
     t0 = time()
     n = 0
     while all(ui.visible for ui in uis):
@@ -70,8 +72,7 @@ if __name__ == "__main__":
             state.update()
             if args.verbose and config.mode == config.RaceMode.SOCCER:
                 print('Score ', state.soccer.score)
-                print('      ', state.soccer.ball)
-                print('      ', state.soccer.goal_line)
+                print('      ', state.soccer.ball.location)
 
         for ui, d in zip(uis, race.render_data):
             ui.show(d)

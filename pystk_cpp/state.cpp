@@ -27,6 +27,7 @@
 #include "utils/vec3.hpp"
 #include "view.hpp"
 #include "pickle.hpp"
+#include <physics/btKart.hpp>
 
 namespace py = pybind11;
 
@@ -62,6 +63,9 @@ typedef std::array<float, 4> PyVec4;
 
 PyVec3 P(const Vec3 & v) {
 	return {v.getX(), v.getY(), v.getZ()};
+}
+Vec3 P(const PyVec3 & v) {
+	return Vec3(v[0], v[1], v[2]);
 }
 void pickle(std::ostream & s, const core::matrix4 & o) {
 	s.write((const char*)o.pointer(), 16*sizeof(irr::f32));
@@ -542,7 +546,9 @@ struct PyWorldState {
 		  R(ffa, "Free for all match info")
 #undef R
 		 .def("update", &PyWorldState::update, "Update this object with the current world state")
-		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; });
+		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; })
+		 .def_static("set_ball_location", &PyWorldState::set_ball_location, py::arg("position"), py::arg("velocity")=PyVec3{0,0,0}, py::arg("angular_velocity")=PyVec3{0,0,0}, "Specify the soccer ball / hockey puck position (SOCCER mode only).")
+		 .def_static("set_kart_location", &PyWorldState::set_kart_location, py::arg("kart_id"), py::arg("position"), py::arg("rotation")=PyVec4{0,0,0,1}, py::arg("speed")=0, "Move a kart to a specific location.");
 		// TODO: Add pickling and make sure players are updated
 		add_pickle(c);
 	}
@@ -608,6 +614,28 @@ struct PyWorldState {
 				if (PyItem::isValid(I))
 					items.push_back(std::make_shared<PyItem>(I));
 			}
+		}
+	}
+	static void set_ball_location(const PyVec3 & position, const PyVec3 & velocity, const PyVec3 & angular_velocity) {
+		World * w = World::getWorld();
+		SoccerWorld * sw = dynamic_cast<SoccerWorld*>(World::getWorld());
+		if (sw) {
+			sw->setBallPosition(P(position), P(velocity), P(angular_velocity));
+		}
+	}
+	static void set_kart_location(int id, const PyVec3 & position, const PyVec4 & rotation, float speed) {
+		World * w = World::getWorld();
+		World::KartList k = w->getKarts();
+		if (0 <= id && id < k.size()) {
+			auto kart = k[id];
+			btTransform transform = kart->getTrans();
+			transform.setOrigin(P(position));
+			transform.setRotation(btQuaternion(rotation[0], rotation[1], rotation[2], rotation[3]));
+			kart->getBody()->proceedToTransform(transform);
+			kart->setTrans(transform);
+			// Reset all btKart members (bounce back ticks / rotation ticks..)
+			kart->getVehicle()->reset();
+			kart->setSpeed(speed);
 		}
 	}
 };

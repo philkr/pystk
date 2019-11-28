@@ -659,3 +659,12 @@ void SoccerWorld::restoreCompleteState(const BareNetworkString& b)
 const uint32_t SoccerWorld::ballID() const {
 	return m_ball->objectID();
 }
+
+void SoccerWorld::setBallPosition(const Vec3 & p, const Vec3 & v, const Vec3 & a) {
+	m_ball->reset();
+	btTransform new_comt = m_ball_body->getCenterOfMassTransform();
+	new_comt.setOrigin(p);
+	m_ball_body->setCenterOfMassTransform(new_comt);
+	m_ball_body->setLinearVelocity(v);
+	m_ball_body->setAngularVelocity(a);
+}
