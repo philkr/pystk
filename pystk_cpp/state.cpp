@@ -310,7 +310,7 @@ struct PyItem {
 		py::class_<PyItem, std::shared_ptr<PyItem>> c(m, "Item");
 		py::enum_<Type> E(c, "Type");
 		E V(BONUS_BOX)
-		  V(BUBBLEGUM)
+		  V(BANANA)
 		  V(NITRO_BIG)
 		  V(NITRO_SMALL)
 		  V(BUBBLEGUM)

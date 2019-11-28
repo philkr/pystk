@@ -76,7 +76,6 @@ def gen(e, writer, indent='', hide_paragraph=True):
     elif e.tagname == 'desc_content':
         hide_paragraph = False
     elif e.tagname == 'enumerated_list':
-        print( e.parent )
         indent = indent + '* '
     elif e.tagname == 'list_item':
         hode_paragraph = False
@@ -101,8 +100,6 @@ class RstBuilder(Builder):
         pass
 
     def write_doc(self, docname, doctree):
-        print(docname, type(doctree))
-        
         outfilename = path.join(self.outdir, docname+self.file_suffix)
         # print "write(%s,%s) -> %s" % (type(doctree), type(destination), outfilename)
         ensuredir(path.dirname(outfilename))

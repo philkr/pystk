@@ -25,6 +25,16 @@
       State of active players (List[Player])
 
 
+   .. py:method:: set_ball_location(position: List[float[3]], velocity: List[float[3]] = [0.0, 0.0, 0.0], angular_velocity: List[float[3]] = [0.0, 0.0, 0.0]) -> None
+
+      Specify the soccer ball / hockey puck position (SOCCER mode only).
+
+
+   .. py:method:: set_kart_location(kart_id: int, position: List[float[3]], rotation: List[float[4]] = [0.0, 0.0, 0.0, 1.0], speed: float = 0) -> None
+
+      Move a kart to a specific location.
+
+
    .. py:method:: soccer
       :property:
 
@@ -88,6 +98,27 @@
 
    .. py:class:: Mode
 
+      Members:
+
+
+      NORMAL
+
+
+      CLOSEUP
+
+
+      REVERSE
+
+
+      LEADER_MODE
+
+
+      SIMPLE_REPLAY
+
+
+      FALLING
+
+
       .. py:attribute:: CLOSEUP
 
       .. py:attribute:: FALLING
@@ -99,6 +130,12 @@
       .. py:attribute:: REVERSE
 
       .. py:attribute:: SIMPLE_REPLAY
+
+      .. py:method:: name
+         :property:
+
+         (self: handle) -> str
+
 
    .. py:method:: aspect
       :property:
@@ -134,6 +171,29 @@
 
    .. py:class:: Type
 
+      Members:
+
+
+      BONUS_BOX
+
+
+      BANANA
+
+
+      NITRO_BIG
+
+
+      NITRO_SMALL
+
+
+      BUBBLEGUM
+
+
+      EASTER_EGG
+
+
+      .. py:attribute:: BANANA
+
       .. py:attribute:: BONUS_BOX
 
       .. py:attribute:: BUBBLEGUM
@@ -143,6 +203,12 @@
       .. py:attribute:: NITRO_BIG
 
       .. py:attribute:: NITRO_SMALL
+
+      .. py:method:: name
+         :property:
+
+         (self: handle) -> str
+
 
    .. py:method:: id
       :property:
@@ -300,6 +366,42 @@
 
    .. py:class:: Type
 
+      Members:
+
+
+      NOTHING
+
+
+      BUBBLEGUM
+
+
+      CAKE
+
+
+      BOWLING
+
+
+      ZIPPER
+
+
+      PLUNGER
+
+
+      SWITCH
+
+
+      SWATTER
+
+
+      RUBBERBALL
+
+
+      PARACHUTE
+
+
+      ANVIL
+
+
       .. py:attribute:: ANVIL
 
       .. py:attribute:: BOWLING
@@ -322,6 +424,12 @@
 
       .. py:attribute:: ZIPPER
 
+      .. py:method:: name
+         :property:
+
+         (self: handle) -> str
+
+
    .. py:method:: num
       :property:
 
@@ -338,6 +446,27 @@
 
    .. py:class:: Type
 
+      Members:
+
+
+      NOTHING
+
+
+      PARACHUTE
+
+
+      ANVIL
+
+
+      BOMB
+
+
+      SWATTER
+
+
+      BUBBLEGUM_SHIELD
+
+
       .. py:attribute:: ANVIL
 
       .. py:attribute:: BOMB
@@ -349,6 +478,12 @@
       .. py:attribute:: PARACHUTE
 
       .. py:attribute:: SWATTER
+
+      .. py:method:: name
+         :property:
+
+         (self: handle) -> str
+
 
    .. py:method:: time_left
       :property:
