@@ -98,27 +98,6 @@
 
    .. py:class:: Mode
 
-      Members:
-
-
-      NORMAL
-
-
-      CLOSEUP
-
-
-      REVERSE
-
-
-      LEADER_MODE
-
-
-      SIMPLE_REPLAY
-
-
-      FALLING
-
-
       .. py:attribute:: CLOSEUP
 
       .. py:attribute:: FALLING
@@ -170,27 +149,6 @@
 .. py:class:: pystk.Item
 
    .. py:class:: Type
-
-      Members:
-
-
-      BONUS_BOX
-
-
-      BANANA
-
-
-      NITRO_BIG
-
-
-      NITRO_SMALL
-
-
-      BUBBLEGUM
-
-
-      EASTER_EGG
-
 
       .. py:attribute:: BANANA
 
@@ -366,42 +324,6 @@
 
    .. py:class:: Type
 
-      Members:
-
-
-      NOTHING
-
-
-      BUBBLEGUM
-
-
-      CAKE
-
-
-      BOWLING
-
-
-      ZIPPER
-
-
-      PLUNGER
-
-
-      SWITCH
-
-
-      SWATTER
-
-
-      RUBBERBALL
-
-
-      PARACHUTE
-
-
-      ANVIL
-
-
       .. py:attribute:: ANVIL
 
       .. py:attribute:: BOWLING
@@ -445,27 +367,6 @@
 .. py:class:: pystk.Attachment
 
    .. py:class:: Type
-
-      Members:
-
-
-      NOTHING
-
-
-      PARACHUTE
-
-
-      ANVIL
-
-
-      BOMB
-
-
-      SWATTER
-
-
-      BUBBLEGUM_SHIELD
-
 
       .. py:attribute:: ANVIL
 

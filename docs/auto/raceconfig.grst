@@ -20,6 +20,12 @@
 
       .. py:attribute:: TIME_TRIAL
 
+      .. py:method:: name
+         :property:
+
+         (self: handle) -> str
+
+
    .. py:method:: difficulty
       :property:
 

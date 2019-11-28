@@ -9,9 +9,18 @@
       Let the player or AI drive, AI ignores step(action)
 
 
+      Members:
+
+
       .. py:attribute:: AI_CONTROL
 
       .. py:attribute:: PLAYER_CONTROL
+
+      .. py:method:: name
+         :property:
+
+         (self: handle) -> str
+
 
    .. py:method:: controller
       :property:

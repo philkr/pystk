@@ -4,6 +4,9 @@
    Global logging level
 
 
+   Members:
+
+
    .. py:attribute:: debug
 
    .. py:attribute:: error
@@ -11,6 +14,12 @@
    .. py:attribute:: fatal
 
    .. py:attribute:: info
+
+   .. py:method:: name
+      :property:
+
+      (self: handle) -> str
+
 
    .. py:attribute:: verbose
 

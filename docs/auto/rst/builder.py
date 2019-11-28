@@ -74,11 +74,11 @@ def gen(e, writer, indent='', hide_paragraph=True):
     elif e.tagname == 'desc_signature':
         return
     elif e.tagname == 'desc_content':
-        hide_paragraph = False
+        hide_paragraph = len(e.children) and 'Members:' in get_text(e.children[0])
     elif e.tagname == 'enumerated_list':
         indent = indent + '* '
     elif e.tagname == 'list_item':
-        hode_paragraph = False
+        hide_paragraph = False
     else:
         print( 'Unknown tag', e.tagname )
         return
