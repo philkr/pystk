@@ -7,91 +7,98 @@
    .. py:class:: RaceMode
 
       .. py:attribute:: CAPTURE_THE_FLAG
+         :annotation: = 5
 
       .. py:attribute:: FOLLOW_LEADER
+         :annotation: = 2
 
       .. py:attribute:: FREE_FOR_ALL
+         :annotation: = 4
 
       .. py:attribute:: NORMAL_RACE
+         :annotation: = 0
 
       .. py:attribute:: SOCCER
+         :annotation: = 6
 
       .. py:attribute:: THREE_STRIKES
+         :annotation: = 3
 
       .. py:attribute:: TIME_TRIAL
+         :annotation: = 1
 
-      .. py:method:: name
+      .. py:method:: name () -> str
          :property:
 
          (self: handle) -> str
 
 
-   .. py:method:: difficulty
+   .. py:method:: difficulty () -> int
       :property:
 
-      Skill of AI players 0..2 (int)
+      Skill of AI players 0..2
 
 
-   .. py:method:: laps
+   .. py:method:: laps () -> int
       :property:
 
-      Number of laps the race runs for (int)
+      Number of laps the race runs for
 
 
-   .. py:method:: mode
+   .. py:method:: mode () -> pystk.RaceConfig.RaceMode
       :property:
 
-      Specify the type of race (RaceMode)
+      Specify the type of race
 
 
-   .. py:method:: num_kart
+   .. py:method:: num_kart () -> int
       :property:
 
-      Total number of karts, fill the race with num_kart - len(players) AI karts (int)
+      Total number of karts, fill the race with num_kart - len(players) AI karts
 
 
-   .. py:method:: players
+   .. py:method:: players () -> pystk.VectorPlayerConfig
       :property:
 
-      List of all agent players (List[PlayerConfig])
+      List of all agent players
 
 
-   .. py:method:: render
+   .. py:method:: render () -> bool
       :property:
 
-      Is rendering enabled? (bool)
+      Is rendering enabled?
 
 
-   .. py:method:: reverse
+   .. py:method:: reverse () -> bool
       :property:
 
-      Reverse the track (bool)
+      Reverse the track
 
 
-   .. py:method:: seed
+   .. py:method:: seed () -> int
       :property:
 
-      Random seed (int)
+      Random seed
 
 
-   .. py:method:: step_size
+   .. py:method:: step_size () -> float
       :property:
 
-      Game time between different step calls (float)
+      Game time between different step calls
 
 
-   .. py:method:: track
+   .. py:method:: track () -> str
       :property:
 
-      Track name (str)
+      Track name
 
 
-.. py:function:: pystk.list_tracks() -> List[str]
+.. py:function:: pystk.list_tracks () -> List[str]
 
    Return a list of track names (possible values for RaceConfig.track)
 
 
-.. py:function:: pystk.list_karts() -> List[str]
+.. py:function:: pystk.list_karts () -> List[str]
 
    Return a list of karts to play as (possible values for PlayerConfig.kart
 

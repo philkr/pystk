@@ -78,29 +78,29 @@ PYBIND11_MODULE(pystk, m) {
 		.value("object", ObjectType::OT_OBJECT)
 		.value("projectile", ObjectType::OT_PROJECTILE)
 		.value("unknown", ObjectType::OT_UNKNOWN)
-		.value("N", ObjectType::NUM_OT);
+		.value("N", ObjectType::NUM_OT, "Number of object types");
 		m.def("unknown_debug_name", unknownDebugName);
 		m.attr("object_type_shift") = OBJECT_TYPE_SHIFT;
 	}
 	{
 		py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
 	
-		cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface (int)")
-		.def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height, "Height of the rendering surface (int)")
-		.def_readwrite("glow", &PySTKGraphicsConfig::glow, "Enable glow around pickup objects (bool)")
-		.def_readwrite("bloom", &PySTKGraphicsConfig::bloom, "Enable the bloom effect (bool)")
-		.def_readwrite("light_shaft", &PySTKGraphicsConfig::light_shaft, "Enable light shafts (bool)")
-		.def_readwrite("dynamic_lights", &PySTKGraphicsConfig::dynamic_lights, "Enable dynamic lighting (bool)")
-		.def_readwrite("dof", &PySTKGraphicsConfig::dof, "Depth of field effect (bool)")
-		.def_readwrite("particles_effects", &PySTKGraphicsConfig::particles_effects, "Particle effect 0 (none) to 2 (full)" )
-		.def_readwrite("animated_characters", &PySTKGraphicsConfig::animated_characters, "Animate characters (bool)" )
-		.def_readwrite("motionblur", &PySTKGraphicsConfig::motionblur, "Enable motion blur (bool)" )
-		.def_readwrite("mlaa", &PySTKGraphicsConfig::mlaa, "Enable anti-aliasing (bool)" )
-		.def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression, "Use texture compression (bool)" )
-		.def_readwrite("ssao", &PySTKGraphicsConfig::ssao, "Enable screen space ambient occlusion (bool)" )
-		.def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL, "Disable specular IBL (bool)" )
-		.def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures, "Enable high definition textures 0 / 2" )
-		.def_readwrite("render_window", &PySTKGraphicsConfig::render_window, "Show the rendering window (bool)" );
+		cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface")
+		.def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height, "Height of the rendering surface")
+		.def_readwrite("glow", &PySTKGraphicsConfig::glow, "Enable glow around pickup objects")
+		.def_readwrite("bloom", &PySTKGraphicsConfig::bloom, "Enable the bloom effect")
+		.def_readwrite("light_shaft", &PySTKGraphicsConfig::light_shaft, "Enable light shafts")
+		.def_readwrite("dynamic_lights", &PySTKGraphicsConfig::dynamic_lights, "Enable dynamic lighting")
+		.def_readwrite("dof", &PySTKGraphicsConfig::dof, "Depth of field effect")
+		.def_readwrite("particles_effects", &PySTKGraphicsConfig::particles_effects, "Particle effect 0 (none) to 2 (full)")
+		.def_readwrite("animated_characters", &PySTKGraphicsConfig::animated_characters, "Animate characters")
+		.def_readwrite("motionblur", &PySTKGraphicsConfig::motionblur, "Enable motion blur")
+		.def_readwrite("mlaa", &PySTKGraphicsConfig::mlaa, "Enable anti-aliasing")
+		.def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression, "Use texture compression")
+		.def_readwrite("ssao", &PySTKGraphicsConfig::ssao, "Enable screen space ambient occlusion")
+		.def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL, "Disable specular IBL")
+		.def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures, "Enable high definition textures 0 / 2")
+		.def_readwrite("render_window", &PySTKGraphicsConfig::render_window, "Show the rendering window");
 		add_pickle(cls);
 		
 		cls.def_static("hd", &PySTKGraphicsConfig::hd, "High-definitaiton graphics settings");
@@ -111,15 +111,15 @@ PYBIND11_MODULE(pystk, m) {
 	{
 		py::class_<PySTKPlayerConfig, std::shared_ptr<PySTKPlayerConfig>> cls(m, "PlayerConfig", "SuperTuxKart player configuration");
 	
-		py::enum_<PySTKPlayerConfig::Controller>(cls, "Controller", "Let the player or AI drive, AI ignores step(action)")
+		py::enum_<PySTKPlayerConfig::Controller>(cls, "Controller")
 			.value("PLAYER_CONTROL", PySTKPlayerConfig::PLAYER_CONTROL)
 			.value("AI_CONTROL", PySTKPlayerConfig::AI_CONTROL);
 		
 		cls
 		.def(py::init<const std::string&, PySTKPlayerConfig::Controller, int>(), py::arg("kart")="", py::arg("controller")=PySTKPlayerConfig::PLAYER_CONTROL, py::arg("team")=0)
-		.def_readwrite("kart", &PySTKPlayerConfig::kart, "Kart type (string), see list_karts for a list of kart types" )
-		.def_readwrite("controller", &PySTKPlayerConfig::controller, "Controller type (PlayerConfig.Controller)" )
-		.def_readwrite("team", &PySTKPlayerConfig::team, "Team of the player (int) 0 or 1" );
+		.def_readwrite("kart", &PySTKPlayerConfig::kart, "Kart type, see list_karts for a list of kart types" )
+		.def_readwrite("controller", &PySTKPlayerConfig::controller, "Let the player (PLAYER_CONTROL) or AI (AI_CONTROL) drive. The AI ignores actions in step(action)." )
+		.def_readwrite("team", &PySTKPlayerConfig::team, "Team of the player 0 or 1" );
 		add_pickle(cls);
 
 		py::bind_vector<std::vector<PySTKPlayerConfig>>(m, "VectorPlayerConfig");
@@ -139,16 +139,16 @@ PYBIND11_MODULE(pystk, m) {
 		
 		cls
 		.def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,bool,int,int,int,float,bool>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("reverse") = false, py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1, py::arg("render") = true)
-		.def_readwrite("difficulty", &PySTKRaceConfig::difficulty, "Skill of AI players 0..2 (int)")
-		.def_readwrite("mode", &PySTKRaceConfig::mode, "Specify the type of race (RaceMode)")
-		.def_readwrite("players", &PySTKRaceConfig::players, "List of all agent players (List[PlayerConfig])")
-		.def_readwrite("track", &PySTKRaceConfig::track, "Track name (str)")
-		.def_readwrite("reverse", &PySTKRaceConfig::reverse, "Reverse the track (bool)")
-		.def_readwrite("laps", &PySTKRaceConfig::laps, "Number of laps the race runs for (int)")
-		.def_readwrite("seed", &PySTKRaceConfig::seed, "Random seed (int)")
-		.def_readwrite("num_kart", &PySTKRaceConfig::num_kart, "Total number of karts, fill the race with num_kart - len(players) AI karts (int)")
-		.def_readwrite("step_size", &PySTKRaceConfig::step_size, "Game time between different step calls (float)")
-		.def_readwrite("render", &PySTKRaceConfig::render, "Is rendering enabled? (bool)");
+		.def_readwrite("difficulty", &PySTKRaceConfig::difficulty, "Skill of AI players 0..2")
+		.def_readwrite("mode", &PySTKRaceConfig::mode, "Specify the type of race")
+		.def_readwrite("players", &PySTKRaceConfig::players, "List of all agent players")
+		.def_readwrite("track", &PySTKRaceConfig::track, "Track name")
+		.def_readwrite("reverse", &PySTKRaceConfig::reverse, "Reverse the track")
+		.def_readwrite("laps", &PySTKRaceConfig::laps, "Number of laps the race runs for")
+		.def_readwrite("seed", &PySTKRaceConfig::seed, "Random seed")
+		.def_readwrite("num_kart", &PySTKRaceConfig::num_kart, "Total number of karts, fill the race with num_kart - len(players) AI karts")
+		.def_readwrite("step_size", &PySTKRaceConfig::step_size, "Game time between different step calls")
+		.def_readwrite("render", &PySTKRaceConfig::render, "Is rendering enabled?");
 		add_pickle(cls);
 	}
 
@@ -166,13 +166,13 @@ PYBIND11_MODULE(pystk, m) {
 		cls
 		.def(py::init<float,float,bool,bool,bool,bool,bool>(), py::arg("steer") = 0, py::arg("acceleration") = 0, py::arg("brake") = false, py::arg("nitro") = false, py::arg("drift") = false, py::arg("rescue") = false, py::arg("fire") = false)
 		
-		.def_readwrite("steer", &PySTKAction::steering_angle, "Steering angle, normalize to -1..1 (float)")
-		.def_readwrite("acceleration", &PySTKAction::acceleration, "Acceleration, normalize to 0..1 (float)")
-		.def_readwrite("brake", &PySTKAction::brake, "Hit the brakes (bool)")
-		.def_readwrite("nitro", &PySTKAction::nitro, "Use nitro (bool)")
-		.def_readwrite("drift", &PySTKAction::drift, "Drift while turning (bool)")
-		.def_readwrite("rescue", &PySTKAction::rescue, "Call the rescue bird (bool)")
-		.def_readwrite("fire", &PySTKAction::fire, "Fire the current pickup item (bool)")
+		.def_readwrite("steer", &PySTKAction::steering_angle, "Steering angle, normalize to -1..1")
+		.def_readwrite("acceleration", &PySTKAction::acceleration, "Acceleration, normalize to 0..1")
+		.def_readwrite("brake", &PySTKAction::brake, "Hit the brakes. Zero acceleration and brake=True uses reverse gear.")
+		.def_readwrite("nitro", &PySTKAction::nitro, "Use nitro")
+		.def_readwrite("drift", &PySTKAction::drift, "Drift while turning")
+		.def_readwrite("rescue", &PySTKAction::rescue, "Call the rescue bird")
+		.def_readwrite("fire", &PySTKAction::fire, "Fire the current pickup item")
 		.def("__str__", [](const PySTKAction & a) -> std::string { return ((std::stringstream&)(std::stringstream() << "<Action S:" << a.steering_angle << "  A:" << a.acceleration << "  b:" << (int) a.brake << "  n:" << (int) a.nitro << "  d:" << (int) a.drift << "  r:" << (int) a.rescue << "  f:" << (int) a.fire << " >")).str();});
 		add_pickle(cls);
 	}
@@ -187,9 +187,9 @@ PYBIND11_MODULE(pystk, m) {
 		.def("step", (bool (PySTKRace::*)(const PySTKAction &)) &PySTKRace::step, py::arg("action"), "Take a step with an action for agent 0")
 		.def("step", (bool (PySTKRace::*)()) &PySTKRace::step, "Take a step without changing the action")
 		.def("stop", &PySTKRace::stop,"Stop the race")
-		.def_property_readonly("render_data", &PySTKRace::render_data, "rendering data from the last step (List[RenderData])")
-		.def_property_readonly("last_action", &PySTKRace::last_action, "the last action the agent took (List[Action])")
-		.def_property_readonly("config", &PySTKRace::config,"The current race configuration (RaceConfig)");
+		.def_property_readonly("render_data", &PySTKRace::render_data, "rendering data from the last step")
+		.def_property_readonly("last_action", &PySTKRace::last_action, "the last action the agent took")
+		.def_property_readonly("config", &PySTKRace::config,"The current race configuration");
 	}
 	
 	m.def("list_tracks", &PySTKRace::listTracks, "Return a list of track names (possible values for RaceConfig.track)");
