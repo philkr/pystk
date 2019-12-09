@@ -16,7 +16,6 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "graphics/stk_tex_manager.hpp"
-#include "config/hardware_stats.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/stk_texture.hpp"
 #include "io/file_manager.hpp"

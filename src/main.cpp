@@ -171,7 +171,6 @@
 #include <IEventReceiver.h>
 
 #include "main_loop.hpp"
-#include "config/hardware_stats.hpp"
 #include "config/player_profile.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"

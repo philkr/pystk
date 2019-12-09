@@ -53,7 +53,6 @@ using irr::core::stringw;
 #include "utils/ptr_vector.hpp"
 #include "utils/time.hpp"
 
-class PlayerProfile;
 class SavedGrandPrix;
 class XMLNode;
 class UTFWriter;

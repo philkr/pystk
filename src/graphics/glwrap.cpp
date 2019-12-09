@@ -19,7 +19,6 @@
 
 #include "graphics/glwrap.hpp"
 
-#include "config/hardware_stats.hpp"
 #include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"

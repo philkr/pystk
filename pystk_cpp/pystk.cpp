@@ -43,8 +43,6 @@
 #include <IEventReceiver.h>
 
 #include "pystk.hpp"
-#include "config/hardware_stats.hpp"
-#include "config/player_profile.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
 #include "font/font_manager.hpp"
