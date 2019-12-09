@@ -16,7 +16,6 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "modes/world.hpp"
 #include "utils/log.hpp"
@@ -136,7 +135,7 @@ void ProgressBarAndroid::init()
     SIrrlichtCreationParameters params;
     params.DriverType    = video::EDT_OGLES2;
     params.Bits          = 32;
-    params.Fullscreen    = UserConfigParams::m_fullscreen;
+    params.Fullscreen    = true;
     params.WindowSize    = core::dimension2du(640, 480);
 #if defined(ANDROID)
     params.PrivateData = (void*)global_android_app;

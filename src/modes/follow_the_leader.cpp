@@ -18,7 +18,6 @@
 #include "modes/follow_the_leader.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "items/powerup_manager.hpp"
 #include "karts/abstract_kart.hpp"

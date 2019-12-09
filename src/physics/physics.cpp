@@ -20,7 +20,6 @@
 
 #include "animations/three_d_animation.hpp"
 #include "config/player_profile.hpp"
-#include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/stars.hpp"

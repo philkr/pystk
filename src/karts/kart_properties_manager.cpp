@@ -21,7 +21,6 @@
 
 #include "config/player_profile.hpp"
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "io/file_manager.hpp"
 #include "karts/kart_properties.hpp"
@@ -544,8 +543,7 @@ void KartPropertiesManager::getRandomKartList(int count,
         if (count > 0 && random_kart_queue.size() == 0)
         {
             random_kart_queue.clear();
-            std::vector<int> karts_in_group =
-                getKartsInGroup(UserConfigParams::m_last_used_kart_group);
+            std::vector<int> karts_in_group = getKartsInGroup("all");
 
             assert(karts_in_group.size() > 0);
 

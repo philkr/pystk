@@ -145,7 +145,7 @@ float MainLoop::getLimitedDt()
         // the noise the fan on a graphics card makes.
         // When in menus, reduce FPS much, it's not necessary to push to the
         // maximum for plain menus
-        const int max_fps = UserConfigParams::m_max_fps;
+        const int max_fps = 120.f;
         const int current_fps = (int)(1000.0f / dt);
         if (!m_throttle_fps || current_fps <= max_fps)  break;
 

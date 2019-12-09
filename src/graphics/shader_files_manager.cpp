@@ -18,7 +18,6 @@
 #ifndef SERVER_ONLY
 
 #include "graphics/shader_files_manager.hpp"
-#include "config/user_config.hpp"
 #include "config/stk_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/graphics_restrictions.hpp"

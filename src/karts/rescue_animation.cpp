@@ -18,7 +18,6 @@
 
 #include "karts/rescue_animation.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/referee.hpp"
 #include "items/attachment.hpp"
 #include "karts/abstract_kart.hpp"

@@ -16,7 +16,6 @@
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "graphics/sp/sp_shader.hpp"
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/shader_files_manager.hpp"
 #include "graphics/sp/sp_base.hpp"

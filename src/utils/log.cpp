@@ -18,7 +18,6 @@
 
 #include "utils/log.hpp"
 
-#include "config/user_config.hpp"
 #include "utils/file_utils.hpp"
 
 #include <cstdio>

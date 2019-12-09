@@ -22,7 +22,6 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/material.hpp"
 #include "graphics/particle_kind_manager.hpp"

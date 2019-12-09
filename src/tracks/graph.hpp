@@ -143,11 +143,6 @@ public:
     // ------------------------------------------------------------------------
     void createDebugMesh();
     // ------------------------------------------------------------------------
-    RenderTarget* makeMiniMap(const core::dimension2du &dimension,
-                              const std::string &name,
-                              const video::SColor &fill_color,
-                              bool invert_x_z);
-    // ------------------------------------------------------------------------
     void mapPoint2MiniMap(const Vec3 &xyz, Vec3 *out) const;
     // ------------------------------------------------------------------------
     Quad* getQuad(unsigned int i) const

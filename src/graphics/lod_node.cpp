@@ -20,7 +20,6 @@
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/lod_node.hpp"
-#include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 
 #include <ISceneManager.h>

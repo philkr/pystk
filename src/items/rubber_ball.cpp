@@ -19,7 +19,6 @@
 #include "items/rubber_ball.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "io/xml_node.hpp"
 #include "items/attachment.hpp"
 #include "items/projectile_manager.hpp"
@@ -431,12 +430,6 @@ bool RubberBall::updateAndDelete(int ticks)
 
     m_height_timer += stk_config->ticks2Time(ticks);
     float height    = updateHeight()+m_extend.getY()*0.5f;
-    
-    if(UserConfigParams::logFlyable())
-        Log::debug("[RubberBall]", "ball %d: %f %f %f height %f gethot %f terrain %d aim %d",
-                m_id, next_xyz.getX(), next_xyz.getY(), next_xyz.getZ(), height, getHoT(),
-			    isOnRoad(),
-            m_aiming_at_target);
 
     // No need to check for terrain height if the ball is low to the ground
     if(height > 0.5f)
@@ -454,11 +447,6 @@ bool RubberBall::updateAndDelete(int ticks)
         else
             m_max_height = m_st_max_height[m_type];
     }
-
-    if(UserConfigParams::logFlyable())
-        Log::verbose("RubberBall", "newy2 %f gmth %f", height,
-                     getTunnelHeight(next_xyz,vertical_offset));
-
     // Ball squashing:
     // ===============
     float scale = 1.0f;
@@ -762,12 +750,6 @@ void RubberBall::updateDistanceToTarget()
     {
         m_distance_to_target += Track::getCurrentTrack()->getTrackLength();
     }
-    if(UserConfigParams::logFlyable())
-        Log::debug("[RubberBall]", "ball %d: target %f %f %f distance_2_target %f",
-        m_id, m_target->getXYZ().getX(),m_target->getXYZ().getY(),
-        m_target->getXYZ().getZ(),m_distance_to_target
-        );
-
     float height_diff = fabsf((m_target->getXYZ() - getXYZ()).dot(getNormal().normalized()));
 
     if(m_distance_to_target < m_st_fast_ping_distance &&

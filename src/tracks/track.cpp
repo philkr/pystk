@@ -101,7 +101,6 @@ Track::Track(const std::string &filename)
     m_magic_number          = 0x17AC3802;
 #endif
 
-    m_minimap_invert_x_z    = false;
     m_materials_loaded      = false;
     m_filename              = filename;
     m_root                  =
@@ -151,9 +150,6 @@ Track::Track(const std::string &filename)
     m_weather_sound         = "";
     m_cache_track           = m_ident=="overworld";
     m_render_target         = NULL;
-    m_minimap_x_scale       = 1.0f;
-    m_minimap_y_scale       = 1.0f;
-    m_force_disable_fog     = false;
     m_startup_run           = false;
     m_red_flag = m_blue_flag =
         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f));
@@ -610,22 +606,6 @@ void Track::startMusic() const
  */
 void Track::loadArenaGraph(const XMLNode &node)
 {
-    // Determine if rotate minimap is needed for soccer mode (for blue team)
-    // Only need to test local player
-    if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_SOCCER)
-    {
-        const unsigned pk = race_manager->getNumPlayers();
-        for (unsigned i = 0; i < pk; i++)
-        {
-            if (race_manager->getKartInfo(i).getKartTeam() ==
-                KART_TEAM_BLUE)
-            {
-                m_minimap_invert_x_z = true;
-                break;
-            }
-        }
-    }
-
     ArenaGraph* graph = new ArenaGraph(m_root+"navmesh.xml", &node);
     Graph::setGraph(graph);
 
@@ -633,10 +613,6 @@ void Track::loadArenaGraph(const XMLNode &node)
     {
         Log::warn("track", "No graph nodes defined for track '%s'\n",
                 m_filename.c_str());
-    }
-    else
-    {
-        loadMinimap();
     }
 }   // loadArenaGraph
 
@@ -693,28 +669,8 @@ void Track::loadDriveGraph(unsigned int mode_id, const bool reverse)
                 "kart mode, but not with AIs\n");
         }
     }
-    else
-    {
-        loadMinimap();
-    }
 }   // loadDriveGraph
 
-// -----------------------------------------------------------------------------
-
-void Track::mapPoint2MiniMap(const Vec3 &xyz, Vec3 *draw_at) const
-{
-    if (m_minimap_invert_x_z)
-    {
-        Vec3 invert = xyz;
-        invert.setX(-xyz.x());
-        invert.setZ(-xyz.z());
-        Graph::get()->mapPoint2MiniMap(invert, draw_at);
-    }
-    else
-        Graph::get()->mapPoint2MiniMap(xyz, draw_at);
-    draw_at->setX(draw_at->getX() * m_minimap_x_scale);
-    draw_at->setY(draw_at->getY() * m_minimap_y_scale);
-}
 // -----------------------------------------------------------------------------
 /** Convert the track tree into its physics equivalents.
  *  \param main_track_count The number of meshes that are already converted
@@ -1000,40 +956,6 @@ void Track::convertTrackToBullet(scene::ISceneNode *node)
     }   // for i<getMeshBufferCount
 
 }   // convertTrackToBullet
-
-// ----------------------------------------------------------------------------
-
-void Track::loadMinimap()
-{
-#ifndef SERVER_ONLY
-    //Use twice the size of the rendered minimap to reduce significantly aliasing
-    m_render_target = Graph::get()->makeMiniMap({uint32_t(stk_config->m_minimap_size * 2), uint32_t(stk_config->m_minimap_size * 2)},
-        "minimap::" + m_ident, video::SColor(127, 255, 255, 255),
-        m_minimap_invert_x_z);
-
-    updateMiniMapScale();
-#endif
-}   // loadMinimap
-
-// ----------------------------------------------------------------------------
-void Track::updateMiniMapScale()
-{
-    if (!m_render_target)
-        return;
-
-    core::dimension2du mini_map_size = {uint32_t(stk_config->m_minimap_size * 2), uint32_t(stk_config->m_minimap_size * 2)};
-    core::dimension2du mini_map_texture_size = m_render_target->getTextureSize();
-
-    if(mini_map_texture_size.Width)
-        m_minimap_x_scale = float(mini_map_size.Width) / float(mini_map_texture_size.Width);
-    else
-        m_minimap_x_scale = 0;
-
-    if(mini_map_texture_size.Height) 
-        m_minimap_y_scale = float(mini_map_size.Height) / float(mini_map_texture_size.Height);
-    else
-        m_minimap_y_scale = 0;
-}
 
 // ----------------------------------------------------------------------------
 /** Loads the main track model (i.e. all other objects contained in the
@@ -1546,7 +1468,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     assert(m_all_cached_meshes.size()==0);
 
     CameraEnd::clearEndCameras();
-    m_minimap_invert_x_z   = false;
     m_sky_type             = SKY_NONE;
     m_track_object_manager = new TrackObjectManager();
 
@@ -2431,15 +2352,6 @@ std::vector< std::vector<float> > Track::buildHeightMap()
 
     return out;
 }   // buildHeightMap
-
-// ----------------------------------------------------------------------------
-void Track::drawMiniMap(const core::rect<s32>& dest_rect) const
-{
-    if(m_render_target)
-        m_render_target->draw2DImage(dest_rect, NULL,
-                                     video::SColor(127, 255, 255, 255),
-                                     true);
-}
 
 // ----------------------------------------------------------------------------
 /** Returns the rotation of the sun. */

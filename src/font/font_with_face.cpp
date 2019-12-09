@@ -18,7 +18,6 @@
 
 #include "font/font_with_face.hpp"
 
-#include "config/user_config.hpp"
 #include "font/face_ttf.hpp"
 #include "font/font_manager.hpp"
 #include "font/font_settings.hpp"

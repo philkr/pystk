@@ -247,43 +247,14 @@ std::unique_ptr<RenderTarget> IrrDriver::createRenderTarget(const irr::core::dim
  */
 void IrrDriver::updateConfigIfRelevant()
 {
-#ifndef SERVER_ONLY
-    if (!UserConfigParams::m_fullscreen &&
-         UserConfigParams::m_remember_window_location)
-    {
-        int x = 0;
-        int y = 0;
-        
-        bool success = m_device->getWindowPosition(&x, &y);
-        
-        if (!success)
-        {
-            Log::warn("irr_driver", "Could not retrieve window location");
-            return;
-        }
-        
-        Log::verbose("irr_driver", "Retrieved window location for config: "
-                                   "%i %i", x, y);
-                                   
-        // If the windows position is saved, it must be a non-negative
-        // number. So if the window is partly off screen, move it to the
-        // corresponding edge.
-        UserConfigParams::m_window_x = std::max(0, x);
-        UserConfigParams::m_window_y = std::max(0, y);
-    }
-#endif   // !SERVER_ONLY
 }   // updateConfigIfRelevant
 core::recti IrrDriver::getSplitscreenWindow(int WindowNum) 
 {
     const int playernum = race_manager->getNumLocalPlayers();
     const float playernum_sqrt = sqrtf((float)playernum);
     
-    int rows = int(  UserConfigParams::split_screen_horizontally
-                   ? ceil(playernum_sqrt)
-                   : round(playernum_sqrt)                       );
-    int cols = int(  UserConfigParams::split_screen_horizontally
-                   ? round(playernum_sqrt)
-                   : ceil(playernum_sqrt)                        );
+    int rows = ceil(playernum_sqrt);
+    int cols = round(playernum_sqrt);
     
     if (rows == 0){rows = 1;}
     if (cols == 0) {cols = 1;}
@@ -365,42 +336,6 @@ void IrrDriver::initDevice()
         {
             Log::warn("irr_driver", "Unknown desktop resolution.");
         }
-        else if (UserConfigParams::m_width > (int)ssize.Width ||
-                 UserConfigParams::m_height > (int)ssize.Height)
-        {
-            Log::warn("irr_driver", "The window size specified in "
-                      "user config is larger than your screen!");
-            UserConfigParams::m_width = (int)ssize.Width;
-            UserConfigParams::m_height = (int)ssize.Height;
-        }
-
-        if (UserConfigParams::m_fullscreen)
-        {
-            if (modes->getVideoModeCount() > 0)
-            {
-                core::dimension2d<u32> res = core::dimension2du(
-                                                    UserConfigParams::m_width,
-                                                    UserConfigParams::m_height);
-                res = modes->getVideoModeResolution(res, res);
-
-                UserConfigParams::m_width = res.Width;
-                UserConfigParams::m_height = res.Height;
-            }
-            else
-            {
-                Log::warn("irr_driver", "Cannot get information about "
-                          "resolutions. Disable fullscreen.");
-                UserConfigParams::m_fullscreen = false;
-            }
-        }
-
-        if (UserConfigParams::m_width < 1 || UserConfigParams::m_height < 1)
-        {
-            Log::warn("irr_driver", "Invalid window size. "
-                         "Try to use the default one.");
-            UserConfigParams::m_width = MIN_SUPPORTED_WIDTH;
-            UserConfigParams::m_height = MIN_SUPPORTED_HEIGHT;
-        }
 
         m_device->closeDevice();
         m_video_driver  = NULL;
@@ -423,10 +358,6 @@ void IrrDriver::initDevice()
         // Try 32 and, upon failure, 24 then 16 bit per pixels
         for (int bits=32; bits>15; bits -=8)
         {
-            if(UserConfigParams::logMisc())
-                Log::verbose("irr_driver", "Trying to create device with "
-                             "%i bits\n", bits);
-
 #if defined(USE_GLES2)
             params.DriverType    = video::EDT_OGLES2;
 #else
@@ -438,8 +369,8 @@ void IrrDriver::initDevice()
             params.Stencilbuffer = true;
             params.Bits          = bits;
             params.EventReceiver = this;
-            params.Fullscreen    = UserConfigParams::m_fullscreen;
-            params.Vsync         = UserConfigParams::m_vsync;
+            params.Fullscreen    = false;
+            params.Vsync         = false;
             params.FileSystem    = file_manager->getFileSystem();
             params.WindowSize    =
                 core::dimension2du(UserConfigParams::m_width,
@@ -474,34 +405,6 @@ void IrrDriver::initDevice()
             if(m_device)
                 break;
         }   // for bits=32, 24, 16
-
-
-        // if still no device, try with a default screen size, maybe
-        // size is the problem
-        if(!m_device)
-        {
-            UserConfigParams::m_width  = MIN_SUPPORTED_WIDTH;
-            UserConfigParams::m_height = MIN_SUPPORTED_HEIGHT;
-#if defined(USE_GLES2)
-            m_device = createDevice(video::EDT_OGLES2,
-#else
-            m_device = createDevice(video::EDT_OPENGL,
-#endif
-                        core::dimension2du(UserConfigParams::m_width,
-                                           UserConfigParams::m_height ),
-                                    32, //bits per pixel
-                                    UserConfigParams::m_fullscreen,
-                                    false,  // stencil buffers
-                                    false,  // vsync
-                                    this,   // event receiver
-                                    file_manager->getFileSystem()
-                                    );
-            if (m_device)
-            {
-                Log::verbose("irr_driver", "An invalid resolution was set in "
-                             "the config file, reverting to saner values\n");
-            }
-        }
     }
 
     if(!m_device)
@@ -564,64 +467,6 @@ void IrrDriver::initDevice()
 
     m_actual_screen_size = m_video_driver->getCurrentRenderTargetSize();
 
-#ifdef ENABLE_RECORDER
-    ogrRegGeneralCallback(OGR_CBT_START_RECORDING,
-        [] (void* user_data) { MessageQueue::add
-        (MessageQueue::MT_GENERIC, _("Video recording started.")); }, NULL);
-    ogrRegStringCallback(OGR_CBT_ERROR_RECORDING,
-        [](const char* s, void* user_data)
-        { Log::error("openglrecorder", "%s", s); }, NULL);
-    ogrRegStringCallback(OGR_CBT_SAVED_RECORDING,
-        [] (const char* s, void* user_data) { MessageQueue::add
-        (MessageQueue::MT_GENERIC, _("Video saved in \"%s\".", s));
-        }, NULL);
-    ogrRegIntCallback(OGR_CBT_PROGRESS_RECORDING,
-        [] (const int i, void* user_data)
-        { MessageQueue::showProgressBar(i, _("Encoding progress:")); }, NULL);
-
-    RecorderConfig cfg;
-    cfg.m_triple_buffering = 1;
-    cfg.m_record_audio = 1;
-    cfg.m_width = m_actual_screen_size.Width;
-    cfg.m_height = m_actual_screen_size.Height;
-    int vf = UserConfigParams::m_video_format;
-    cfg.m_video_format = (VideoFormat)vf;
-    cfg.m_audio_format = OGR_AF_VORBIS;
-    cfg.m_audio_bitrate = UserConfigParams::m_audio_bitrate;
-    cfg.m_video_bitrate = UserConfigParams::m_video_bitrate;
-    cfg.m_record_fps = UserConfigParams::m_record_fps;
-    cfg.m_record_jpg_quality = UserConfigParams::m_recorder_jpg_quality;
-    if (ogrInitConfig(&cfg) == 0)
-    {
-        Log::error("irr_driver",
-            "RecorderConfig is invalid, use the default one.");
-    }
-
-    ogrRegReadPixelsFunction([]
-        (int x, int y, int w, int h, unsigned int f, unsigned int t, void* d)
-        { glReadPixels(x, y, w, h, f, t, d); });
-
-#ifndef USE_GLES2
-    ogrRegPBOFunctions([](int n, unsigned int* b) { glGenBuffers(n, b); },
-        [](unsigned int t, unsigned int b) { glBindBuffer(t, b); },
-        [](unsigned int t, ptrdiff_t s, const void* d, unsigned int u)
-        { glBufferData(t, s, d, u); },
-        [](int n, const unsigned int* b) { glDeleteBuffers(n, b); },
-        [](unsigned int t, unsigned int a) { return glMapBuffer(t, a); },
-        [](unsigned int t) { return glUnmapBuffer(t); });
-#else
-    ogrRegPBOFunctionsRange([](int n, unsigned int* b) { glGenBuffers(n, b); },
-        [](unsigned int t, unsigned int b) { glBindBuffer(t, b); },
-        [](unsigned int t, ptrdiff_t s, const void* d, unsigned int u)
-        { glBufferData(t, s, d, u); },
-        [](int n, const unsigned int* b) { glDeleteBuffers(n, b); },
-        [](unsigned int t, ptrdiff_t o, ptrdiff_t l, unsigned int a) 
-        { return glMapBufferRange(t, o, l, a); },
-        [](unsigned int t) { return glUnmapBuffer(t); });
-#endif
-
-#endif
-
 #ifndef SERVER_ONLY
     if (!CVS->isGLSL())
     {
@@ -682,15 +527,6 @@ void IrrDriver::initDevice()
         m_scene_manager->getParameters()
             ->setAttribute(scene::B3D_LOADER_IGNORE_MIPMAP_FLAG, true);
 
-        // Set window to remembered position
-        if (  !UserConfigParams::m_fullscreen
-            && UserConfigParams::m_remember_window_location
-            && UserConfigParams::m_window_x >= 0
-            && UserConfigParams::m_window_y >= 0            )
-        {
-            moveWindow(UserConfigParams::m_window_x,
-                       UserConfigParams::m_window_y);
-        } // If reinstating window location
     } // If showing graphics
 
     // Initialize material2D

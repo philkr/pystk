@@ -18,7 +18,6 @@
 #include "modes/world_status.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "karts/abstract_kart.hpp"
 #include "modes/world.hpp"
@@ -58,10 +57,9 @@ void WorldStatus::reset(bool restart)
     
     // Using SETUP_PHASE will play the track into sfx first, and has no
     // other side effects.
-    m_phase           = UserConfigParams::m_race_now ? MUSIC_PHASE : SETUP_PHASE;
+    m_phase           = MUSIC_PHASE;
 
     // Parts of the initialisation-phase are skipped so do it here
-    if (UserConfigParams::m_race_now)
     {
         // Setup music and sound
         if (Weather::getInstance())
@@ -226,10 +224,8 @@ void WorldStatus::updateTime(int ticks)
         case MUSIC_PHASE:
         {
             // Start the music here when starting fast
-            if (UserConfigParams::m_race_now)
             {
                 onGo();
-                UserConfigParams::m_race_now = false;
             }
             m_race_ticks = -1;
             m_phase = RACE_PHASE;

@@ -19,7 +19,6 @@
 #include "config/stk_config.hpp"
 #include "graphics/slip_stream.hpp"
 #include "graphics/central_settings.hpp"
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_dynamic_draw_call.hpp"

@@ -484,40 +484,6 @@ bool SPTexture::threadedLoad()
                 });
         }
     }
-    else
-    {
-#ifndef MOBILE_STK
-        if (UserConfigParams::m_hq_mipmap && image->getDimension().Width > 1 &&
-            image->getDimension().Height > 1)
-        {
-            std::vector<std::pair<core::dimension2du, unsigned> >
-                mipmap_sizes;
-            unsigned width = image->getDimension().Width;
-            unsigned height = image->getDimension().Height;
-            mipmap_sizes.emplace_back(core::dimension2du(width, height),
-                0);
-            while (true)
-            {
-                width = width < 2 ? 1 : width >> 1;
-                height = height < 2 ? 1 : height >> 1;
-                mipmap_sizes.emplace_back
-                    (core::dimension2du(width, height), 0);
-                if (width == 1 && height == 1)
-                {
-                    break;
-                }
-            }
-            mipmaps.reset(irr_driver->getVideoDriver()->createImage
-                (video::ECF_A8R8G8B8, mipmap_sizes[0].first));
-            generateHQMipmap(image->lock(), mipmap_sizes,
-                (uint8_t*)mipmaps->lock());
-        }
-#endif
-        SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-        SPTextureManager::get()->addGLCommandFunction(
-            [this, image, mipmaps]()->bool
-            { return texImage2d(image, mipmaps); });
-    }
 
 #endif
     return true;

@@ -93,7 +93,6 @@ PYBIND11_MODULE(pystk, m) {
 		.def_readwrite("dynamic_lights", &PySTKGraphicsConfig::dynamic_lights, "Enable dynamic lighting")
 		.def_readwrite("dof", &PySTKGraphicsConfig::dof, "Depth of field effect")
 		.def_readwrite("particles_effects", &PySTKGraphicsConfig::particles_effects, "Particle effect 0 (none) to 2 (full)")
-		.def_readwrite("animated_characters", &PySTKGraphicsConfig::animated_characters, "Animate characters")
 		.def_readwrite("motionblur", &PySTKGraphicsConfig::motionblur, "Enable motion blur")
 		.def_readwrite("mlaa", &PySTKGraphicsConfig::mlaa, "Enable anti-aliasing")
 		.def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression, "Use texture compression")

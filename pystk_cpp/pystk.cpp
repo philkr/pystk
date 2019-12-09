@@ -290,7 +290,7 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
 	
 	setupConfig(config);
 	for(int i=0; i<config.players.size(); i++)
-		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {UserConfigParams::m_width, UserConfigParams::m_height}, "player"+std::to_string(i))) );
+		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
 	
 }
 std::vector<std::string> PySTKRace::listTracks() {
@@ -363,8 +363,6 @@ public:
 	{ return ai_controller_->finishedRace(time); }
 };
 void PySTKRace::restart() {
-	UserConfigParams::m_race_now = true;
-// 	race_manager->rerunRace();
 	World::getWorld()->reset(true /* restart */);
 }
 
@@ -531,15 +529,15 @@ void PySTKRace::setupConfig(const PySTKRaceConfig & config) {
 		std::string kart = config.players[i].kart.size() ? config.players[i].kart : (std::string)UserConfigParams::m_default_kart;
 		const KartProperties *prop = kart_properties_manager->getKart(kart);
 		if (!prop)
-			kart = UserConfigParams::m_default_kart.getDefaultValue();
+			kart = UserConfigParams::m_default_kart;
 		race_manager->setPlayerKart(i, kart);
 		race_manager->setKartTeam(i, (KartTeam)config.players[i].team);
 	}
 	race_manager->setReverseTrack(config.reverse);
 	if (config.track.length())
 		race_manager->setTrack(config.track);
-	
-	UserConfigParams::m_race_now = true;
+	else
+		race_manager->setTrack("lighthouse");
 	
 	race_manager->setNumLaps(config.laps);
 	race_manager->setNumKarts(config.num_kart);
@@ -547,18 +545,15 @@ void PySTKRace::setupConfig(const PySTKRaceConfig & config) {
 }
 
 void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
-	UserConfigParams::m_fullscreen = false;
-	UserConfigParams::m_prev_width  = UserConfigParams::m_width  = config.screen_width;
-	UserConfigParams::m_prev_height = UserConfigParams::m_height = config.screen_height;
+	UserConfigParams::m_width  = config.screen_width;
+	UserConfigParams::m_height = config.screen_height;
 	UserConfigParams::m_glow = config.glow;
 	UserConfigParams::m_bloom = config.bloom;
 	UserConfigParams::m_light_shaft = config.light_shaft;
 	UserConfigParams::m_dynamic_lights = config.dynamic_lights;
 	UserConfigParams::m_dof = config.dof;
 	UserConfigParams::m_particles_effects = config.particles_effects;
-	UserConfigParams::m_animated_characters = config.animated_characters;
 	UserConfigParams::m_motionblur = config.motionblur;
-	UserConfigParams::m_animated_characters = config.animated_characters;
 	UserConfigParams::m_mlaa = config.mlaa;
 	UserConfigParams::m_texture_compression=  config.texture_compression;
 	UserConfigParams::m_ssao = config.ssao;
@@ -574,8 +569,6 @@ void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 void PySTKRace::initUserConfig()
 {
     file_manager = new FileManager();
-    user_config  = new UserConfig();     // needs file_manager
-    user_config->loadConfig();
     // Some parts of the file manager needs user config (paths for models
     // depend on artist debug flag). So init the rest of the file manager
     // after reading the user config file.
@@ -647,10 +640,6 @@ void PySTKRace::initRest()
     race_manager->setDifficulty(
                  (RaceManager::Difficulty)(int)UserConfigParams::m_difficulty);
 
-//     if (!track_manager->getTrack(UserConfigParams::m_last_track))
-// 	UserConfigParams::m_last_track.revertToDefaults();
-
-    race_manager->setTrack(UserConfigParams::m_last_track.getDefaultValue());
 	kart_properties_manager -> loadAllKarts(false);
 
 }   // initRest
@@ -713,14 +702,6 @@ void PySTKRace::cleanUserConfig()
 	stk_config = nullptr;
     if(translations)            delete translations;
 	translations = nullptr;
-    if (user_config)
-    {
-        // In case that abort is triggered before user_config exists
-        if (UserConfigParams::m_crashed) UserConfigParams::m_crashed = false;
-        user_config->saveConfig();
-        delete user_config;
-		user_config = nullptr;
-    }
 
     if(irr_driver)              delete irr_driver;
 	irr_driver = nullptr;

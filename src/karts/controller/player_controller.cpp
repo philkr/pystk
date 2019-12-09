@@ -19,7 +19,6 @@
 
 #include "karts/controller/player_controller.hpp"
 
-#include "config/user_config.hpp"
 #include "input/input.hpp"
 #include "items/attachment.hpp"
 #include "items/item.hpp"

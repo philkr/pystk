@@ -18,7 +18,6 @@
 
 #include "tracks/check_line.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_dynamic_draw_call.hpp"

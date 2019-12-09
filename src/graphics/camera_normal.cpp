@@ -20,7 +20,6 @@
 #include "graphics/camera_normal.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/explosion_animation.hpp"
 #include "karts/kart.hpp"

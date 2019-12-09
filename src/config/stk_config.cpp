@@ -140,9 +140,6 @@ void STKConfig::load(const std::string &filename)
     CHECK_NEG(m_replay_delta_steering,     "replay delta-steering"      );
     CHECK_NEG(m_replay_delta_speed,        "replay delta-speed     "    );
     CHECK_NEG(m_replay_dt,                 "replay delta-t"             );
-    CHECK_NEG(m_minimap_size,              "minimap size"               );
-    CHECK_NEG(m_minimap_ai_icon,           "minimap ai_icon"            );
-    CHECK_NEG(m_minimap_player_icon,       "minimap player_icon"        );
     CHECK_NEG(m_smooth_angle_limit,        "physics smooth-angle-limit" );
     CHECK_NEG(m_default_track_friction,    "physics default-track-friction");
     CHECK_NEG(m_physics_fps,               "physics fps"                );
@@ -193,9 +190,6 @@ void STKConfig::init_defaults()
     m_replay_delta_steering      = -100;
     m_replay_delta_speed         = -100;
     m_replay_dt                  = -100;
-    m_minimap_size               = -100;
-    m_minimap_ai_icon            = -100;
-    m_minimap_player_icon        = -100;
     m_donate_url                 = "";
     m_password_reset_url         = "";
     m_no_explosive_items_timeout = -100.0f;
@@ -210,7 +204,6 @@ void STKConfig::init_defaults()
     m_ai_acceleration            = 1.0f;
     m_disable_steer_while_unskid = false;
     m_camera_follow_skid         = false;
-    m_cutscene_fov               = 0.61f;
     m_max_skinning_bones         = 1024;
     m_tc_quality                 = 16;
     m_server_discovery_port      = 2757;
@@ -255,23 +248,6 @@ void STKConfig::getAllData(const XMLNode * root)
 
     if(const XMLNode *kart_node = root->getNode("karts"))
         kart_node->get("max-number", &m_max_karts);
-
-    if (const XMLNode *node = root->getNode("HardwareReportServer"))
-    {
-        node->get("url", &m_server_hardware_report);
-    }
-
-    if (const XMLNode *node = root->getNode("OnlineServer"))
-    {
-        node->get("url", &m_server_api);
-        node->get("server-version", &m_server_api_version);
-    }
-
-    if (const XMLNode *node = root->getNode("AddonServer"))
-    {
-        node->get("url", &m_server_addons);
-        node->get("allow-news-redirects", &m_allow_news_redirects);
-    }
 
     if(const XMLNode *gp_node = root->getNode("grand-prix"))
     {
@@ -367,16 +343,7 @@ void STKConfig::getAllData(const XMLNode * root)
 
     if (const XMLNode *camera = root->getNode("camera"))
     {
-        camera->get("fov-1", &m_camera_fov[0]);
-        camera->get("fov-2", &m_camera_fov[1]);
-        camera->get("fov-3", &m_camera_fov[2]);
-        camera->get("fov-4", &m_camera_fov[3]);
-
-        for (unsigned int i = 4; i < MAX_PLAYER_COUNT; i++)
-        {
-            camera->get("fov-4", &m_camera_fov[i]);
-        }
-        camera->get("cutscene-fov", &m_cutscene_fov);
+        camera->get("fov-1", &m_camera_fov);
     }
 
     if(const XMLNode *skidmarks_node = root->getNode("skid-marks"))
@@ -455,13 +422,6 @@ void STKConfig::getAllData(const XMLNode * root)
 
     }
 
-    if(const XMLNode *replay_node = root->getNode("minimap"))
-    {
-        replay_node->get("size",        &m_minimap_size         );
-        replay_node->get("ai-icon",     &m_minimap_ai_icon      );
-        replay_node->get("player-icon", &m_minimap_player_icon  );
-    }
-
     if (const XMLNode *urls = root->getNode("urls"))
     {
         urls->get("donate", &m_donate_url);
@@ -506,18 +466,6 @@ void STKConfig::getAllData(const XMLNode * root)
         ns->get("min-adjust-speed", &m_snb_min_adjust_speed);
         ns->get("max-adjust-time", &m_snb_max_adjust_time);
         ns->get("adjust-length-threshold", &m_snb_adjust_length_threshold);
-    }
-
-    if (const XMLNode* nc = root->getNode("network-capabilities"))
-    {
-        for (unsigned int i = 0; i < nc->getNumNodes(); i++)
-        {
-            const XMLNode* name = nc->getNode(i);
-            std::string cap;
-            name->get("name", &cap);
-            if (!cap.empty())
-                m_network_capabilities.insert(cap);
-        }
     }
 
     // Get the default KartProperties

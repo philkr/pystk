@@ -1045,7 +1045,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
                      (int)UserConfigParams::m_default_num_karts);
     }   // --numkarts
 
-    UserConfigParams::m_race_now = true;
 
     if(CommandLine::has("--laps", &s))
     {
@@ -1084,8 +1083,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
 void initUserConfig()
 {
     file_manager = new FileManager();
-    user_config  = new UserConfig();     // needs file_manager
-    user_config->loadConfig();
     // Some parts of the file manager needs user config (paths for models
     // depend on artist debug flag). So init the rest of the file manager
     // after reading the user config file.
@@ -1364,19 +1361,6 @@ int main(int argc, char *argv[])
 
     Log::flushBuffers();
 
-#ifndef WIN32
-    if (user_config) //close logfiles
-    {
-        Log::closeOutputFiles();
-#endif
-#ifndef ANDROID
-        fclose(stderr);
-        fclose(stdout);
-#endif
-#ifndef WIN32
-    }
-#endif
-
     delete file_manager;
 
     return 0 ;
@@ -1440,14 +1424,6 @@ static void cleanUserConfig()
 {
     if(stk_config)              delete stk_config;
     if(translations)            delete translations;
-    if (user_config)
-    {
-        // In case that abort is triggered before user_config exists
-        if (UserConfigParams::m_crashed) UserConfigParams::m_crashed = false;
-        user_config->saveConfig();
-        delete user_config;
-    }
-
     if(irr_driver)              delete irr_driver;
 }   // cleanUserConfig
 

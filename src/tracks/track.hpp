@@ -329,9 +329,6 @@ private:
     /** True if the track uses fog. */
     bool                m_use_fog;
 
-    /** Can be set to force fog off (e.g. for rendering minimap). */
-    bool                m_force_disable_fog;
-
     /** True if this track supports using smoothed normals. */
     bool                m_smooth_normals;
 
@@ -352,8 +349,6 @@ private:
 
     /** The render target for the mini map, which is displayed in the race gui. */
     RenderTarget           *m_render_target;
-    float                   m_minimap_x_scale;
-    float                   m_minimap_y_scale;
 
     bool m_clouds;
 
@@ -369,8 +364,6 @@ private:
 
     float m_displacement_speed;
     int m_physical_object_uid;
-
-    bool m_minimap_invert_x_z;
 
     /** The levels for color correction
      * m_color_inlevel(black, gamma, white)
@@ -395,7 +388,6 @@ private:
     void loadArenaGraph(const XMLNode &node);
     btQuaternion getArenaStartRotation(const Vec3& xyz, float heading);
     bool loadMainTrack(const XMLNode &node);
-    void loadMinimap();
     void createWater(const XMLNode &node);
     void getMusicInformation(std::vector<std::string>&  filenames,
                              std::vector<MusicInformation*>& m_music   );
@@ -449,8 +441,6 @@ public:
     bool findGround(AbstractKart *kart);
 
     std::vector< std::vector<float> > buildHeightMap();
-    void               drawMiniMap(const core::rect<s32>& dest_rect) const;
-    void               updateMiniMapScale();
     // ------------------------------------------------------------------------
     /** Returns true if this track has an arena mode. */
     bool isArena() const { return m_is_arena; }
@@ -530,14 +520,6 @@ public:
      */
     float              getAngle(int n) const;
     // ------------------------------------------------------------------------
-    /** Returns the 2d coordinates of a point when drawn on the mini map
-     *  texture.
-     *  \param xyz Coordinates of the point to map.
-     *  \param draw_at The coordinates in pixel on the mini map of the point,
-     *         only the first two coordinates will be used.
-     */
-    void               mapPoint2MiniMap(const Vec3 &xyz, Vec3 *draw_at) const;
-    // ------------------------------------------------------------------------
     /** Returns the full path of a given file inside this track directory. */
     std::string        getTrackFile(const std::string &s) const
                                 { return m_root+"/"+s; }
@@ -579,15 +561,12 @@ public:
     const std::string& getWeatherSound() {return m_weather_sound;}
     // ------------------------------------------------------------------------
     ParticleKind* getSkyParticles         () { return m_sky_particles; }
-    // ------------------------------------------------------------------------
-    /** Override track fog value to force disabled */
-    void forceFogDisabled(bool v) { m_force_disable_fog = v; }
     //-------------------------------------------------------------------------
     /** Returns if fog is currently enabled. It can be disabled per track, or
      *  temporary be disabled (e.g. for rendering mini map). */
     bool isFogEnabled() const
     {
-        return !m_force_disable_fog && m_use_fog;
+        return m_use_fog;
     }   // isFogEnabled
 
     // ------------------------------------------------------------------------

@@ -20,7 +20,6 @@
 
 #include "io/file_manager.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "karts/kart_properties_manager.hpp"
@@ -293,8 +292,6 @@ void FileManager::discoverPaths()
     for(unsigned int i=0; i<m_root_dirs.size(); i++)
         Log::info("[FileManager]", "Data files will be fetched from: '%s'",
                    m_root_dirs[i].c_str());
-    Log::info("[FileManager]", "User directory is '%s'.",
-              m_user_config_dir.c_str());
     Log::info("[FileManager]", "Addons files will be stored in '%s'.",
                m_addons_dir.c_str());
     Log::info("[FileManager]", "Screenshots will be stored in '%s'.",
@@ -426,14 +423,8 @@ FileManager::~FileManager()
         StkTime::TimeType current = StkTime::getTimeSinceEpoch();
         if(current - mystat.st_ctime <24*3600)
         {
-            if(UserConfigParams::logAddons())
-                Log::verbose("[FileManager]", "'%s' is less than 24h old "
-                             "and will not be deleted.",
-                             full_path.c_str());
             continue;
         }
-        if(UserConfigParams::logAddons())
-            Log::verbose("[FileManager]", "Deleting tmp file'%s'.",full_path.c_str());
         removeFile(full_path);
 
     }   // for i in all files in tmp
@@ -501,10 +492,6 @@ XMLNode *FileManager::createXMLTree(const std::string &filename)
     }
     catch (std::runtime_error& e)
     {
-        if (UserConfigParams::logMisc())
-        {
-            Log::error("[FileManager]", "createXMLTree: %s", e.what());
-        }
         return NULL;
     }
 }   // createXMLTree
@@ -531,10 +518,6 @@ XMLNode *FileManager::createXMLTreeFromString(const std::string & content)
     }
     catch (std::runtime_error& e)
     {
-        if (UserConfigParams::logMisc())
-        {
-            Log::error("[FileManager]", "createXMLTreeFromString: %s", e.what());
-        }
         return NULL;
     }
 }   // createXMLTreeFromString
@@ -1443,10 +1426,6 @@ bool FileManager::removeDirectory(const std::string &name) const
         if (file == "." || file == ".." || file == name + "/." ||
             file == name + "/..")
             continue;
-
-        if (UserConfigParams::logMisc())
-            Log::verbose("FileManager", "Deleting directory '%s'.",
-                         file.c_str());
 
         if (isDirectory(file))
         {

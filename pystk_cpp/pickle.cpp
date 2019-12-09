@@ -22,7 +22,6 @@ void pickle(std::ostream & s, const PySTKGraphicsConfig & o) {
     pickle(s, o.dynamic_lights);
     pickle(s, o.dof);
     pickle(s, o.particles_effects);
-    pickle(s, o.animated_characters);
     pickle(s, o.motionblur);
     pickle(s, o.mlaa);
     pickle(s, o.texture_compression);
@@ -40,7 +39,6 @@ void unpickle(std::istream & s, PySTKGraphicsConfig * o) {
     unpickle(s, &o->dynamic_lights);
     unpickle(s, &o->dof);
     unpickle(s, &o->particles_effects);
-    unpickle(s, &o->animated_characters);
     unpickle(s, &o->motionblur);
     unpickle(s, &o->mlaa);
     unpickle(s, &o->texture_compression);

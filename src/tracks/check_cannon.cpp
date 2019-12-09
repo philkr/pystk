@@ -20,7 +20,6 @@
 
 #include "animations/animation_base.hpp"
 #include "animations/ipo.hpp"
-#include "config/user_config.hpp"
 #include "graphics/show_curve.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_dynamic_draw_call.hpp"

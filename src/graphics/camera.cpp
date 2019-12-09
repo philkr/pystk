@@ -20,7 +20,6 @@
 #include "graphics/camera.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/camera_debug.hpp"
 #include "graphics/camera_end.hpp"
 #include "graphics/camera_fps.hpp"
@@ -174,9 +173,7 @@ void Camera::setupCamera()
         float(irr_driver->getActualScreenSize().Width) / m_viewport.getWidth() , 
         float(irr_driver->getActualScreenSize().Height) / m_viewport.getHeight());
 
-    m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov
-        [race_manager->getNumLocalPlayers() > 0 ?
-        race_manager->getNumLocalPlayers() - 1 : 0];
+    m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov;
 
     m_camera->setFOV(m_fov);
     m_camera->setAspectRatio(m_aspect);
