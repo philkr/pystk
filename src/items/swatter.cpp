@@ -38,7 +38,6 @@
 #include "karts/kart_properties.hpp"
 #include "modes/capture_the_flag.hpp"
 #include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
 
 #define SWAT_POS_OFFSET        core::vector3df(0.0, 0.2f, -0.4f)
 #define SWAT_ANGLE_MIN  45

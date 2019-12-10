@@ -121,14 +121,6 @@ ExplosionAnimation::ExplosionAnimation(AbstractKart* kart, bool direct_hit)
 }   // ExplosionAnimation
 
 //-----------------------------------------------------------------------------
-ExplosionAnimation::ExplosionAnimation(AbstractKart* kart, BareNetworkString* b)
-                  : AbstractKartAnimation(kart, "ExplosionAnimation")
-{
-    restoreBasicState(b);
-    restoreData(b);
-}   // RescueAnimation
-
-//-----------------------------------------------------------------------------
 void ExplosionAnimation::restoreData(BareNetworkString* b)
 {
     bool direct_hit = b->getUInt8() == 1;

@@ -25,7 +25,6 @@
 #include "graphics/material.hpp"
 #include "graphics/material_manager.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
 #include "tracks/track.hpp"
 
 #include "ISceneNode.h"

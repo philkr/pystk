@@ -69,15 +69,13 @@ void ProjectileManager::cleanup()
 void ProjectileManager::updateGraphics(float dt)
 {
     for (auto& p : m_active_projectiles)
-        p.second->updateGraphics(dt);
+        p->updateGraphics(dt);
 }   // updateGraphics
 
 // -----------------------------------------------------------------------------
 /** General projectile update call. */
 void ProjectileManager::update(int ticks)
 {
-    updateServer(ticks);
-
     HitEffects::iterator he = m_active_hit_effects.begin();
     while(he!=m_active_hit_effects.end())
     {
@@ -100,33 +98,6 @@ void ProjectileManager::update(int ticks)
 }   // update
 
 // -----------------------------------------------------------------------------
-/** Updates all rockets on the server (or no networking). */
-void ProjectileManager::updateServer(int ticks)
-{
-    auto p = m_active_projectiles.begin();
-    while (p != m_active_projectiles.end())
-    {
-        if (!p->second->hasServerState())
-        {
-            p++;
-            continue;
-        }
-        bool can_be_deleted = p->second->updateAndDelete(ticks);
-        if (can_be_deleted)
-        {
-            HitEffect* he = p->second->getHitEffect();
-            if (he)
-                addHitEffect(he);
-
-            p->second->onDeleteFlyable();
-        }
-        else
-            p++;
-    }   // while p!=m_active_projectiles.end()
-
-}   // updateServer
-
-// -----------------------------------------------------------------------------
 /** Creates a new projectile of the given type.
  *  \param kart The kart which shoots the projectile.
  *  \param type Type of projectile.
@@ -135,15 +106,6 @@ std::shared_ptr<Flyable>
     ProjectileManager::newProjectile(AbstractKart *kart,
                                      PowerupManager::PowerupType type)
 {
-    const std::string& uid = getUniqueIdentity(kart, type);
-    auto it = m_active_projectiles.find(uid);
-    // Flyable has already created before and now rewinding, re-fire it
-    if (it != m_active_projectiles.end())
-    {
-        it->second->onFireFlyable();
-        return it->second;
-    }
-
     std::shared_ptr<Flyable> f;
     switch(type)
     {
@@ -164,7 +126,7 @@ std::shared_ptr<Flyable>
     }
     // This cannot be done in constructor because of virtual function
     f->onFireFlyable();
-    m_active_projectiles[uid] = f;
+    m_active_projectiles.push_back(f);
     return f;
 }   // newProjectile
 
@@ -178,12 +140,9 @@ bool ProjectileManager::projectileIsClose(const AbstractKart * const kart,
                                          float radius)
 {
     float r2 = radius * radius;
-    for (auto i = m_active_projectiles.begin(); i != m_active_projectiles.end();
-        i++)
+    for (auto i: m_active_projectiles)
     {
-        if (!i->second->hasServerState())
-            continue;
-        float dist2 = i->second->getXYZ().distance2(kart->getXYZ());
+        float dist2 = i->getXYZ().distance2(kart->getXYZ());
         if (dist2 < r2)
             return true;
     }
@@ -203,17 +162,14 @@ int ProjectileManager::getNearbyProjectileCount(const AbstractKart * const kart,
 {
     float r2 = radius * radius;
     int projectile_count = 0;
-    for (auto i = m_active_projectiles.begin(); i != m_active_projectiles.end();
-         i++)
+    for (auto i: m_active_projectiles)
     {
-        if (!i->second->hasServerState())
-            continue;
-        if (i->second->getType() == type)
+        if (i->getType() == type)
         {
-            if (exclude_owned && (i->second->getOwner() == kart))
+            if (exclude_owned && (i->getOwner() == kart))
                 continue;
 
-            float dist2 = i->second->getXYZ().distance2(kart->getXYZ());
+            float dist2 = i->getXYZ().distance2(kart->getXYZ());
             if (dist2 < r2)
             {
                 projectile_count++;
@@ -223,99 +179,4 @@ int ProjectileManager::getNearbyProjectileCount(const AbstractKart * const kart,
     return projectile_count;
 }   // getNearbyProjectileCount
 
-// -----------------------------------------------------------------------------
-std::string ProjectileManager::getUniqueIdentity(AbstractKart* kart,
-                                                 PowerupManager::PowerupType t)
-{
-    BareNetworkString uid;
-    switch (t)
-    {
-        case PowerupManager::POWERUP_BOWLING:
-        {
-            uid.addUInt8(RN_BOWLING);
-            break;
-        }
-        case PowerupManager::POWERUP_PLUNGER:
-        {
-            uid.addUInt8(RN_PLUNGER);
-            break;
-        }
-        case PowerupManager::POWERUP_CAKE:
-        {
-            uid.addUInt8(RN_CAKE);
-            break;
-        }
-        case PowerupManager::POWERUP_RUBBERBALL:
-        {
-            uid.addUInt8(RN_RUBBERBALL);
-            break;
-        }
-        default:
-            assert(false);
-            return "";
-    }
-    uid.addUInt8((uint8_t)kart->getWorldKartId())
-        .addUInt32(World::getWorld()->getTicksSinceStart());
-    return std::string((char*)uid.getBuffer().data(), uid.getBuffer().size());
-}   // getUniqueIdentity
-
-// -----------------------------------------------------------------------------
-/* If any flyable is not found in current game state, create it with respect to
- * its uid as below. */
-std::shared_ptr<Rewinder>
-          ProjectileManager::addRewinderFromNetworkState(const std::string& uid)
-{
-    if (uid.size() != 6)
-        return nullptr;
-    BareNetworkString data(uid.data(), (int)uid.size());
-
-    RewinderName rn = (RewinderName)data.getUInt8();
-    if (!(rn == RN_BOWLING || rn == RN_PLUNGER ||
-        rn == RN_CAKE || rn == RN_RUBBERBALL))
-        return nullptr;
-
-    AbstractKart* kart = World::getWorld()->getKart(data.getUInt8());
-    int created_ticks = data.getUInt32();
-    std::shared_ptr<Flyable> f;
-    switch (rn)
-    {
-        case RN_BOWLING:
-        {
-            f = std::make_shared<Bowling>(kart);
-            break;
-        }
-        case RN_PLUNGER:
-        {
-            f = std::make_shared<Plunger>(kart);
-            break;
-        }
-        case RN_CAKE:
-        {
-            f = std::make_shared<Cake>(kart);
-            break;
-        }
-        case RN_RUBBERBALL:
-        {
-            f = std::make_shared<RubberBall>(kart);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-    assert(f);
-    f->setCreatedTicks(created_ticks);
-    f->onFireFlyable();
-    f->addForRewind(uid);
-    Flyable* flyable = f.get();
-    Log::debug("ProjectileManager", "Missed a firing event, "
-        "add the flyable %s by %s created at %d manually.",
-        typeid(*flyable).name(),
-        StringUtils::wideToUtf8(kart->getController()->getName()).c_str(),
-        created_ticks);
-
-    m_active_projectiles[uid] = f;
-    return f;
-}   // addProjectileFromNetworkState
 

@@ -24,7 +24,6 @@
 #include "modes/world.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
-#include "network/rewind_manager.hpp"
 #include "physics/physics.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/track.hpp"

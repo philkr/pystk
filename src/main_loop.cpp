@@ -28,7 +28,6 @@
 #include "input/input.hpp"
 #include "modes/linear_world.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
 #include "utils/profiler.hpp"

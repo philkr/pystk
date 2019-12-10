@@ -307,38 +307,6 @@ void MaxSpeed::SpeedDecrease::update(int ticks)
 }   // SpeedDecrease::update
 
 // ----------------------------------------------------------------------------
-/** Saves the state of an (active) speed decrease category. It is not called
- *  if the speed decrease is not active.
- *  \param buffer Buffer which will store the state information.
- */
-void MaxSpeed::SpeedDecrease::saveState(BareNetworkString *buffer) const
-{
-    buffer->addUInt16(m_max_speed_fraction);
-    buffer->addFloat(m_current_fraction);
-    buffer->addUInt16(m_fade_in_ticks);
-    buffer->addUInt16(m_duration);
-}   // saveState
-
-// ----------------------------------------------------------------------------
-/** Restores a previously saved state for an active speed decrease category.
- */
-void MaxSpeed::SpeedDecrease::rewindTo(BareNetworkString *buffer,
-                                       bool is_active)
-{
-    if(is_active)
-    {
-        m_max_speed_fraction = buffer->getUInt16();
-        m_current_fraction   = buffer->getFloat();
-        m_fade_in_ticks      = buffer->getUInt16();
-        m_duration           = buffer->getUInt16();
-    }
-    else   // make sure it is not active
-    {
-        reset();
-    }
-}   // rewindTo
-
-// ----------------------------------------------------------------------------
 /** Returns how much increased speed time is left over in the given category.
  *  \param category Which category to report on.
  */

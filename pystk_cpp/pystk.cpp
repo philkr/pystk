@@ -74,8 +74,6 @@
 #include "karts/kart_properties_manager.hpp"
 #include "modes/world.hpp"
 #include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
-#include "network/rewind_queue.hpp"
 #include "race/highscore_manager.hpp"
 #include "race/history.hpp"
 #include "race/race_manager.hpp"
@@ -335,10 +333,6 @@ public:
     virtual bool  isPlayerController () const { return true; }
     virtual bool  disableSlipstreamBonus() const
 	{ return ai_controller_->disableSlipstreamBonus(); }
-    virtual bool  saveState(BareNetworkString *buffer) const
-	{ ai_controller_->saveState(buffer); return false; }
-    virtual void  rewindTo(BareNetworkString *buffer)
-	{ ai_controller_->rewindTo(buffer); }
 
     // ------------------------------------------------------------------------
     /** Default: ignore actions. Only PlayerController get them. */

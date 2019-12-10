@@ -115,7 +115,7 @@ void CheckCannon::update(float dt)
 
     for (Flyable* flyable : m_all_flyables)
     {
-        if (!flyable->hasServerState() || flyable->hasAnimation())
+        if (flyable->hasAnimation())
             continue;
 
         const Vec3 current_position = flyable->getXYZ();

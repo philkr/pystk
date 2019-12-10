@@ -21,7 +21,6 @@
 #include "graphics/irr_driver.hpp"
 #include "karts/abstract_kart.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
 #include "tracks/track.hpp"
 
 #include <irrlicht.h>

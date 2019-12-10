@@ -58,19 +58,6 @@ CannonAnimation::CannonAnimation(AbstractKart* kart, CheckCannon* cc,
 }   // CannonAnimation
 
 // ----------------------------------------------------------------------------
-/** The constructor for the cannon animation for kart during rewind.
- */
-CannonAnimation::CannonAnimation(AbstractKart* kart, BareNetworkString* buffer)
-               : AbstractKartAnimation(kart, "CannonAnimation")
-{
-    restoreBasicState(buffer);
-    m_check_cannon = NULL;
-    m_flyable = NULL;
-    m_skid_rot = 0;
-    restoreData(buffer);
-}   // CannonAnimation
-
-// ----------------------------------------------------------------------------
 /** Constructor for a flyable. It sets the kart data to NULL.
  */
 CannonAnimation::CannonAnimation(Flyable* flyable, CheckCannon* cc)
@@ -84,19 +71,6 @@ CannonAnimation::CannonAnimation(Flyable* flyable, CheckCannon* cc)
     init(cc->getIpo()->clone(), cc->getLeftPoint(), cc->getRightPoint(),
         cc->getTargetLeft(), cc->getTargetRight(), /*skid_rot*/0);
 }   // CannonAnimation(Flyable*...)
-
-// ----------------------------------------------------------------------------
-/** The constructor for the cannon animation for flyable during rewind.
- */
-CannonAnimation::CannonAnimation(Flyable* flyable, BareNetworkString* buffer)
-               : AbstractKartAnimation(NULL, "CannonAnimation")
-{
-    m_flyable = flyable;
-    restoreBasicState(buffer);
-    m_check_cannon = NULL;
-    m_skid_rot = 0;
-    restoreData(buffer);
-}   // CannonAnimation
 
 // ----------------------------------------------------------------------------
 /** Common initialisation for kart-based and flyable-based animations.

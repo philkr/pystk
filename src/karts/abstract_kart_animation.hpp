@@ -81,8 +81,6 @@ protected:
 
     void resetPowerUp();
     // ------------------------------------------------------------------------
-    void restoreBasicState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
     float getMaximumHeight(const Vec3& up_vector, float height_remove);
 
 public:

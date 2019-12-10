@@ -28,7 +28,6 @@
 #include "karts/skidding.hpp"
 #include "karts/rescue_animation.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
 #include "network/network_string.hpp"
 #include "race/history.hpp"
 #include "utils/constants.hpp"

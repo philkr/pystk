@@ -69,8 +69,6 @@ friend class KartRewinder;
     void init(bool direct_hit, const Vec3& normal,
               const btTransform& reset_trans);
     // ------------------------------------------------------------------------
-    ExplosionAnimation(AbstractKart* kart, BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
     ExplosionAnimation(AbstractKart* kart, bool direct_hit);
 public:
     // ------------------------------------------------------------------------

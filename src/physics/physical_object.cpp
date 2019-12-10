@@ -675,7 +675,6 @@ bool PhysicalObject::castRay(const btVector3 &from, const btVector3 &to,
 // ----------------------------------------------------------------------------
 void PhysicalObject::reset()
 {
-    Rewinder::reset();
     m_body->setCenterOfMassTransform(m_init_pos);
     m_body->setAngularVelocity(btVector3(0,0,0));
     m_body->setLinearVelocity(btVector3(0,0,0));
@@ -773,14 +772,6 @@ void PhysicalObject::hit(const Material *m, const Vec3 &normal)
         m_body->applyCentralImpulse(normal * m_mass * 5.0f);
     }
 }   // hit
-
-// ----------------------------------------------------------------------------
-void PhysicalObject::saveTransform()
-{
-    m_no_server_state = true;
-    SmoothNetworkBody::prepareSmoothing(m_body->getWorldTransform(),
-        m_body->getLinearVelocity());
-}   // saveTransform
 
 // ----------------------------------------------------------------------------
 std::function<void()> PhysicalObject::getLocalStateRestoreFunction()

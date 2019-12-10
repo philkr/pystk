@@ -28,7 +28,6 @@
 #include "karts/controller/controller.hpp"
 #include "modes/world.hpp"
 #include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
 #include "physics/btKart.hpp"
 #include "tracks/track.hpp"
 #include "utils/log.hpp"
