@@ -109,7 +109,6 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 		true,
 		true,
 		true,
-		true,
 		false,
 		1 | 2,
 	};
@@ -123,7 +122,6 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
 		true,
 		true,
 		true,
-		true,
 		false,
 		1 | 2,
 	};
@@ -133,7 +131,6 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
 	static PySTKGraphicsConfig config = {600,400,
 		false, false, false, false, false,
 		0,
-		false,
 		false,
 		false,
 		false,
