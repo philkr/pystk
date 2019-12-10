@@ -483,6 +483,11 @@ bool SPTexture::threadedLoad()
                     return saveCompressedTexture(image, r, cache_loc);
                 });
         }
+    } else {
+        SPTextureManager::get()->increaseGLCommandFunctionCount(1);
+        SPTextureManager::get()->addGLCommandFunction(
+            [this, image, mipmaps]()->bool
+            { return texImage2d(image, mipmaps); });
     }
 
 #endif
