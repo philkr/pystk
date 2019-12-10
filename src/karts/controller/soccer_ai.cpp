@@ -500,7 +500,7 @@ int SoccerAI::getCurrentNode() const
 //-----------------------------------------------------------------------------
 bool SoccerAI::isWaiting() const
 {
-    return m_world->isStartPhase();
+    return false;
 }   // isWaiting
 
 //-----------------------------------------------------------------------------

@@ -93,7 +93,7 @@ struct Subtitle
 /**
   * \ingroup tracks
   */
-class Track: public NoCopy
+class Track
 {
 private:
 

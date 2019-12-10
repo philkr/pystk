@@ -144,8 +144,7 @@ bool LocalPlayerController::action(PlayerAction action, int value,
         m_has_started = true;
         
         {
-            float f = m_kart->getStartupBoostFromStartTicks(
-                World::getWorld()->getAuxiliaryTicks());
+            float f = m_kart->getStartupBoostFromStartTicks(0);
             m_kart->setStartupBoost(f);
         }
         

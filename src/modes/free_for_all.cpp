@@ -30,15 +30,6 @@
  */
 FreeForAll::FreeForAll() : WorldWithRank()
 {
-    if (race_manager->hasTimeTarget())
-    {
-        WorldStatus::setClockMode(WorldStatus::CLOCK_COUNTDOWN,
-            race_manager->getTimeTarget());
-    }
-    else
-    {
-        WorldStatus::setClockMode(CLOCK_CHRONO);
-    }
 }   // FreeForAll
 
 // ----------------------------------------------------------------------------
@@ -62,15 +53,6 @@ void FreeForAll::reset(bool restart)
 {
     WorldWithRank::reset(restart);
     m_count_down_reached_zero = false;
-    if (race_manager->hasTimeTarget())
-    {
-        WorldStatus::setClockMode(WorldStatus::CLOCK_COUNTDOWN,
-            race_manager->getTimeTarget());
-    }
-    else
-    {
-        WorldStatus::setClockMode(CLOCK_CHRONO);
-    }
     m_scores.clear();
     m_scores.resize(m_karts.size(), 0);
 }   // reset

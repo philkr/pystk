@@ -25,6 +25,7 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_text_billboard.hpp"
 #include "input/input.hpp"
+#include "items/item_manager.hpp"
 #include "modes/world.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "scriptengine/aswrappedcall.hpp"
@@ -173,6 +174,11 @@ namespace Scripting
         bool isDuringDay()
         {
             return ::Track::getCurrentTrack()->getIsDuringDay();
+        }
+
+        uint32_t getItemManagerRandomSeed()
+        {
+            return ItemManager::getRandomSeed();
         }
 
         void setFog(float maxDensity, float start, float end, int r, int g, int b, float duration)
@@ -537,6 +543,10 @@ namespace Scripting
                                                mp ? WRAP_FN(getMajorRaceMode) : asFUNCTION(getMajorRaceMode), 
                                                call_conv); assert(r >= 0);
                                                
+            r = engine->RegisterGlobalFunction("uint getItemManagerRandomSeed()",
+                                               mp ? WRAP_FN(getItemManagerRandomSeed) : asFUNCTION(getItemManagerRandomSeed),
+                                               call_conv); assert(r >= 0);
+
             r = engine->RegisterGlobalFunction("int getMinorRaceMode()", 
                                                mp ? WRAP_FN(getMinorRaceMode) : asFUNCTION(getMinorRaceMode), 
                                                call_conv); assert(r >= 0);
@@ -576,6 +586,10 @@ namespace Scripting
                                              
             r = engine->RegisterObjectMethod("TrackObject", "void moveTo(const Vec3 &in, bool)", 
                                              mp ? WRAP_MFN(::TrackObject, moveTo) : asMETHOD(::TrackObject, moveTo), 
+                                             call_conv_thiscall); assert(r >= 0);
+                                             
+            r = engine->RegisterObjectMethod("TrackObject", "void reset()", 
+                                             mp ? WRAP_MFN(::TrackObject, reset) : asMETHOD(::TrackObject, reset), 
                                              call_conv_thiscall); assert(r >= 0);
                                              
             r = engine->RegisterObjectMethod("TrackObject", "Vec3 getCenterPosition()", 

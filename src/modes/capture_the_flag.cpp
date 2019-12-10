@@ -352,8 +352,6 @@ void CaptureTheFlag::ctfScored(int kart_id, bool red_team_scored,
     }
 #ifndef SERVER_ONLY
     // Don't set animation and show message if receiving in live join
-    if (isStartPhase())
-        return;
     kart->getKartModel()
         ->setAnimation(KartModel::AF_WIN_START, true/*play_non_loop*/);
 #endif

@@ -645,7 +645,7 @@ void World::updateWorld(int ticks)
     assert(m_magic_number == 0xB01D6543);
 #endif
     // Don't update world if a menu is shown or the race is over.
-    if (getPhase() == FINISH_PHASE || getPhase() == IN_GAME_MENU_PHASE)
+    if (isFinishPhase())
         return;
 
     try
@@ -770,7 +770,7 @@ void World::update(int ticks)
         // Update all karts that are not eliminated
         if(!m_karts[i]->isEliminated() || (sta && sta->isMoving()))
             m_karts[i]->update(ticks);
-        if (isStartPhase())
+        if (getPhase() == SETUP_PHASE)
             m_karts[i]->makeKartRest();
     }
     PROFILER_POP_CPU_MARKER();

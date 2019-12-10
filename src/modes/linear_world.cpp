@@ -400,7 +400,7 @@ void LinearWorld::newLap(unsigned int kart_index)
 
     // if new fastest lap
     if(ticks_per_lap < m_fastest_lap_ticks && raceHasLaps() &&
-        kart_info.m_finished_laps>0 && !isLiveJoinWorld())
+        kart_info.m_finished_laps>0)
     {
         m_fastest_lap_ticks = ticks_per_lap;
 

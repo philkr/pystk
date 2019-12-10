@@ -289,7 +289,7 @@ public:
                                  scene::ISceneNode* parent,
                                  bool disable_for_multiplayer);
     virtual ~TrackObjectPresentationSound();
-    void onTriggerItemApproached();
+    void onTriggerItemApproached(int kart_id);
     virtual void updateGraphics(float dt) OVERRIDE;
     virtual void move(const core::vector3df& xyz, const core::vector3df& hpr,
         const core::vector3df& scale, bool isAbsoluteCoord) OVERRIDE;
@@ -403,7 +403,7 @@ public:
 
     virtual ~TrackObjectPresentationActionTrigger() {}
 
-    void onTriggerItemApproached();
+    void onTriggerItemApproached(int kart_id);
     // ------------------------------------------------------------------------
     /** Reset the trigger (i.e. sets it to active again). */
     virtual void reset() OVERRIDE 

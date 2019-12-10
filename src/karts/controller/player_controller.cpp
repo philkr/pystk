@@ -319,25 +319,6 @@ void PlayerController::update(int ticks)
 {
     steer(ticks, m_steer_val);
 
-    if (World::getWorld()->isStartPhase())
-    {
-        if ((m_controls->getAccel() || m_controls->getBrake()||
-            m_controls->getNitro()))
-        {
-            // Only give penalty time in READY_PHASE.
-            // Penalty time check makes sure it doesn't get rendered on every
-            // update.
-            if (m_penalty_ticks == 0 &&
-                World::getWorld()->getPhase() == WorldStatus::READY_PHASE)
-            {
-                displayPenaltyWarning();
-            }   // if penalty_time = 0
-            m_controls->setBrake(false);
-        }   // if key pressed
-
-        return;
-    }   // if isStartPhase
-
     if (m_penalty_ticks != 0 &&
         World::getWorld()->getTicksSinceStart() < m_penalty_ticks)
     {

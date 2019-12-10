@@ -224,7 +224,7 @@ void SoccerWorld::update(int ticks)
 //-----------------------------------------------------------------------------
 void SoccerWorld::onCheckGoalTriggered(bool first_goal)
 {
-    if (isRaceOver() || isStartPhase())
+    if (isRaceOver())
         return;
 
     m_ticks_back_to_own_goal = getTicksSinceStart() +

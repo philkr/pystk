@@ -31,9 +31,6 @@ WorldStatus::WorldStatus()
     m_clock_mode        = CLOCK_CHRONO;
     m_phase             = SETUP_PHASE;
 
-    m_play_ready_set_go_sounds = true;
-    m_play_racestart_sounds = true;
-    m_live_join_world = false;
     IrrlichtDevice *device = irr_driver->getDevice();
 
     if (device->getTimer()->isStopped())
@@ -47,16 +44,11 @@ void WorldStatus::reset(bool restart)
 {
     m_time            = 0.0f;
     m_time_ticks      = 0;
-    m_auxiliary_ticks = 0;
     m_count_up_ticks  = 0;
-    m_start_music_ticks = -1;
-    m_race_ticks = -1;
-    m_live_join_ticks = -1;
-    m_engines_started = false;
     
     // Using SETUP_PHASE will play the track into sfx first, and has no
     // other side effects.
-    m_phase           = MUSIC_PHASE;
+    m_phase           = SETUP_PHASE;
 
     // Parts of the initialisation-phase are skipped so do it here
     {
@@ -64,8 +56,6 @@ void WorldStatus::reset(bool restart)
         if (Weather::getInstance())
             Weather::getInstance()->playSound();
     }
-
-    m_previous_phase  = UNDEFINED_PHASE;
 
     IrrlichtDevice *device = irr_driver->getDevice();
 
@@ -112,7 +102,6 @@ void WorldStatus::enterRaceOverState()
         return;
 
     m_phase = DELAY_FINISH_PHASE;
-    m_auxiliary_ticks = 0;
 }   // enterRaceOverState
 
 //-----------------------------------------------------------------------------
@@ -148,114 +137,28 @@ void WorldStatus::updateTime(int ticks)
         // tilt way too much. A separate setup phase for the first frame
         // simplifies this handling
         case SETUP_PHASE:
-            m_auxiliary_ticks= 0;
-            m_phase = TRACK_INTRO_PHASE;
-            
-            if (Weather::getInstance())
-            {
-                Weather::getInstance()->playSound();
-            }
-
-            return;   // Do not increase time
-        case TRACK_INTRO_PHASE:
-            m_auxiliary_ticks++;
-
-            // Wait before ready phase
-            if (m_auxiliary_ticks < stk_config->time2Ticks(3.0f))
-                return;
-
-            m_auxiliary_ticks = 0;
-
-            // In a networked game the client needs to wait for a notification
-            // from the server that all clients and the server are ready to 
-            // start the game. The server will actually wait for all clients
-            // to confirm that they have started the race before starting
-            // itself. In a normal race, this phase is skipped and the race
-            // starts immediately.
-            m_phase = READY_PHASE;
-            return;   // Don't increase time
-        case WAIT_FOR_SERVER_PHASE:
-        {
-            return;   // Don't increase time
-        }
-        case SERVER_READY_PHASE:
-        {
-            return;   // Don't increase time
-        }
-        case READY_PHASE:
-            // One second
-            if (m_auxiliary_ticks > stk_config->getPhysicsFPS())
-            {
-                m_phase = SET_PHASE;
-            }
-
-            m_auxiliary_ticks++;
-
-            return;   // Do not increase time
-        case SET_PHASE:
-            if (m_auxiliary_ticks > 2*stk_config->getPhysicsFPS())
-            {
-                // set phase is over, go to the next one
-                m_phase = GO_PHASE;
-
-                // event
-                onGo();
-                // In artist debug mode, when without opponents,
-                // skip the ready/set/go counter faster
-                m_start_music_ticks = stk_config->time2Ticks(1.0f);
-                // how long to display the 'music' message
-                m_race_ticks = stk_config->time2Ticks(0);
-            }
-
-            m_auxiliary_ticks++;
-
-            return;   // Do not increase time
-        case GO_PHASE:
-        {
-            if (m_start_music_ticks != -1 &&
-                m_count_up_ticks >= m_start_music_ticks)
-            {
-                m_start_music_ticks = -1;
-                m_phase = MUSIC_PHASE;
-            }
-            break;   // Now the world time starts
-        }
-        case MUSIC_PHASE:
-        {
-            // Start the music here when starting fast
-            {
-                onGo();
-            }
-            m_race_ticks = -1;
             m_phase = RACE_PHASE;
-            break;
-        }
+            // event
+            onGo();
+            m_time_ticks = 0;
+
+            return;   // Do not increase time
         case RACE_PHASE:
             // Nothing to do for race phase, switch to delay finish phase
             // happens when
             break;
         case DELAY_FINISH_PHASE:
         {
-            m_auxiliary_ticks++;
-
-            // Change to next phase if delay is over
-            if (m_auxiliary_ticks >
-                stk_config->time2Ticks(stk_config->m_delay_finish_time))
-            {
-                m_phase = RESULT_DISPLAY_PHASE;
-                terminateRace();
-            }
-
+            m_phase = RESULT_DISPLAY_PHASE;
             break;
         }
         case RESULT_DISPLAY_PHASE:
         {
+            terminateRace();
+            m_phase = FINISH_PHASE;
             break;
         }
         case FINISH_PHASE:
-        case IN_GAME_MENU_PHASE:
-            // Nothing to do here.
-            break;
         default: break;
     }
 
@@ -320,34 +223,3 @@ void WorldStatus::setTicks(int ticks)
     m_time_ticks = ticks;
     m_time = stk_config->ticks2Time(ticks);
 }   // setTicks
-
-//-----------------------------------------------------------------------------
-/** Sets a new time for the world time (used by rewind), measured in ticks.
- *  \param ticks New time in ticks to set (always count upwards).
- */
-void WorldStatus::setTicksForRewind(int ticks)
-{
-    m_count_up_ticks = ticks;
-    if (race_manager->hasTimeTarget())
-    {
-        m_time_ticks = stk_config->time2Ticks(race_manager->getTimeTarget()) -
-            m_count_up_ticks;
-    }
-    else
-        m_time_ticks = ticks;
-    m_time = stk_config->ticks2Time(m_time_ticks);
-}   // setTicksForRewind
-
-//-----------------------------------------------------------------------------
-/** Base on the network timer set current world count up ticks to tick_now.
- */
-void WorldStatus::endLiveJoinWorld(int ticks_now)
-{
-    m_live_join_ticks = ticks_now;
-    m_live_join_world = false;
-    m_auxiliary_ticks = 0;
-    m_phase = MUSIC_PHASE;
-    m_race_ticks = m_live_join_ticks;
-    onGo();
-    setTicksForRewind(m_live_join_ticks);
-}   // endLiveJoinWorld

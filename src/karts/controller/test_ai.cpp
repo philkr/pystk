@@ -303,7 +303,7 @@ void SkiddingAI::update(int ticks)
         return;
     }
 
-    if( m_world->isStartPhase() )
+    if( m_start_delay < 0 )
     {
         handleRaceStart();
         AIBaseLapController::update(ticks);
@@ -1573,8 +1573,7 @@ void SkiddingAI::handleRaceStart()
 void SkiddingAI::handleRescue(const float dt)
 {
     // check if kart is stuck
-    if(m_kart->getSpeed()<2.0f && !m_kart->getKartAnimation() &&
-        !m_world->isStartPhase() && m_start_delay == 0)
+    if(m_kart->getSpeed()<2.0f && !m_kart->getKartAnimation() && m_start_delay == 0)
     {
         m_time_since_stuck += dt;
         if(m_time_since_stuck > 2.0f)

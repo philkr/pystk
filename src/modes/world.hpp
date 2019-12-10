@@ -296,11 +296,6 @@ public:
             m_eliminated_karts--;
     }
     // ------------------------------------------------------------------------
-    /** The code that draws the timer should call this first to know
-     *  whether the game mode wants a timer drawn. */
-    virtual bool shouldDrawTimer() const
-                    { return isActiveRacePhase() && getClockMode() != CLOCK_NONE; }
-    // ------------------------------------------------------------------------
     /** \return whether this world can generate/have highscores */
     bool useHighScores() const { return m_use_highscores; }
     // ------------------------------------------------------------------------

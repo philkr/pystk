@@ -153,6 +153,13 @@ namespace Scripting
             Log::error("Script", "%s", log->c_str());
         }
 
+        std::string toHex(uint64_t num)
+        {
+            std::ostringstream output;
+            output << std::hex << num;
+            return output.str();
+        }
+
         bool isNetworking()
         {
             return false;
@@ -247,7 +254,9 @@ namespace Scripting
                                                mp ? WRAP_FN(isNetworking) : asFUNCTION(isNetworking),
                                                call_conv); assert(r >= 0);
 
-
+            r = engine->RegisterGlobalFunction("string toHex(uint64 num)",
+                                               mp ? WRAP_FN(toHex) : asFUNCTION(toHex),
+                                               call_conv); assert(r >= 0);
         }
     }
 

@@ -299,7 +299,7 @@ void Track::cleanup()
 
     for (unsigned int i = 0; i < m_static_physics_only_nodes.size(); i++)
     {
-        m_static_physics_only_nodes[i]->drop();
+        m_static_physics_only_nodes[i]->remove();
     }
     m_static_physics_only_nodes.clear();
 
@@ -1821,8 +1821,7 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
         }   // for i<root->getNumNodes()
     }
 
-    if (m_is_ctf &&
-        race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
+    if (m_is_ctf && race_manager->isCTFMode())
     {
         for (unsigned int i=0; i<root->getNumNodes(); i++)
         {
@@ -1888,8 +1887,7 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
     unsigned int start_position_counter = 0;
 
     unsigned int node_count = root->getNumNodes();
-    const bool is_mode_ctf = m_is_ctf && race_manager->getMinorMode() ==
-        RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
+    const bool is_mode_ctf = m_is_ctf && race_manager->isCTFMode();
 
     // We keep track of the complexity of the scene (amount of objects loaded, etc)
     irr_driver->addSceneComplexity(node_count);
@@ -2227,8 +2225,7 @@ void Track::itemCommand(const XMLNode *node)
 {
     const std::string &name = node->getName();
 
-    const bool is_mode_ctf = m_is_ctf &&
-        race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
+    const bool is_mode_ctf = m_is_ctf && race_manager->isCTFMode();
     bool ctf = false;
     node->get("ctf", &ctf);
     if ((is_mode_ctf && !ctf) || (!is_mode_ctf && ctf))
@@ -2255,8 +2252,7 @@ void Track::itemCommand(const XMLNode *node)
         return;
 
     // Only do easter eggs in easter egg mode.
-    if(type==Item::ITEM_EASTER_EGG &&
-        !(race_manager->getMinorMode()==RaceManager::MINOR_MODE_EASTER_EGG))
+    if(!(race_manager->isEggHuntMode()) && type==Item::ITEM_EASTER_EGG)
     {
         Log::warn("track",
                   "Found easter egg in non-easter-egg mode - ignored.\n");

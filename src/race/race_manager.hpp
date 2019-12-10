@@ -632,24 +632,18 @@ public:
         else            return false;
     }   // isSoccerMode
 
-    // ------------------------------------------------------------------------
-    bool isFollowMode() const
-    {
-        return m_minor_mode == MINOR_MODE_FOLLOW_LEADER;
-    }
- 
-    // ------------------------------------------------------------------------
-    bool isEggHuntMode() const
-    {
-        return m_minor_mode == MINOR_MODE_EASTER_EGG;
-    }   //  isEggHuntMode
+    // ----------------------------------------------------------------------------------------
+    bool isFollowMode() const    { return m_minor_mode == MINOR_MODE_FOLLOW_LEADER; }
 
-    // ------------------------------------------------------------------------
-    bool isTimeTrialMode() const
-    {
-        return m_minor_mode == MINOR_MODE_TIME_TRIAL;
-    }   //  isTimeTrialMode
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
+    bool isCTFMode() const       { return m_minor_mode == MINOR_MODE_CAPTURE_THE_FLAG; }
+ 
+    // ----------------------------------------------------------------------------------------
+    bool isEggHuntMode() const   { return m_minor_mode == MINOR_MODE_EASTER_EGG; }
+
+    // ----------------------------------------------------------------------------------------
+    bool isTimeTrialMode() const { return m_minor_mode == MINOR_MODE_TIME_TRIAL; }
+    // ----------------------------------------------------------------------------------------
      /** \brief Returns the number of second's decimals to display */
     int currentModeTimePrecision() const
     {
