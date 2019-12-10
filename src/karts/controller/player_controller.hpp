@@ -50,8 +50,6 @@ public:
     virtual void reset             () OVERRIDE;
     virtual void handleZipper(bool play_sound) OVERRIDE;
     virtual void resetInputState();
-    virtual bool saveState(BareNetworkString *buffer) const OVERRIDE;
-    virtual void rewindTo(BareNetworkString *buffer) OVERRIDE;
     // ------------------------------------------------------------------------
     virtual void  collectedItem(const ItemState &item,
                                 float previous_energy=0 ) OVERRIDE { };

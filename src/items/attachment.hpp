@@ -116,8 +116,6 @@ public:
     void  set (AttachmentType type, int ticks,
                AbstractKart *previous_kart=NULL,
                bool set_by_rewind_parachute = false);
-    void rewindTo(BareNetworkString *buffer);
-    void saveState(BareNetworkString *buffer) const;
 
     // ------------------------------------------------------------------------
     /** Sets the type of the attachment, but keeps the old time left value. */

@@ -32,8 +32,6 @@
 #include "karts/kart_properties.hpp"
 #include "karts/max_speed.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_info.hpp"
-#include "network/rewind_manager.hpp"
 #include "tracks/quad.hpp"
 #include "utils/constants.hpp"
 #include "utils/mini_glm.hpp"

@@ -220,11 +220,6 @@ public:
      *  karts are handled by this hit() function. */
     //virtual HitEffect *getHitEffect() const {return NULL; }
     // ------------------------------------------------------------------------
-    virtual BareNetworkString* saveState(std::vector<std::string>* ru)
-        OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString *buffer, int count) OVERRIDE;
-    // ------------------------------------------------------------------------
     virtual void onFireFlyable() OVERRIDE;
 
 };   // RubberBall

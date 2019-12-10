@@ -79,20 +79,3 @@ void KartControl::setLookBack(bool b)
 {
     m_look_back   = b;
 }   // setLookBack
-// ----------------------------------------------------------------------------
-/** Copies the important data from this objects into a memory buffer. */
-void KartControl::saveState(BareNetworkString *buffer) const
-{
-    buffer->addUInt16(m_steer);
-    buffer->addUInt16(m_accel);
-    buffer->addChar(getButtonsCompressed());
-}   // saveState
-
-// ----------------------------------------------------------------------------
-/** Restores this object from a previously saved memory  buffer. */
-void KartControl::rewindTo(BareNetworkString *buffer)
-{
-    m_steer = buffer->getUInt16();
-    m_accel = buffer->getUInt16();
-    setButtonsCompressed(buffer->getUInt8());
-}   // setFromMemory

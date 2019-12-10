@@ -95,10 +95,6 @@ public:
     // ------------------------------------------------------------------------
     int getLastValidGraphNode() const { return m_last_valid_graph_node; }
     // ------------------------------------------------------------------------
-    void saveState(BareNetworkString* buffer) const;
-    // ------------------------------------------------------------------------
-    void rewindTo(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
     void saveCompleteState(BareNetworkString* bns);
     // ------------------------------------------------------------------------
     void restoreCompleteState(const BareNetworkString& b);

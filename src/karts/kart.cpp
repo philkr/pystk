@@ -1162,7 +1162,6 @@ void Kart::update(int ticks)
     }
 
     float dt = stk_config->ticks2Time(ticks);
-    if (!RewindManager::get()->isRewinding())
     {
         m_time_previous_counter += dt;
         while (m_time_previous_counter > stk_config->ticks2Time(1))
@@ -1263,8 +1262,7 @@ void Kart::update(int ticks)
         m_invulnerable_ticks -= ticks;
     }
 
-    if (!RewindManager::get()->isRewinding())
-        m_slipstream->update(ticks);
+    m_slipstream->update(ticks);
     m_slipstream->updateSpeedIncrease();
 
     // TODO: hiker said this probably will be moved to btKart or so when updating bullet engine.
@@ -1519,8 +1517,6 @@ void Kart::update(int ticks)
         }
     }
 
-    if (RewindManager::get()->isRewinding())
-        return;
     // Remove the shadow if the kart is not on the ground (if a kart
     // is rescued isOnGround might still be true, since the kart rigid
     // body was removed from the physics, but still retain the old
@@ -1913,7 +1909,6 @@ void Kart::updateNitro(int ticks)
             m_min_nitro_ticks = 1;
     }
 
-    bool rewinding = RewindManager::get()->isRewinding();
     bool increase_speed = (m_min_nitro_ticks > 0 && isOnGround());
 
 

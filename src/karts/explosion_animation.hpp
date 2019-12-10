@@ -88,10 +88,6 @@ public:
     virtual KartAnimationType getAnimationType() const
                                                       { return KAT_EXPLOSION; }
     // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
     bool hasResetAlready() const;
 
 };   // ExplosionAnimation

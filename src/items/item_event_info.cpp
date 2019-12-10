@@ -19,7 +19,6 @@
 #include "items/item_event_info.hpp"
 
 #include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
 
 
 /** Loads an event from a server message. It helps encapsulate the encoding
@@ -56,11 +55,3 @@ ItemEventInfo::ItemEventInfo(BareNetworkString *buffer, int *count)
         m_kart_id = -1;
     }
 }   // ItemEventInfo(BareNetworkString, int *count)
-
-//-----------------------------------------------------------------------------
-/** Stores this event into a network string.
- *  \param buffer The network string to which the data should be appended.
- */
-void ItemEventInfo::saveState(BareNetworkString *buffer)
-{
-}   // saveState

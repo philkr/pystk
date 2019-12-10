@@ -177,27 +177,3 @@ float AbstractKartAnimation::getMaximumHeight(const Vec3& up_vector,
     }
     return hit_dest;
 }   // getMaximumHeight
-
-// ----------------------------------------------------------------------------
-void AbstractKartAnimation::saveState(BareNetworkString* buffer)
-{
-    buffer->addUInt32(m_created_ticks);
-    buffer->addInt24(m_created_transform_compressed[0])
-        .addInt24(m_created_transform_compressed[1])
-        .addInt24(m_created_transform_compressed[2])
-        .addUInt32(m_created_transform_compressed[3]);
-}   // saveState
-
-// ----------------------------------------------------------------------------
-/** Used in constructor of sub-class as no virtual function can be used there.
- */
-void AbstractKartAnimation::restoreBasicState(BareNetworkString* buffer)
-{
-    m_created_ticks = buffer->getUInt32();
-    m_created_transform_compressed[0] = buffer->getInt24();
-    m_created_transform_compressed[1] = buffer->getInt24();
-    m_created_transform_compressed[2] = buffer->getInt24();
-    m_created_transform_compressed[3] = buffer->getUInt32();
-    m_created_transform =
-        MiniGLM::decompressbtTransform(m_created_transform_compressed);
-}   // restoreBasicState

@@ -58,10 +58,6 @@ public:
     /** Updates a plugin. This is called once each time frame. If the
      *  function returns true, the attachment is discarded. */
     virtual bool updateAndTestFinished(int ticks) = 0;
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString *buffer) {}
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString *buffer) const {}
 
 };   // AttachmentPlugin
 

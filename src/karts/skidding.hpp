@@ -111,8 +111,6 @@ public:
     float updateGraphics(float dt);
     void update(int dt, bool is_on_ground, float steer,
                 KartControl::SkidControl skidding);
-    void saveState(BareNetworkString *buffer);
-    void rewindTo(BareNetworkString *buffer);
     // ------------------------------------------------------------------------
     /** Determines how much the graphics model of the kart should be rotated
      *  additionally (for skidding), depending on how long the kart has been

@@ -167,15 +167,3 @@ void RescueAnimation::updateGraphics(float dt)
     m_referee->setAnimationFrameWithCreatedTicks(m_created_ticks);
     AbstractKartAnimation::updateGraphics(dt);
 }   // updateGraphics
-
-// ----------------------------------------------------------------------------
-void RescueAnimation::saveState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::saveState(buffer);
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void RescueAnimation::restoreState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::restoreState(buffer);
-}   // restoreState

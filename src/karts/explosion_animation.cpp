@@ -301,24 +301,3 @@ bool ExplosionAnimation::hasResetAlready() const
         World::getWorld()->getTicksSinceStart() > m_reset_ticks;
 }   // update
 
-// ----------------------------------------------------------------------------
-void ExplosionAnimation::saveState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::saveState(buffer);
-    buffer->addUInt8(m_direct_hit ? 1 : 0);
-    if (race_manager->getMinorMode() ==
-        RaceManager::MINOR_MODE_CAPTURE_THE_FLAG && m_direct_hit)
-    {
-        buffer->addInt24(m_reset_trans_compressed[0])
-            .addInt24(m_reset_trans_compressed[1])
-            .addInt24(m_reset_trans_compressed[2])
-            .addUInt32(m_reset_trans_compressed[3]);
-    }
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void ExplosionAnimation::restoreState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::restoreState(buffer);
-    restoreData(buffer);
-}   // restoreState

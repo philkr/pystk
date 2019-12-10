@@ -251,53 +251,6 @@ void Plunger::hitTrack()
 }   // hitTrack
 
 // ----------------------------------------------------------------------------
-BareNetworkString* Plunger::saveState(std::vector<std::string>* ru)
-{
-    BareNetworkString* buffer = Flyable::saveState(ru);
-    if (!buffer)
-        return NULL;
-
-    buffer->addUInt16(m_keep_alive);
-    if (m_rubber_band)
-        buffer->addUInt8(m_rubber_band->get8BitState());
-    else
-        buffer->addUInt8(255);
-    return buffer;
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void Plunger::restoreState(BareNetworkString *buffer, int count)
-{
-    Flyable::restoreState(buffer, count);
-    m_keep_alive = buffer->getUInt16();
-    // Restore position base on m_keep_alive in Plunger::hit
-    if (m_keep_alive == -1)
-        m_moved_to_infinity = false;
-    else
-    {
-        moveToInfinity(false/*set_moveable_trans*/);
-        m_moved_to_infinity = true;
-    }
-
-    uint8_t bit_state = buffer->getUInt8();
-    if (bit_state == 255 && m_rubber_band)
-    {
-        delete m_rubber_band;
-        m_rubber_band = NULL;
-        if (!m_reverse_mode)
-            m_reverse_mode = true;
-    }
-    else if (bit_state != 255 && !m_rubber_band)
-    {
-        m_rubber_band = new RubberBand(this, m_owner);
-        if (m_reverse_mode)
-            m_reverse_mode = false;
-    }
-    if (bit_state != 255)
-        m_rubber_band->set8BitState(bit_state);
-}   // restoreState
-
-// ----------------------------------------------------------------------------
 void Plunger::onDeleteFlyable()
 {
     Flyable::onDeleteFlyable();

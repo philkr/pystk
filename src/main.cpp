@@ -884,8 +884,6 @@ int handleCmdLine(bool has_server_config, bool has_parent_process)
         AIBaseController::enableDebug();
     if(CommandLine::has("--test-ai", &n))
         AIBaseController::setTestAI(n);
-    if (CommandLine::has("--rewind") )
-        RewindManager::setEnable(true);
     if (CommandLine::has( "--difficulty", &s))
     {
         int n = atoi(s.c_str());

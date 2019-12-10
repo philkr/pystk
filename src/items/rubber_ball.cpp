@@ -26,8 +26,6 @@
 #include "karts/kart_properties.hpp"
 #include "modes/linear_world.hpp"
 #include "network/network_string.hpp"
-#include "network/rewind_info.hpp"
-#include "network/rewind_manager.hpp"
 #include "physics/btKart.hpp"
 #include "physics/triangle_mesh.hpp"
 #include "tracks/check_manager.hpp"
@@ -454,8 +452,7 @@ bool RubberBall::updateAndDelete(int ticks)
         scale = height / m_extend.getY();
 
 #ifndef SERVER_ONLY
-    if (!RewindManager::get()->isRewinding())
-        m_node->setScale(core::vector3df(1.0f, scale, 1.0f));
+    m_node->setScale(core::vector3df(1.0f, scale, 1.0f));
 #endif
 
     next_xyz = getHitPoint() + getNormal() * (height * scale);
@@ -841,57 +838,3 @@ bool RubberBall::hit(AbstractKart* kart, PhysicalObject* object)
     }
     return was_real_hit;
 }   // hit
-
-// ----------------------------------------------------------------------------
-BareNetworkString* RubberBall::saveState(std::vector<std::string>* ru)
-{
-    BareNetworkString* buffer = Flyable::saveState(ru);
-    if (!buffer)
-        return NULL;
-
-    buffer->addUInt16((int16_t)m_last_aimed_graph_node);
-    buffer->add(m_control_points[0]);
-    buffer->add(m_control_points[1]);
-    buffer->add(m_control_points[2]);
-    buffer->add(m_control_points[3]);
-    buffer->add(m_previous_xyz);
-    buffer->addFloat(m_previous_height);
-    buffer->addFloat(m_length_cp_1_2);
-    buffer->addFloat(m_length_cp_2_3);
-    buffer->addFloat(m_t);
-    buffer->addFloat(m_t_increase);
-    buffer->addFloat(m_interval);
-    buffer->addFloat(m_height_timer);
-    buffer->addUInt16(m_delete_ticks);
-    buffer->addFloat(m_current_max_height);
-    buffer->addUInt8(m_tunnel_count | (m_aiming_at_target ? (1 << 7) : 0));
-    TrackSector::saveState(buffer);
-    return buffer;
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void RubberBall::restoreState(BareNetworkString *buffer, int count)
-{
-    Flyable::restoreState(buffer, count);
-    m_restoring_state = true;
-    int16_t last_aimed_graph_node = buffer->getUInt16();
-    m_last_aimed_graph_node = last_aimed_graph_node;
-    m_control_points[0] = buffer->getVec3();
-    m_control_points[1] = buffer->getVec3();
-    m_control_points[2] = buffer->getVec3();
-    m_control_points[3] = buffer->getVec3();
-    m_previous_xyz = buffer->getVec3();
-    m_previous_height = buffer->getFloat();
-    m_length_cp_1_2 = buffer->getFloat();
-    m_length_cp_2_3 = buffer->getFloat();
-    m_t = buffer->getFloat();
-    m_t_increase = buffer->getFloat();
-    m_interval = buffer->getFloat();
-    m_height_timer = buffer->getFloat();
-    m_delete_ticks = buffer->getUInt16();
-    m_current_max_height = buffer->getFloat();
-    uint8_t tunnel_and_aiming = buffer->getUInt8();
-    m_tunnel_count = tunnel_and_aiming & 127;
-    m_aiming_at_target = ((tunnel_and_aiming >> 7) & 1) == 1;
-    TrackSector::rewindTo(buffer);
-}   // restoreState

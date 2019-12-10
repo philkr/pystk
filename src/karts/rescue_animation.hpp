@@ -61,9 +61,5 @@ public:
     virtual void updateGraphics(float dt);
     // ------------------------------------------------------------------------
     virtual KartAnimationType getAnimationType() const   { return KAT_RESCUE; }
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer);
 };   // RescueAnimation
 #endif

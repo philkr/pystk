@@ -177,23 +177,6 @@ float TrackSector::getRelativeDistanceToCenter() const
 }   // getRelativeDistanceToCenter
 
 // ----------------------------------------------------------------------------
-/** Only basket ball is used for rewind for TrackSector so save the minimum.
- */
-void TrackSector::saveState(BareNetworkString* buffer) const
-{
-    buffer->addUInt16((int16_t)m_current_graph_node);
-    buffer->addFloat(m_current_track_coords.getZ());
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void TrackSector::rewindTo(BareNetworkString* buffer)
-{
-    int16_t node = buffer->getUInt16();
-    m_current_graph_node = node;
-    m_current_track_coords.setZ(buffer->getFloat());
-}   // rewindTo
-
-// ----------------------------------------------------------------------------
 /** Save completely for spectating in linear race
  */
 void TrackSector::saveCompleteState(BareNetworkString* bns)

@@ -280,9 +280,6 @@ void History::Load()
 
     // We need to disable the rewind manager here (otherwise setting the
     // KartControl data would access the rewind manager).
-    bool rewind_manager_was_enabled = RewindManager::isEnabled();
-    RewindManager::setEnable(false);
-
     for (int i=0; i<count; i++)
     {
         fgets(s, 1023, fd);
@@ -295,7 +292,6 @@ void History::Load()
         }
         ie.m_action = (PlayerAction)action;
     }   // for i
-    RewindManager::setEnable(rewind_manager_was_enabled);
 
     fclose(fd);
 }   // Load

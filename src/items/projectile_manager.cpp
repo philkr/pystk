@@ -30,7 +30,6 @@
 #include "karts/controller/controller.hpp"
 #include "modes/world.hpp"
 #include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
 #include "utils/string_utils.hpp"
 
 #include <typeinfo>
@@ -79,8 +78,6 @@ void ProjectileManager::update(int ticks)
 {
     updateServer(ticks);
 
-    if (RewindManager::get()->isRewinding())
-        return;
     HitEffects::iterator he = m_active_hit_effects.begin();
     while(he!=m_active_hit_effects.end())
     {
@@ -168,9 +165,6 @@ std::shared_ptr<Flyable>
     // This cannot be done in constructor because of virtual function
     f->onFireFlyable();
     m_active_projectiles[uid] = f;
-    if (RewindManager::get()->isEnabled())
-        f->addForRewind(uid);
-
     return f;
 }   // newProjectile
 

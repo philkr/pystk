@@ -29,7 +29,6 @@
 #include "karts/abstract_kart.hpp"
 #include "modes/world.hpp"
 #include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"

@@ -95,7 +95,6 @@ public:
 
     // --------------------------------------------------------------------
          ItemEventInfo(BareNetworkString *buffer, int *count);
-    void saveState(BareNetworkString *buffer);
 
     // --------------------------------------------------------------------
     /** Returns if this event represents a new item. */

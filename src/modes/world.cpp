@@ -106,7 +106,6 @@ World* World::m_world = NULL;
  */
 World::World() : WorldStatus()
 {
-    RewindManager::setEnable(false);
 #ifdef DEBUG
     m_magic_number = 0xB01D6543;
 #endif
@@ -148,7 +147,6 @@ void World::init()
     // in the World constuctor, since it might be overwritten by a the game
     // mode class, which would not have been constructed at the time that this
     // constructor is called, so the wrong race gui would be created.
-    RewindManager::create();
     // Grab the track file
     Track *track = track_manager->getTrack(race_manager->getTrackName());
     Scripting::ScriptEngine::getInstance<Scripting::ScriptEngine>();
@@ -274,8 +272,6 @@ void World::initTeamArrows(AbstractKart* k)
  */
 void World::reset(bool restart)
 {
-    RewindManager::get()->reset();
-
     m_schedule_pause = false;
     m_schedule_unpause = false;
 
@@ -308,7 +304,6 @@ void World::reset(bool restart)
     // of karts.
     Track::getCurrentTrack()->reset();
 
-    RewindManager::get()->reset();
     race_manager->reset();
     // Make sure to overwrite the data from the previous race.
     if(!history->replayHistory()) history->initRecording();
@@ -355,19 +350,7 @@ std::shared_ptr<AbstractKart> World::createKart
 
     int position           = index+1;
     btTransform init_pos   = getStartTransform(index - gk);
-    std::shared_ptr<AbstractKart> new_kart;
-    if (RewindManager::get()->isEnabled())
-    {
-        auto kr = std::make_shared<KartRewinder>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-        kr->rewinderAdd();
-        new_kart = kr;
-    }
-    else
-    {
-        new_kart = std::make_shared<Kart>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-    }
+    std::shared_ptr<AbstractKart> new_kart = std::make_shared<Kart>(kart_ident, index, position, init_pos, difficulty, ri);
 
     new_kart->init(race_manager->getKartType(index));
     Controller *controller = NULL;
@@ -449,7 +432,6 @@ Controller* World::loadAIController(AbstractKart* kart)
 World::~World()
 {
     material_manager->unloadAllTextures();
-    RewindManager::destroy();
 
     irr_driver->onUnloadWorld();
 
@@ -823,9 +805,6 @@ void World::update(int ticks)
     PROFILER_PUSH_CPU_MARKER("World::update (sub-updates)", 0x20, 0x7F, 0x00);
     WorldStatus::update(ticks);
     PROFILER_POP_CPU_MARKER();
-    PROFILER_PUSH_CPU_MARKER("World::update (RewindManager)", 0x20, 0x7F, 0x40);
-    RewindManager::get()->update(ticks);
-    PROFILER_POP_CPU_MARKER();
 
     PROFILER_PUSH_CPU_MARKER("World::update (Track object manager)", 0x20, 0x7F, 0x40);
     Track::getCurrentTrack()->getTrackObjectManager()->update(stk_config->ticks2Time(ticks));
@@ -1165,19 +1144,7 @@ std::shared_ptr<AbstractKart> World::createKartWithTeam
     ri = (team == KART_TEAM_BLUE ? std::make_shared<RenderInfo>(0.66f) :
         std::make_shared<RenderInfo>(1.0f));
 
-    std::shared_ptr<AbstractKart> new_kart;
-    if (RewindManager::get()->isEnabled())
-    {
-        auto kr = std::make_shared<KartRewinder>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-        kr->rewinderAdd();
-        new_kart = kr;
-    }
-    else
-    {
-        new_kart = std::make_shared<Kart>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-    }
+    std::shared_ptr<AbstractKart> new_kart = std::make_shared<Kart>(kart_ident, index, position, init_pos, difficulty, ri);
 
     new_kart->init(race_manager->getKartType(index));
     Controller *controller = NULL;

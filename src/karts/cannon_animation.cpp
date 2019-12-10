@@ -356,28 +356,6 @@ void CannonAnimation::update(int ticks)
 }   // update
 
 // ----------------------------------------------------------------------------
-void CannonAnimation::saveState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::saveState(buffer);
-    buffer->addUInt8((uint8_t)m_check_cannon->getIndex());
-    // Flyable only use Y in m_delta
-    if (m_kart)
-    {
-        buffer->addFloat(m_skid_rot).addFloat(m_fraction_of_line)
-        .addUInt32(m_current_rotation);
-    }
-    else
-        buffer->addFloat(m_delta.y());
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void CannonAnimation::restoreState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::restoreState(buffer);
-    restoreData(buffer);
-}   // restoreState
-
-// ----------------------------------------------------------------------------
 void CannonAnimation::restoreData(BareNetworkString* buffer)
 {
     // Kart cannon has 2 floats + 1 compressed quaternion

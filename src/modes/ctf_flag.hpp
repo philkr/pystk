@@ -89,16 +89,6 @@ public:
     // ------------------------------------------------------------------------
     virtual void computeError() {}
     // ------------------------------------------------------------------------
-    virtual BareNetworkString* saveState(std::vector<std::string>* ru);
-    // ------------------------------------------------------------------------
-    virtual void undoEvent(BareNetworkString* buffer) {}
-    // ------------------------------------------------------------------------
-    virtual void rewindToEvent(BareNetworkString* buffer) {}
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer, int count);
-    // ------------------------------------------------------------------------
-    virtual void undoState(BareNetworkString* buffer) {}
-    // ------------------------------------------------------------------------
     int getHolder() const
     {
         if (m_flag_status >= 0)

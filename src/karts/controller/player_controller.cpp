@@ -367,29 +367,6 @@ void PlayerController::handleZipper(bool play_sound)
     m_kart->showZipperFire();
 }   // handleZipper
 
-//-----------------------------------------------------------------------------
-bool PlayerController::saveState(BareNetworkString *buffer) const
-{
-    // NOTE: when the size changes, the AIBaseController::saveState and
-    // restore state MUST be adjusted!!
-    int steer_abs = std::abs(m_steer_val);
-    buffer->addUInt16((uint16_t)steer_abs).addUInt16(m_prev_accel)
-        .addUInt8((m_prev_brake ? 1 : 0) | (m_prev_nitro ? 2 : 0));
-    return m_steer_val < 0;
-}   // copyToBuffer
-
-//-----------------------------------------------------------------------------
-void PlayerController::rewindTo(BareNetworkString *buffer)
-{
-    // NOTE: when the size changes, the AIBaseController::saveState and
-    // restore state MUST be adjusted!!
-    m_steer_val  = buffer->getUInt16();
-    m_prev_accel = buffer->getUInt16();
-    uint8_t c = buffer->getUInt8();
-    m_prev_brake = (c & 1) != 0;
-    m_prev_nitro = (c & 2) != 0;
-}   // rewindTo
-
 // ----------------------------------------------------------------------------
 core::stringw PlayerController::getName() const
 {

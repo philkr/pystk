@@ -101,9 +101,5 @@ public:
     virtual void  update(int ticks);
     // ------------------------------------------------------------------------
     virtual KartAnimationType getAnimationType() const   { return KAT_CANNON; }
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer);
 };   // CannonAnimation
 #endif
