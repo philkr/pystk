@@ -111,6 +111,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 		true,
 		true,
 		true,
+		true,
 		false,
 		1 | 2,
 	};
@@ -119,7 +120,8 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
 	static PySTKGraphicsConfig config = {600,400,
 		false, false, false, false, false,
-		2,
+		0,
+		false,
 		true,
 		true,
 		true,
@@ -133,6 +135,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
 	static PySTKGraphicsConfig config = {600,400,
 		false, false, false, false, false,
 		0,
+		false,
 		false,
 		false,
 		false,
@@ -541,6 +544,7 @@ void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 	UserConfigParams::m_dynamic_lights = config.dynamic_lights;
 	UserConfigParams::m_dof = config.dof;
 	UserConfigParams::m_particles_effects = config.particles_effects;
+	UserConfigParams::m_animated_characters = config.animated_characters;
 	UserConfigParams::m_motionblur = config.motionblur;
 	UserConfigParams::m_mlaa = config.mlaa;
 	UserConfigParams::m_texture_compression=  config.texture_compression;

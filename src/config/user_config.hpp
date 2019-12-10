@@ -400,6 +400,7 @@ struct UserConfigParams
 
     // ---- Graphic Quality;
     static int m_particles_effects;
+    static bool m_animated_characters;
     static int m_geometry_level;
     static int m_anisotropic;
     static bool m_motionblur;

@@ -418,7 +418,7 @@ TrackObjectPresentationMesh::TrackObjectPresentationMesh(
         m_is_in_skybox = true;
     }
 
-    bool animated = skeletal_animation;
+    bool animated = skeletal_animation && UserConfigParams::m_animated_characters;
     bool displacing = false;
     xml_node.get("displacing", &displacing);
     animated &= !displacing;

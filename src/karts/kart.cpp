@@ -152,7 +152,7 @@ void Kart::init(RaceManager::KartType type)
 #ifdef SERVER_ONLY
     bool animations = false;  // server never animates
 #else
-    bool animations = true;
+    bool animations = UserConfigParams::m_animated_characters;
 #endif
     loadData(type, animations);
 
@@ -170,7 +170,7 @@ void Kart::changeKart(const std::string& new_ident,
 #ifdef SERVER_ONLY
     bool animations = false;  // server never animates
 #else
-    bool animations = true;
+    bool animations = UserConfigParams::m_animated_characters;
 #endif
     scene::ISceneNode* old_node = m_node;
 

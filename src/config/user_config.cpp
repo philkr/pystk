@@ -665,6 +665,7 @@ float UserConfigParams::m_scale_rtts_factor = 1.0f;
 int UserConfigParams::m_max_texture_size = 512;
 
 int UserConfigParams::m_particles_effects = 2;
+bool UserConfigParams::m_animated_characters = true;
 int UserConfigParams::m_geometry_level = GEOLEVEL_0;
 
 int UserConfigParams::m_anisotropic = 4;
