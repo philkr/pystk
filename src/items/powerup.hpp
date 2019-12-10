@@ -27,7 +27,6 @@
 #include <set>
 
 class AbstractKart;
-class BareNetworkString;
 class ItemState;
 
 /**

@@ -18,40 +18,4 @@
 
 #include "items/item_event_info.hpp"
 
-#include "network/network_string.hpp"
 
-
-/** Loads an event from a server message. It helps encapsulate the encoding
- *  of events from and into a message buffer.
- *  \param buffer A network string with the event data.
- *  \param count The number of bytes read will be subtracted from this value.
- */
-ItemEventInfo::ItemEventInfo(BareNetworkString *buffer, int *count)
-{
-    m_ticks_till_return = 0;
-    m_type    = (EventType)buffer->getUInt8();
-    m_ticks   = buffer->getTime();
-    *count   -= 5;
-    if (m_type != IEI_SWITCH)
-    {
-        m_kart_id = buffer->getInt8();
-        m_index = buffer->getUInt16();
-        *count -= 3;
-        if (m_type == IEI_NEW)
-        {
-            m_xyz = buffer->getVec3();
-            m_normal = buffer->getVec3();
-            *count -= 24;
-        }
-        else   // IEI_COLLECT
-        {
-            m_ticks_till_return = buffer->getUInt16();
-            *count -= 2;
-        }
-    }   // is not switch
-    else   // switch
-    {
-        m_index = -1;
-        m_kart_id = -1;
-    }
-}   // ItemEventInfo(BareNetworkString, int *count)

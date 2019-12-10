@@ -44,9 +44,6 @@ friend class Flyable;
               const Vec3 &end_left, const Vec3 &end_right, float skid_rot);
     // ------------------------------------------------------------------------
     void initDeltaHeading(float skidding_rotation);
-    // ------------------------------------------------------------------------
-    void restoreData(BareNetworkString* buffer);
-
 private:
     /** The \ref CheckCannon which created this animation. */
     CheckCannon*   m_check_cannon;

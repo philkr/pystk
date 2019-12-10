@@ -64,8 +64,6 @@ friend class KartRewinder;
     bool m_direct_hit;
 
     // ------------------------------------------------------------------------
-    void restoreData(BareNetworkString* b);
-    // ------------------------------------------------------------------------
     void init(bool direct_hit, const Vec3& normal,
               const btTransform& reset_trans);
     // ------------------------------------------------------------------------

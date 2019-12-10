@@ -30,7 +30,6 @@
 
 class AbstractKart;
 class Controller;
-class NetworkString;
 class TrackObject;
 class TrackSector;
 
@@ -386,10 +385,6 @@ public:
     /** Get the AI who will attack the other team ball chaser. */
     int getAttacker(KartTeam team) const;
     // ------------------------------------------------------------------------
-    void handlePlayerGoalFromServer(const NetworkString& ns);
-    // ------------------------------------------------------------------------
-    void handleResetBallFromServer(const NetworkString& ns);
-    // ------------------------------------------------------------------------
     virtual bool hasTeam() const OVERRIDE                      { return true; }
     // ------------------------------------------------------------------------
     virtual std::pair<uint32_t, uint32_t> getGameStartedProgress() const
@@ -414,11 +409,6 @@ public:
         }
         return progress;
     }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns,
-                                   STKPeer* peer) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b) OVERRIDE;
     // ------------------------------------------------------------------------
     virtual bool isGoalPhase() const OVERRIDE
     {

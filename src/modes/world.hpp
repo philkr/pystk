@@ -39,7 +39,6 @@
 #include "LinearMath/btTransform.h"
 
 class AbstractKart;
-class BareNetworkString;
 class btRigidBody;
 class Controller;
 class ItemState;
@@ -316,10 +315,6 @@ public:
         if (m_eliminated_karts > 0)
             m_eliminated_karts--;
     }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns, STKPeer* peer) {}
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& buffer) {}
     // ------------------------------------------------------------------------
     /** The code that draws the timer should call this first to know
      *  whether the game mode wants a timer drawn. */

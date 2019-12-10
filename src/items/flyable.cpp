@@ -39,14 +39,13 @@
 #include "karts/controller/controller.hpp"
 #include "karts/explosion_animation.hpp"
 #include "modes/linear_world.hpp"
-#include "network/network_string.hpp"
-#include "network/compress_network_body.hpp"
 #include "physics/physics.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/vs.hpp"
 #include "utils/objecttype.h"
+#include "utils/mini_glm.hpp"
 
 #include <typeinfo>
 

@@ -34,7 +34,6 @@
 #include "utils/vec3.hpp"
 
 class AbstractKart;
-class NetworkString;
 class SavedGrandPrix;
 class Track;
 
@@ -746,8 +745,6 @@ public:
     {
         return m_num_spare_tire_karts;
     }   // getNumSpareTireKarts
-    // ------------------------------------------------------------------------
-    void configGrandPrixResultFromNetwork(NetworkString& ns);
     // ------------------------------------------------------------------------
     void setHitCaptureTime(int hc, float time)
     {

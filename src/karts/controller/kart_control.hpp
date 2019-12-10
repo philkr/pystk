@@ -21,8 +21,6 @@
 
 #include "utils/types.hpp"
 
-class BareNetworkString;
-
 /**
   * \ingroup controller
   */

@@ -21,8 +21,6 @@
 #include <irrString.h>
 using namespace irr;
 
-class BareNetworkString;
-
 /**
   * \defgroup controller Karts/controller
   * Contains kart controllers, which are either human players or AIs

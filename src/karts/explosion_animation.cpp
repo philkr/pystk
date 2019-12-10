@@ -24,7 +24,7 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/follow_the_leader.hpp"
-#include "network/network_string.hpp"
+
 #include "modes/world.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/track.hpp"
@@ -119,27 +119,6 @@ ExplosionAnimation::ExplosionAnimation(AbstractKart* kart, bool direct_hit)
     if (reset)
         resetPowerUp();
 }   // ExplosionAnimation
-
-//-----------------------------------------------------------------------------
-void ExplosionAnimation::restoreData(BareNetworkString* b)
-{
-    bool direct_hit = b->getUInt8() == 1;
-    Vec3 normal = m_created_transform.getBasis().getColumn(1).normalized();
-    btTransform reset_transform =
-        btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f));
-
-    if (race_manager->getMinorMode() ==
-        RaceManager::MINOR_MODE_CAPTURE_THE_FLAG && direct_hit)
-    {
-        m_reset_trans_compressed[0] = b->getInt24();
-        m_reset_trans_compressed[1] = b->getInt24();
-        m_reset_trans_compressed[2] = b->getInt24();
-        m_reset_trans_compressed[3] = b->getUInt32();
-        reset_transform =
-            MiniGLM::decompressbtTransform(m_reset_trans_compressed);
-    }
-    init(direct_hit, normal, reset_transform);
-}   // restoreData
 
 //-----------------------------------------------------------------------------
 ExplosionAnimation::~ExplosionAnimation()

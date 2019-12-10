@@ -24,7 +24,6 @@
 #include "utils/no_copy.hpp"
 #include "utils/types.hpp"
 
-class BareNetworkString;
 class Kart;
 class ShowCurve;
 

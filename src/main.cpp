@@ -197,7 +197,7 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
+
 #include "network/rewind_manager.hpp"
 #include "network/rewind_queue.hpp"
 #include "race/highscore_manager.hpp"

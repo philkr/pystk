@@ -24,7 +24,6 @@
 #include "utils/aligned_array.hpp"
 #include "utils/vec3.hpp"
 
-class BareNetworkString;
 class CheckManager;
 class Track;
 class XMLNode;
@@ -137,14 +136,6 @@ public:
     }   // addSuccessor
     // ------------------------------------------------------------------------
     virtual bool triggeringCheckline() const { return false; }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns);
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b);
-    // ------------------------------------------------------------------------
-    void saveIsActive(int kart_id, BareNetworkString* bns);
-    // ------------------------------------------------------------------------
-    void restoreIsActive(int kart_id, const BareNetworkString& b);
     // ------------------------------------------------------------------------
     int getIndex() const { return m_index; }
 };   // CheckStructure

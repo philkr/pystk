@@ -36,7 +36,7 @@
 #include "modes/world.hpp"
 #include "modes/three_strikes_battle.hpp"
 #include "modes/soccer_world.hpp"
-#include "network/network_string.hpp"
+
 #include "replay/replay_play.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "tracks/track_manager.hpp"

@@ -25,7 +25,6 @@
 /** \defgroup karts */
 
 class AbstractKart;
-class BareNetworkString;
 
 class MaxSpeed
 {

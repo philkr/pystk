@@ -30,7 +30,6 @@
 #include <string>
 
 class AbstractKart;
-class BareNetworkString;
 
 enum KartAnimationType : uint8_t
 {

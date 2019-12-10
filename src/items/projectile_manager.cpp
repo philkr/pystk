@@ -29,7 +29,7 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
+
 #include "utils/string_utils.hpp"
 
 #include <typeinfo>
@@ -76,7 +76,22 @@ void ProjectileManager::updateGraphics(float dt)
 /** General projectile update call. */
 void ProjectileManager::update(int ticks)
 {
-    HitEffects::iterator he = m_active_hit_effects.begin();
+	std::vector<std::shared_ptr<Flyable> > new_active_projectiles;
+	for (auto p: m_active_projectiles) {
+        bool can_be_deleted = p->updateAndDelete(ticks);
+		if (!can_be_deleted)
+			new_active_projectiles.push_back(p);
+		else {
+            HitEffect* he = p->getHitEffect();
+            if (he)
+                addHitEffect(he);
+
+            p->onDeleteFlyable();
+		}
+	}
+	m_active_projectiles = new_active_projectiles;
+
+	HitEffects::iterator he = m_active_hit_effects.begin();
     while(he!=m_active_hit_effects.end())
     {
         // While this shouldn't happen, we had one crash because of this

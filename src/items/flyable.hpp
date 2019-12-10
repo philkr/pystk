@@ -24,7 +24,7 @@
 
 #include "items/powerup_manager.hpp"
 #include "karts/moveable.hpp"
-#include "network/network_string.hpp"
+
 #include "tracks/terrain_info.hpp"
 #include "utils/cpp2011.hpp"
 

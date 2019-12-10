@@ -18,7 +18,7 @@
 #include "modes/free_for_all.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
-#include "network/network_string.hpp"
+
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
 
@@ -116,14 +116,6 @@ void FreeForAll::handleScoreInServer(int kart_id, int hitter)
 }   // handleScoreInServer
 
 // ----------------------------------------------------------------------------
-void FreeForAll::setKartScoreFromServer(NetworkString& ns)
-{
-    int kart_id = ns.getUInt8();
-    int16_t score = ns.getUInt16();
-    m_scores.at(kart_id) = score;
-}   // setKartScoreFromServer
-
-// ----------------------------------------------------------------------------
 /** Returns the internal identifier for this race.
  */
 const std::string& FreeForAll::getIdent() const
@@ -201,20 +193,6 @@ bool FreeForAll::getKartFFAResult(int kart_id) const
     int top_score = getKartScore(k->getWorldKartId());
     return getKartScore(kart_id) == top_score;
 }   // getKartFFAResult
-
-// ----------------------------------------------------------------------------
-void FreeForAll::saveCompleteState(BareNetworkString* bns, STKPeer* peer)
-{
-    for (unsigned i = 0; i < m_scores.size(); i++)
-        bns->addUInt32(m_scores[i]);
-}   // saveCompleteState
-
-// ----------------------------------------------------------------------------
-void FreeForAll::restoreCompleteState(const BareNetworkString& b)
-{
-    for (unsigned i = 0; i < m_scores.size(); i++)
-        m_scores[i] = b.getUInt32();
-}   // restoreCompleteState
 
 // ----------------------------------------------------------------------------
 std::pair<uint32_t, uint32_t> FreeForAll::getGameStartedProgress() const

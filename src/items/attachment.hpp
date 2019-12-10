@@ -31,7 +31,6 @@ namespace irr
 }
 
 class AbstractKart;
-class BareNetworkString;
 class ItemState;
 
 /** This objects is permanently available in a kart and stores information

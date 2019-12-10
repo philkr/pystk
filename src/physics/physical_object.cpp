@@ -29,12 +29,12 @@
 #include "io/xml_node.hpp"
 #include "physics/physics.hpp"
 #include "physics/triangle_mesh.hpp"
-#include "network/compress_network_body.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "utils/constants.hpp"
 #include "utils/mini_glm.hpp"
 #include "utils/string_utils.hpp"
+#include "utils/mini_glm.hpp"
 
 #include <ISceneManager.h>
 #include <IMeshSceneNode.h>

@@ -23,7 +23,6 @@
 
 class AbstractKart;
 class Attachment;
-class BareNetworkString;
 
 /**
   * \ingroup items
