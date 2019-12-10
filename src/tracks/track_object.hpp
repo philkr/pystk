@@ -231,8 +231,6 @@ public:
     // ------------------------------------------------------------------------
     const ThreeDAnimation* getAnimator() const { return m_animator; }
     // ------------------------------------------------------------------------
-    void setPaused(bool mode){ m_animator->setPaused(mode); }
-    // ------------------------------------------------------------------------
     void setInitiallyVisible(bool val)           { m_initially_visible = val; }
     // ------------------------------------------------------------------------
     /** Returns if a kart can drive on this object. */

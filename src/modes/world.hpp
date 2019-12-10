@@ -137,25 +137,9 @@ protected:
         int global_player_id, RaceManager::KartType type,
         PerPlayerDifficulty difficulty);
 
-    /** Pausing/unpausing are not done immediately, but at next udpdate. The
-     *  use of this is when switching between screens : if we leave a screen
-     *  that paused the game, only to go to another screen that pauses back
-     *  the game, this mechanism prevents the game from moving on between
-     *  the switch. */
-    bool m_schedule_pause;
-
-    /** Pausing/unpausing are not done immediately, but at next udpdate. The
-     *  use of this is when switching between screens : if we leave a screen
-     *  that paused the game, only to go to another screen that pauses back
-     *  the game, this mechanism prevents the game from moving on between the
-     *  switch. */
-    bool m_schedule_unpause;
-
     bool m_schedule_exit_race;
 
     bool m_schedule_tutorial;
-
-    Phase m_scheduled_pause_phase;
 
     /** Set when the world needs to be deleted but you can't do it immediately
      * because you are e.g. within World::update()
@@ -239,8 +223,6 @@ public:
     virtual void    updateGraphics(float dt);
     virtual void    terminateRace() OVERRIDE;
     virtual void    reset(bool restart=false) OVERRIDE;
-    virtual void    pause(Phase phase) OVERRIDE;
-    virtual void    unpause() OVERRIDE;
     virtual void    getDefaultCollectibles(int *collectible_type,
                                            int *amount );
     // ------------------------------------------------------------------------
@@ -273,8 +255,6 @@ public:
     // Other functions
     // ===============
     Highscores     *getHighscores() const;
-    void            schedulePause(Phase phase);
-    void            scheduleUnpause();
     void            scheduleExitRace() { m_schedule_exit_race = true; }
     void            scheduleTutorial();
     void            updateWorld(int ticks);

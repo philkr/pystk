@@ -139,8 +139,6 @@ public:
     virtual void updateTime(int ticks);
     virtual void update(int ticks);
     void         startReadySetGo();
-    virtual void pause(Phase phase);
-    virtual void unpause();
     virtual void enterRaceOverState();
     virtual void terminateRace();
     void         setTime(const float time);

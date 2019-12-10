@@ -145,10 +145,6 @@ namespace Scripting
             World::getWorld()->scheduleExitRace();
         }
 
-        void pauseRace()
-        {
-        }
-
         int getNumberOfKarts()
         {
             return race_manager->getNumberOfKarts();
@@ -367,12 +363,6 @@ namespace Scripting
             * @{
             */
 
-            /** Pause/resumes a curve-based animation */
-            void setPaused(bool mode /** \cond DOXYGEN_IGNORE */, void *memory /** \endcond */)
-            {
-                ((ThreeDAnimation*)(memory))->setPaused(mode);
-            }
-
             /** @} */
         }
 
@@ -525,10 +515,6 @@ namespace Scripting
 
             r = engine->RegisterGlobalFunction("void exitRace()", 
                                                mp ? WRAP_FN(exitRace) : asFUNCTION(exitRace), 
-                                               call_conv); assert(r >= 0);
-                                               
-            r = engine->RegisterGlobalFunction("void pauseRace()", 
-                                               mp ? WRAP_FN(pauseRace) : asFUNCTION(pauseRace), 
                                                call_conv); assert(r >= 0);
                                                
             r = engine->RegisterGlobalFunction("void setFog(float maxDensity, float start, float end, int r, int g, int b, float duration)", 
@@ -709,16 +695,6 @@ namespace Scripting
                                              mp ? WRAP_OBJ_LAST(Light::animateEnergy) : asFUNCTION(Light::animateEnergy), 
                                              call_conv_objlast); assert(r >= 0);
 
-            // Curve based Animation
-            //fails due to insufficient visibility to scripts TODO : Decide whether to fix visibility or introduce wrappers
-            //r = engine->RegisterObjectMethod("Animator", "void setPaused(bool mode)", 
-            //                                 mp ? WRAP_MFN(ThreeDAnimation, setPaused) : asMETHOD(ThreeDAnimation, setPaused), 
-            //                                 call_conv_thiscall); assert(r >= 0);
-            
-            r = engine->RegisterObjectMethod("Animator", "void setPaused(bool mode)", 
-                                             mp ? WRAP_OBJ_LAST(Animator::setPaused) : asFUNCTION(Animator::setPaused), 
-                                             call_conv_objlast); assert(r >= 0);
-                                             
             // TODO: add method to set current frame
             // TODO: add method to launch playback from frame X to frame Y
             // TODO: add method to register onAnimationComplete notifications ?

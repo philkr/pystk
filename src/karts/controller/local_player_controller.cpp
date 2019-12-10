@@ -139,13 +139,6 @@ void LocalPlayerController::resetInputState()
 bool LocalPlayerController::action(PlayerAction action, int value,
                                    bool dry_run)
 {
-    // Pause race doesn't need to be sent to server
-    if (action == PA_PAUSE_RACE)
-    {
-        PlayerController::action(action, value);
-        return true;
-    }
-
     if (action == PA_ACCEL && value != 0 && !m_has_started)
     {
         m_has_started = true;

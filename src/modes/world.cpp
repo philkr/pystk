@@ -109,8 +109,6 @@ World::World() : WorldStatus()
 #endif
 
     m_use_highscores     = true;
-    m_schedule_pause     = false;
-    m_schedule_unpause   = false;
     m_schedule_exit_race = false;
     m_schedule_tutorial  = false;
     m_is_network_world   = false;
@@ -270,9 +268,6 @@ void World::initTeamArrows(AbstractKart* k)
  */
 void World::reset(bool restart)
 {
-    m_schedule_pause = false;
-    m_schedule_unpause = false;
-
     WorldStatus::reset(restart);
     m_faster_music_active = false;
     m_eliminated_karts    = 0;
@@ -502,9 +497,6 @@ void World::onGo()
  */
 void World::terminateRace()
 {
-    m_schedule_pause = false;
-    m_schedule_unpause = false;
-
     // Update the estimated finishing time for all karts that haven't
     // finished yet.
     const unsigned int kart_amount = getNumKarts();
@@ -540,9 +532,6 @@ void World::resetAllKarts()
     // Reset the physics 'remaining' time to 0 so that the number
     // of timesteps is reproducible if doing a physics-based history run
     Physics::getInstance()->getPhysicsWorld()->resetLocalTime();
-
-    m_schedule_pause = false;
-    m_schedule_unpause = false;
 
     //Project karts onto track from above. This will lower each kart so
     //that at least one of its wheel will be on the surface of the track
@@ -640,33 +629,6 @@ void World::moveKartTo(AbstractKart* kart, const btTransform &transform)
 
 }   // moveKartTo
 
-// ----------------------------------------------------------------------------
-void World::schedulePause(Phase phase)
-{
-    if (m_schedule_unpause)
-    {
-        m_schedule_unpause = false;
-    }
-    else
-    {
-        m_schedule_pause = true;
-        m_scheduled_pause_phase = phase;
-    }
-}   // schedulePause
-
-// ----------------------------------------------------------------------------
-void World::scheduleUnpause()
-{
-    if (m_schedule_pause)
-    {
-        m_schedule_pause = false;
-    }
-    else
-    {
-        m_schedule_unpause = true;
-    }
-}   // scheduleUnpause
-
 //-----------------------------------------------------------------------------
 /** This is the main interface to update the world. This function calls
  *  update(), and checks then for the end of the race. Note that race over
@@ -682,19 +644,6 @@ void World::updateWorld(int ticks)
 #ifdef DEBUG
     assert(m_magic_number == 0xB01D6543);
 #endif
-
-
-    if (m_schedule_pause)
-    {
-        pause(m_scheduled_pause_phase);
-        m_schedule_pause = false;
-    }
-    else if (m_schedule_unpause)
-    {
-        unpause();
-        m_schedule_unpause = false;
-    }
-
     // Don't update world if a menu is shown or the race is over.
     if (getPhase() == FINISH_PHASE || getPhase() == IN_GAME_MENU_PHASE)
         return;
@@ -1038,31 +987,6 @@ void World::getDefaultCollectibles(int *collectible_type, int *amount )
     *collectible_type = PowerupManager::POWERUP_NOTHING;
     *amount = 0;
 }   // getDefaultCollectibles
-
-//-----------------------------------------------------------------------------
-/** Pauses the music (and then pauses WorldStatus).
- */
-void World::pause(Phase phase)
-{
-    WorldStatus::pause(phase);
-}   // pause
-
-//-----------------------------------------------------------------------------
-void World::unpause()
-{
-    WorldStatus::unpause();
-
-    for(unsigned int i=0; i<m_karts.size(); i++)
-    {
-        // Note that we can not test for isPlayerController here, since
-        // an EndController will also return 'isPlayerController' if the
-        // kart belonged to a player.
-        LocalPlayerController *pc =
-            dynamic_cast<LocalPlayerController*>(m_karts[i]->getController());
-        if(pc)
-            pc->resetInputState();
-    }
-}   // pause
 
 //-----------------------------------------------------------------------------
 void World::escapePressed()

@@ -339,37 +339,6 @@ void WorldStatus::setTicksForRewind(int ticks)
 }   // setTicksForRewind
 
 //-----------------------------------------------------------------------------
-/** Pauses the game and switches to the specified phase.
- *  \param phase Phase to switch to.
- */
-void WorldStatus::pause(Phase phase)
-{
-    assert(m_previous_phase == UNDEFINED_PHASE);
-
-    m_previous_phase = m_phase;
-    m_phase          = phase;
-    IrrlichtDevice *device = irr_driver->getDevice();
-
-    if (!device->getTimer()->isStopped())
-        device->getTimer()->stop();
-}   // pause
-
-//-----------------------------------------------------------------------------
-/** Switches back from a pause state to the previous state.
- */
-void WorldStatus::unpause()
-{
-    m_phase          = m_previous_phase;
-    // Set m_previous_phase so that we can use an assert
-    // in pause to detect incorrect pause/unpause sequences.
-    m_previous_phase = UNDEFINED_PHASE;
-    IrrlichtDevice *device = irr_driver->getDevice();
-
-    if (device->getTimer()->isStopped())
-        device->getTimer()->start();
-}   // unpause
-
-//-----------------------------------------------------------------------------
 /** Base on the network timer set current world count up ticks to tick_now.
  */
 void WorldStatus::endLiveJoinWorld(int ticks_now)

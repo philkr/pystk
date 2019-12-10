@@ -200,13 +200,6 @@ namespace Scripting
             engine->RegisterEnumValue("PlayerAction", "RESCUE", PA_RESCUE);
             engine->RegisterEnumValue("PlayerAction", "FIRE", PA_FIRE);
             engine->RegisterEnumValue("PlayerAction", "LOOK_BACK", PA_LOOK_BACK);
-            engine->RegisterEnumValue("PlayerAction", "PAUSE_RACE", PA_PAUSE_RACE);
-            engine->RegisterEnumValue("PlayerAction", "MENU_UP", PA_MENU_UP);
-            engine->RegisterEnumValue("PlayerAction", "MENU_DOWN", PA_MENU_DOWN);
-            engine->RegisterEnumValue("PlayerAction", "MENU_LEFT", PA_MENU_LEFT);
-            engine->RegisterEnumValue("PlayerAction", "MENU_RIGHT", PA_MENU_RIGHT);
-            engine->RegisterEnumValue("PlayerAction", "MENU_SELECT", PA_MENU_SELECT);
-            engine->RegisterEnumValue("PlayerAction", "MENU_CANCEL", PA_MENU_CANCEL);
         }
     }
 

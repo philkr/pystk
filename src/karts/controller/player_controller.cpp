@@ -235,8 +235,6 @@ bool PlayerController::action(PlayerAction action, int value, bool dry_run)
             }
         }
         break;
-    case PA_PAUSE_RACE:
-        break;
     default:
        break;
     }
