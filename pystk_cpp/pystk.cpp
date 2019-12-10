@@ -1,4 +1,5 @@
 
+
 //
 //  SuperTuxKart - a fun racing game with go-kart
 //  Copyright (C) 2004-2015 Steve Baker <sjbaker1@airmail.net>
@@ -105,42 +106,42 @@
 const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
     static PySTKGraphicsConfig config = {600,400,
         true, true, true, true, true, 
-        2,
-        true,
-        true,
-        true,
-        true,
-        true,
-        false,
-        1 | 2,
+        2,     // particle_effects
+        true,  // animated_characters
+        true,  // motionblur
+        true,  // mlaa
+        true,  // texture_compression
+        true,  // ssao
+        false, // degraded_IBL
+        1 | 2, // high_definition_textures
     };
     return config;
 }
 const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
     static PySTKGraphicsConfig config = {600,400,
         false, false, false, false, false,
-        0,
-        false,
-        true,
-        true,
-        true,
-        true,
-        false,
-        1 | 2,
+        2,     // particle_effects
+        true,  // animated_characters
+        false,  // motionblur
+        true,  // mlaa
+        true,  // texture_compression
+        true,  // ssao
+        false, // degraded_IBL
+        1 | 2, // high_definition_textures
     };
     return config;
 }
 const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
     static PySTKGraphicsConfig config = {600,400,
         false, false, false, false, false,
-        0,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        0,
+        0,     // particle_effects
+        false, // animated_characters
+        false, // motionblur
+        false, // mlaa
+        false, // texture_compression
+        false, // ssao
+        false, // degraded_IBL
+        0,     // high_definition_textures
     };
     return config;
 }

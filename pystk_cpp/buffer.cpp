@@ -43,7 +43,12 @@ BasicPBO::~BasicPBO() {
 }
 void BasicPBO::read(GLuint texture) {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_id_);
-    glGetTextureImage(texture, 0, format_, type_, size_, 0);
+    if (GLEW_VERSION_4_5) {
+        glGetTextureImage(texture, 0, format_, type_, size_, 0);
+    } else {
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glGetTexImage(GL_TEXTURE_2D, 0, format_, type_, 0);
+    }
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 void BasicPBO::write(void * mem) {
