@@ -115,14 +115,14 @@ void SkidMarks::update(float dt, bool force_skid_marks,
 
     Vec3 raycast_right;
     Vec3 raycast_left;
-    vehicle->getVisualContactPoint(m_kart.getSmoothedTrans(), &raycast_left,
+    vehicle->getVisualContactPoint(m_kart.getTrans(), &raycast_left,
         &raycast_right);
 
-    btTransform smoothed_inv = m_kart.getSmoothedTrans().inverse();
+    btTransform smoothed_inv = m_kart.getTrans().inverse();
     Vec3 lc_l = smoothed_inv(raycast_left);
     Vec3 lc_r = smoothed_inv(raycast_right);
-    btTransform skidding_rotation = m_kart.getSmoothedTrans();
-    skidding_rotation.setRotation(m_kart.getSmoothedTrans().getRotation() *
+    btTransform skidding_rotation = m_kart.getTrans();
+    skidding_rotation.setRotation(m_kart.getTrans().getRotation() *
         btQuaternion(m_kart.getSkidding()->getVisualSkidRotation(), 0.0f, 0.0f));
     raycast_left = skidding_rotation(lc_l);
     raycast_right = skidding_rotation(lc_r);

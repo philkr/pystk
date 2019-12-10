@@ -606,15 +606,13 @@ void PhysicalObject::updateGraphics(float dt)
     if (!m_is_dynamic)
         return;
 
-    SmoothNetworkBody::updateSmoothedGraphics(m_body->getWorldTransform(),
-        m_body->getLinearVelocity(), dt);
-    Vec3 xyz = SmoothNetworkBody::getSmoothedTrans().getOrigin();
+    Vec3 xyz = m_body->getWorldTransform().getOrigin();
 
     // Offset the graphical position correctly:
-    xyz += SmoothNetworkBody::getSmoothedTrans().getBasis()*m_graphical_offset;
+    xyz += m_body->getWorldTransform().getBasis()*m_graphical_offset;
 
     Vec3 hpr;
-    hpr.setHPR(SmoothNetworkBody::getSmoothedTrans().getRotation());
+    hpr.setHPR(m_body->getWorldTransform().getRotation());
 
     // This will only update the visual position, so it can be
     // called in updateGraphics()

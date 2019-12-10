@@ -88,25 +88,6 @@ void Skidding::reset()
 }   // reset
 
 // ----------------------------------------------------------------------------
-void Skidding::prepareSmoothing()
-{
-    m_prev_visual_rotation = getVisualSkidRotation();
-}   // prepareSmoothing
-
-// ----------------------------------------------------------------------------
-void Skidding::checkSmoothing()
-{
-    float diff = fabsf(m_prev_visual_rotation - m_visual_rotation);
-    if (diff > 0.1f)
-    {
-        m_smoothing_time = m_kart->getTimeFullSteer(diff);
-        m_smoothing_dt = 0.0f;
-    }
-    else
-        m_smoothing_dt = -1.0f;
-}   // checkSmoothing
-
-// ----------------------------------------------------------------------------
 /** Computes the actual steering fraction to be used in the physics, and
  *  stores it in m_real_skidding. This is later used by kart to set the
  *  physical steering. The real steering takes skidding into account: if the

@@ -98,7 +98,6 @@ Flyable::Flyable(AbstractKart *kart, PowerupManager::PowerupType type,
 #endif
     // Smooth network body for flyable doesn't seem to be needed, most of the
     // time it rewinds almost the same
-    SmoothNetworkBody::setEnable(false);
     m_created_ticks = World::getWorld()->getTicksSinceStart();
 }   // Flyable
 
@@ -418,7 +417,6 @@ void Flyable::setAnimation(AbstractKartAnimation *animation)
  */
 void Flyable::updateGraphics(float dt)
 {
-    Moveable::updateSmoothedGraphics(dt);
     Moveable::updateGraphics();
 }   // updateGraphics
 

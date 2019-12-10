@@ -25,7 +25,6 @@
 
 #include "btBulletDynamicsCommon.h"
 
-#include "network/smooth_network_body.hpp"
 #include "physics/user_pointer.hpp"
 #include "utils/vec3.hpp"
 #include "utils/leak_check.hpp"
@@ -38,7 +37,7 @@ class XMLNode;
 /**
   * \ingroup physics
   */
-class PhysicalObject : public SmoothNetworkBody
+class PhysicalObject
 {
 public:
     /** The supported collision shapes. */

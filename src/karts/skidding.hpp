@@ -145,10 +145,6 @@ public:
     bool getSkidBonusReady() const { return m_skid_bonus_ready; }
     // ------------------------------------------------------------------------
     bool isJumping() const { return m_graphical_remaining_jump_time > 0;  }
-    // ------------------------------------------------------------------------
-    void prepareSmoothing();
-    // ------------------------------------------------------------------------
-    void checkSmoothing();
 
 };   // Skidding
 
