@@ -66,7 +66,7 @@ extern Profiler profiler;
 
 double getTimeMilliseconds();
 
-#define ENABLE_PROFILER
+// #define ENABLE_PROFILER
 
 #ifdef ENABLE_PROFILER
     #define PROFILER_PUSH_CPU_MARKER(name, r, g, b) \

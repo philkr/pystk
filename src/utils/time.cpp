@@ -20,7 +20,6 @@
 
 #include "graphics/irr_driver.hpp"
 #include "utils/log.hpp"
-#include "utils/translation.hpp"
 
 #include <ctime>
 
@@ -57,7 +56,7 @@ std::string StkTime::toString(const TimeType &tt)
     const struct tm *t = gmtime(&tt);
 
     //I18N: Format for dates (%d = day, %m = month, %Y = year). See http://www.cplusplus.com/reference/ctime/strftime/ for more info about date formats.
-    core::stringw w_date_format = translations->w_gettext(N_("%d/%m/%Y"));
+    core::stringw w_date_format = "%d/%m/%Y";
     core::stringc c_date_format(w_date_format.c_str());
     std::string date_format(c_date_format.c_str());
     if (date_format.find("%d", 0) == std::string::npos || // substring not found

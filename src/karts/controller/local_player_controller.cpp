@@ -40,7 +40,6 @@
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 /** The constructor for a loca player kart, i.e. a player that is playing
  *  on this machine (non-local player would be network clients).

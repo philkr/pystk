@@ -20,7 +20,6 @@
 #include "graphics/camera.hpp"
 
 #include "config/stk_config.hpp"
-#include "graphics/camera_debug.hpp"
 #include "graphics/camera_end.hpp"
 #include "graphics/camera_fps.hpp"
 #include "graphics/camera_normal.hpp"
@@ -79,7 +78,6 @@ Camera* Camera::createCamera(unsigned int index, CameraType type,
     {
     case CM_TYPE_NORMAL: camera = new CameraNormal(CM_TYPE_NORMAL, index, kart);
                                                                  break;
-    case CM_TYPE_DEBUG:  camera = new CameraDebug (index, kart); break;
     case CM_TYPE_FPS:    camera = new CameraFPS   (index, kart); break;
     case CM_TYPE_END:    camera = new CameraEnd   (index, kart); break;
     }   // switch type

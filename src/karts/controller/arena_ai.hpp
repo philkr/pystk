@@ -20,6 +20,7 @@
 #define HEADER_ARENA_AI_HPP
 
 #include "karts/controller/ai_base_controller.hpp"
+#include <set>
 #include "race/race_manager.hpp"
 
 #undef AI_DEBUG

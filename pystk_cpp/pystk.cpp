@@ -47,7 +47,6 @@
 #include "config/user_config.hpp"
 #include "font/font_manager.hpp"
 #include "graphics/camera.hpp"
-#include "graphics/camera_debug.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/frame_buffer.hpp"
 #include "graphics/graphics_restrictions.hpp"
@@ -90,7 +89,6 @@
 #include "utils/mini_glm.hpp"
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 #include "utils/objecttype.h"
 #include "util.hpp"
 
@@ -566,7 +564,6 @@ void PySTKRace::initUserConfig()
     // after reading the user config file.
     file_manager->init();
 
-    translations            = new Translations();   // needs file_manager
     stk_config              = new STKConfig();      // in case of --stk-config
                                                     // command line parameters
 }   // initUserConfig
@@ -586,11 +583,6 @@ void PySTKRace::initRest()
 
     // Now create the actual non-null device in the irrlicht driver
     irr_driver->initDevice();
-
-    // Init GUI
-    IrrlichtDevice* device = irr_driver->getDevice();
-    video::IVideoDriver* driver = device->getVideoDriver();
-
 
     font_manager = new FontManager();
     font_manager->loadFonts();
@@ -692,8 +684,6 @@ void PySTKRace::cleanUserConfig()
 {
     if(stk_config)              delete stk_config;
 	stk_config = nullptr;
-    if(translations)            delete translations;
-	translations = nullptr;
 
     if(irr_driver)              delete irr_driver;
 	irr_driver = nullptr;

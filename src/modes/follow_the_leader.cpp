@@ -24,7 +24,6 @@
 #include "karts/controller/controller.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <ISceneManager.h>
 
@@ -57,7 +56,6 @@ void FollowTheLeaderRace::init()
     // WorldWithRank determines the score based on getNumKarts(), but since
     // we ignore the leader, the points need to be based on number of karts -1
     stk_config->getAllScores(&m_score_for_position, getNumKarts() - 1);
-    getKart(0)->setOnScreenText(_("Leader"));
     getKart(0)->setBoostAI(true);
 }    // init
 

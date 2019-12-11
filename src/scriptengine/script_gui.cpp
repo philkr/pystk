@@ -26,7 +26,6 @@
 #include "tracks/track_object.hpp"
 #include "tracks/track_object_manager.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <angelscript.h>
 #include "scriptarray.hpp"
@@ -71,46 +70,27 @@ namespace Scripting
         /** Get translated version of string */
         std::string translate(std::string* input)
         {
-            irr::core::stringw out = translations->w_gettext(input->c_str());
-
-            return StringUtils::wideToUtf8(out);
+            return *input;
         }
 
         /** Translate string and insert values. e.g. GUI::translate("Hello %s !", "John") */
         std::string translate(std::string* formatString, std::string* arg1)
         {
-            irr::core::stringw out = translations->w_gettext(formatString->c_str());
-
-            out = StringUtils::insertValues(out,
-                                            StringUtils::utf8ToWide(*arg1));
-
-            return StringUtils::wideToUtf8(out);
+            return StringUtils::insertValues(*formatString, *arg1);
         }
 
         /** Translate string and insert values. e.g. GUI::translate("Hello %s !", "John") */
         std::string translate(std::string* formatString, std::string* arg1, std::string* arg2)
         {
-            irr::core::stringw out = translations->w_gettext(formatString->c_str());
-
-            out = StringUtils::insertValues(out,
-                                            StringUtils::utf8ToWide(*arg1),
-                                            StringUtils::utf8ToWide(*arg2));
-
-            return StringUtils::wideToUtf8(out);
+            return StringUtils::insertValues(*formatString, *arg1, *arg2);
         }
 
         /** Translate string and insert values. e.g. GUI::translate("Hello %s !", "John") */
         std::string translate(std::string* formatString, std::string* arg1, std::string* arg2,
             std::string* arg3)
         {
-            irr::core::stringw out = translations->w_gettext(formatString->c_str());
-
-            out = StringUtils::insertValues(out,
-                                            StringUtils::utf8ToWide(*arg1),
-                                            StringUtils::utf8ToWide(*arg2),
-                                            StringUtils::utf8ToWide(*arg3));
-
-            return StringUtils::wideToUtf8(out);
+            
+            return StringUtils::insertValues(*formatString, *arg1, *arg2, *arg3);
         }
         /** @}*/
         /** @}*/

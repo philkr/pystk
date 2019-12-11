@@ -52,7 +52,6 @@ public:
     enum CameraType
     {
         CM_TYPE_NORMAL,
-        CM_TYPE_DEBUG,         //!< A debug camera.
         CM_TYPE_FPS,           //!< FPS Camera
         CM_TYPE_END            //!< End camera
     };   // CameraType

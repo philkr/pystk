@@ -72,7 +72,6 @@
 #include "utils/log.hpp" //TODO: remove after debugging is done
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 #include "utils/vs.hpp"
 
 #include <ICameraSceneNode.h>

@@ -38,7 +38,6 @@
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <iostream>
 #include <stdexcept>
@@ -513,7 +512,7 @@ float KartProperties::getAccelerationEfficiency() const
 /** Returns the name of this kart. */
 core::stringw KartProperties::getName() const
 {
-    return _(m_name.c_str());
+    return m_name.c_str();
 }   // getName
 
 // ----------------------------------------------------------------------------

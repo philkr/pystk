@@ -39,7 +39,6 @@ static std::vector<UserConfigParam*> all_params;
 #include "utils/file_utils.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <algorithm>
 #include <fstream>

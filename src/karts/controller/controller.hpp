@@ -27,10 +27,8 @@ using namespace irr;
   * (this module thus contains the AIs)
   */
 #include "input/input.hpp"
-#include "utils/translation.hpp"
 
 class AbstractKart;
-class BareNetworString;
 class ItemState;
 class KartControl;
 class Material;

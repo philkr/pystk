@@ -72,7 +72,6 @@
 #include "utils/mini_glm.hpp"
 #include "utils/objecttype.h"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <IBillboardTextSceneNode.h>
 #include <ILightSceneNode.h>
@@ -186,7 +185,7 @@ bool Track::operator<(const Track &other) const
 /** Returns the name of the track, which is e.g. displayed on the screen. */
 core::stringw Track::getName() const
 {
-    core::stringw translated = _(m_name.c_str());
+    core::stringw translated = m_name.c_str();
     int index = translated.find("|");
     if(index>-1)
     {
@@ -204,7 +203,7 @@ core::stringw Track::getName() const
  */
 core::stringw Track::getSortName() const
 {
-    core::stringw translated = translations->w_gettext(m_name.c_str());
+    core::stringw translated(m_name.c_str());
     translated.make_lower();
     int index = translated.find("|");
     if(index>-1)
@@ -1690,8 +1689,7 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     // otherwise the skycube node could be modified to have fog enabled, which
     // we don't want
 #ifndef SERVER_ONLY
-    if (m_use_fog && Camera::getDefaultCameraType()!=Camera::CM_TYPE_DEBUG &&
-        !CVS->isGLSL())
+    if (m_use_fog && !CVS->isGLSL())
     {
         /* NOTE: if LINEAR type, density does not matter, if EXP or EXP2, start
            and end do not matter */
@@ -2009,7 +2007,7 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
                 subtitles[i]->get("text", &subtitle_text);
                 if (from != -1 && to != -1 && subtitle_text.size() > 0)
                 {
-                    m_subtitles.push_back( Subtitle(from, to, _(subtitle_text.c_str())) );
+                    m_subtitles.push_back( Subtitle(from, to, subtitle_text.c_str()) );
                 }
             }
         }
