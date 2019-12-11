@@ -79,8 +79,7 @@
         !defined(SERVER_ONLY)               &&         \
         !defined(_IRR_COMPILE_WITH_OGLES2_)       ) || \
       !defined(_IRR_COMPILE_WITH_B3D_LOADER_)             )
-#error "Building against an incompatible Irrlicht. Distros, \
-please use the included version."
+#error "Building against an incompatible Irrlicht. Distros, please use the included version."
 #endif
 
 using namespace irr;

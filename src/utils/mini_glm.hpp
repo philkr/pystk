@@ -610,7 +610,6 @@ namespace MiniGLM
         return trans;
     }   // decompressbtTransform
     // ------------------------------------------------------------------------
-    void unitTesting();
 }
 
 #endif

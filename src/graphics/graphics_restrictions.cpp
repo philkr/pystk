@@ -533,68 +533,6 @@ public:
     // ------------------------------------------------------------------------
 };   // class Rule
 
-// ============================================================================
-/** Very rudimentary and brute unit testing. Better than nothing :P
- */
-void unitTesting()
-{
-    assert(Version("1")     == Version("1"));
-    assert(Version("1")     != Version("2"));
-    assert(Version("1")     <= Version("2"));
-    assert(Version("1")     <  Version("2"));
-    assert(Version("1.2.3") <  Version("2"));
-    assert(Version("1.2.3") <  Version("1.3"));
-    assert(Version("1.2.3") <  Version("1.2.4"));
-    assert(Version("1.2.3") <  Version("1.2.3.1"));
-    assert(Version("1.2.3") <= Version("2"));
-    assert(Version("1.2.3") <= Version("1.3"));
-    assert(Version("1.2.3") <= Version("1.2.4"));
-    assert(Version("1.2.3") <= Version("1.2.3.1"));
-    assert(Version("1.2.3") <= Version("1.2.3"));
-    assert(Version("1.2.3") == Version("1.2.3"));
-    assert(Version("10.3")  <  Version("10.3.2"));
-    assert(Version("10.3") <=  Version("10.3.2"));
-    assert(!(Version("10.3.2") <  Version("10.3")));
-    assert(!(Version("10.3.2") <= Version("10.3")));
-    assert(Version("1.2.4") >  Version("1.2.3"));
-    assert(Version("1.2.3.4") >  Version("1.2.3"));
-    assert(Version("1.2.3") >=  Version("1.2.3"));
-    assert(Version("1.2.4") >=  Version("1.2.3"));
-    assert(Version("1.2.3.4") >=  Version("1.2.3"));
-    assert(Version("3.3 NVIDIA-10.0.19 310.90.10.05b1",
-                   "NVIDIA GeForce GTX 680MX OpenGL Engine")
-           == Version("310.90.10.5")                                    );
-
-    assert(Version("4.1 NVIDIA-10.0.43 310.41.05f01",
-                    "NVIDIA GeForce GTX 780M OpenGL Engine")
-        == Version("310.41.05"));
-
-    assert(Version("3.1 (Core Profile) Mesa 10.3.0",
-                  "Mesa DRI Mobile Intel\u00ae GM45 Express Chipset")
-           == Version("10.3.0")                                         );
-    assert(Version("3.3 (Core Profile) Mesa 10.5.0-devel",
-                   "Gallium 0.4 on NVC1")
-           == Version("10.5.0")                                         );
-    assert(Version("3.3 (Core Profile) Mesa 10.5.0-devel",
-                   "Mesa DRI Intel(R) Sandybridge Mobile")
-           == Version("10.5.0")                                         );
-    assert(Version("2.1 Mesa 10.5.0-devel (git-82e919d)",
-                   "Gallium 0.4 on i915 (chipse)")
-           == Version("10.5.0")                                         );
-    assert(Version("1.4 (3.0 Mesa 10.1.0)",
-                   "Mesa DRI Intel(R) Ivybridge Mobile")
-           == Version("10.1.0"));
-    assert(Version("4.3.13283 Core Profile Context 14.501.1003.0",
-                   "AMD Radeon R9 200 Series")
-        == Version("14.501.1003.0"));
-    assert(Version("4.0.10188 Core Profile Context",
-                   "ATI Radeon HD 5400 Series")
-        == Version("4.0.10188"));
-    assert(Version("4.1 ATI-1.24.38", "AMD Radeon HD 6970M OpenGL Engine")
-        == Version("1.24.38"));
-
-}   // unitTesting
-
 // ----------------------------------------------------------------------------
 /** Reads in the graphical restriction file.
  *  \param driver_version The GL_VERSION string (i.e. opengl and version
