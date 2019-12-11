@@ -146,7 +146,6 @@ Track::Track(const std::string &filename)
     m_godrays_opacity       = 1.0f;
     m_godrays_color         = video::SColor(255, 255, 255, 255);
     m_weather_lightning      = false;
-    m_weather_sound         = "";
     m_cache_track           = m_ident=="overworld";
     m_render_target         = NULL;
     m_startup_run           = false;
@@ -1970,7 +1969,6 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
 
             node->get("particles", &weather_particles);
             node->get("lightning", &m_weather_lightning);
-            node->get("sound", &m_weather_sound);
 
             if (weather_particles.size() > 0)
             {

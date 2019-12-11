@@ -20,7 +20,7 @@
 #ifndef HEADER_EXPLOSION_HPP
 #define HEADER_EXPLOSION_HPP
 
-#include "graphics/hit_sfx.hpp"
+#include "graphics/hit_effect.hpp"
 #include "utils/cpp2011.hpp"
 #include "utils/no_copy.hpp"
 
@@ -36,7 +36,7 @@ class ParticleEmitter;
 /**
   * \ingroup graphics
   */
-class Explosion : public HitSFX
+class Explosion : public HitEffect
 {
 private:
     int              m_remaining_ticks;
@@ -46,7 +46,7 @@ private:
 
 
 public:
-         Explosion(const Vec3& coord, const char* explosion_sound, const char * particle_file );
+         Explosion(const Vec3& coord, const char * particle_file );
         ~Explosion();
     bool updateAndDelete(int ticks) OVERRIDE;
     bool hasEnded () 

@@ -339,7 +339,7 @@ void PlayerController::update(int ticks)
 //-----------------------------------------------------------------------------
 /** Called when a kart hits or uses a zipper.
  */
-void PlayerController::handleZipper(bool play_sound)
+void PlayerController::handleZipper()
 {
     m_kart->showZipperFire();
 }   // handleZipper

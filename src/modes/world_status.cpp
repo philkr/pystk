@@ -50,13 +50,6 @@ void WorldStatus::reset(bool restart)
     // other side effects.
     m_phase           = SETUP_PHASE;
 
-    // Parts of the initialisation-phase are skipped so do it here
-    {
-        // Setup music and sound
-        if (Weather::getInstance())
-            Weather::getInstance()->playSound();
-    }
-
     IrrlichtDevice *device = irr_driver->getDevice();
 
     if (device->getTimer()->isStopped())

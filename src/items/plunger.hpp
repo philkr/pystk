@@ -46,7 +46,7 @@ private:
 
     btVector3    m_initial_velocity;
 
-    bool m_reverse_mode, m_has_locally_played_sound, m_moved_to_infinity;
+    bool m_reverse_mode, m_moved_to_infinity;
 
 public:
                  Plunger(AbstractKart *kart);

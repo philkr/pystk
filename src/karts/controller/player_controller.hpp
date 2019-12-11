@@ -27,7 +27,6 @@ class Player;
 
 class PlayerController : public Controller
 {
-friend class KartRewinder;
 protected:
     int            m_steer_val, m_steer_val_l, m_steer_val_r;
     uint16_t       m_prev_accel;
@@ -48,7 +47,7 @@ public:
                                    int value_l, int value_r);
     virtual void skidBonusTriggered() OVERRIDE;
     virtual void reset             () OVERRIDE;
-    virtual void handleZipper(bool play_sound) OVERRIDE;
+    virtual void handleZipper() OVERRIDE;
     virtual void resetInputState();
     // ------------------------------------------------------------------------
     virtual void  collectedItem(const ItemState &item,

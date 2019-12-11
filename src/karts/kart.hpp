@@ -44,7 +44,6 @@ class HitEffect;
 class Item;
 class ItemState;
 class KartGFX;
-class KartRewinder;
 class MaxSpeed;
 class ParticleEmitter;
 class ParticleKind;
@@ -235,9 +234,6 @@ protected:
     /** The current speed (i.e. length of velocity vector) of this kart. */
     float         m_speed;
 
-    /** For smoothing engine sound**/
-    float         m_last_factor_engine_sound;
-
     /** For changeKart**/
     float         m_default_suspension_force;
 
@@ -248,7 +244,6 @@ protected:
     static const int EMITTER_COUNT = 3;
 
     /** The material for which the last sound effect was played. */
-    static const int CRASH_SOUND_COUNT = 3;
     int          m_ticks_last_crash;
     int          m_ticks_last_zipper;
     RaceManager::KartType m_type;
@@ -290,8 +285,7 @@ public:
     virtual float getTerrainPitch(float heading) const OVERRIDE;
 
     virtual void   reset            () OVERRIDE;
-    virtual void   handleZipper     (const Material *m=NULL,
-                                     bool play_sound=false) OVERRIDE;
+    virtual void   handleZipper     (const Material *m=NULL) OVERRIDE;
     virtual bool   setSquash        (float time, float slowdown) OVERRIDE;
             void   setSquashGraphics();
     virtual void   unsetSquash      () OVERRIDE;

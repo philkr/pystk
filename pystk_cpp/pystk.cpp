@@ -312,8 +312,8 @@ public:
 	{ ai_controller_->reset(); }
     virtual void  update             (int ticks)
 	{ ai_controller_->update(ticks); }
-    virtual void  handleZipper       (bool play_sound)
-	{ ai_controller_->handleZipper(play_sound); }
+    virtual void  handleZipper       ()
+	{ ai_controller_->handleZipper(); }
     virtual void  collectedItem      (const ItemState &item,
                                       float previous_energy=0)
 	{ ai_controller_->collectedItem(item, previous_energy); }

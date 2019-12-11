@@ -247,8 +247,6 @@ public:
     /** Returns the size (extend) of the mesh. */
     const Vec3 &getExtend() const { return m_extend;  }
     // ------------------------------------------------------------------------
-    void addForRewind(const std::string& uid);
-    // ------------------------------------------------------------------------
     /** Call when the item is (re-)fired (during rewind if needed) by
      *  projectile_manager. */
     virtual void onFireFlyable();

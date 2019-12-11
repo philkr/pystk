@@ -36,7 +36,6 @@ namespace irr
 class AbstractKart;
 class Flyable;
 class HitEffect;
-class Rewinder;
 class Track;
 class Vec3;
 

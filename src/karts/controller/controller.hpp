@@ -57,7 +57,7 @@ public:
     virtual      ~Controller         () {};
     virtual void  reset              () = 0;
     virtual void  update             (int ticks) = 0;
-    virtual void  handleZipper       (bool play_sound) = 0;
+    virtual void  handleZipper       () = 0;
     virtual void  collectedItem      (const ItemState &item,
                                       float previous_energy=0) = 0;
     virtual void  crashed            (const AbstractKart *k) = 0;

@@ -66,18 +66,6 @@ void Powerup::reset()
 //-----------------------------------------------------------------------------
 void Powerup::update(int ticks)
 {
-    // Remove any sound ticks that should have played
-    const int remove_ticks = World::getWorld()->getTicksSinceStart() - 1000;
-    for (auto it = m_played_sound_ticks.begin();
-         it != m_played_sound_ticks.end();)
-    {
-        if (*it < remove_ticks)
-        {
-            it = m_played_sound_ticks.erase(it);
-            continue;
-        }
-        break;
-    }
 }   // update
 
 //-----------------------------------------------------------------------------
@@ -120,14 +108,6 @@ Material *Powerup::getIcon() const
  */
 void Powerup::use()
 {
-    const int ticks = World::getWorld()->getTicksSinceStart();
-    bool has_played_sound = false;
-    auto it = m_played_sound_ticks.find(ticks);
-    if (it != m_played_sound_ticks.end())
-        has_played_sound = true;
-    else
-        m_played_sound_ticks.insert(ticks);
-
     const KartProperties *kp = m_kart->getKartProperties();
 
     m_number--;
@@ -135,7 +115,7 @@ void Powerup::use()
     switch (m_type)
     {
     case PowerupManager::POWERUP_ZIPPER:
-        m_kart->handleZipper(NULL, true);
+        m_kart->handleZipper(NULL);
         break ;
     case PowerupManager::POWERUP_SWITCH:
         {

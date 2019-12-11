@@ -415,19 +415,16 @@ namespace Scripting
             /** Stop a sound */
             void stop(/** \cond DOXYGEN_IGNORE */void *memory /** \endcond */)
             {
-                ((TrackObjectPresentationSound*)memory)->stopSound();
             }
 
             /** Play the specified sound once */
             void playOnce(/** \cond DOXYGEN_IGNORE */void *memory /** \endcond */)
             {
-                ((TrackObjectPresentationSound*)memory)->triggerSound(false); //false = once
             }
 
             /** Play the specified sound continuously */
             void playLoop(/** \cond DOXYGEN_IGNORE */void *memory /** \endcond */)
             {
-                ((TrackObjectPresentationSound*)memory)->triggerSound(true); //true = loop
             }
             /** @} */
         }
@@ -560,9 +557,9 @@ namespace Scripting
                                              mp ? WRAP_MFN(::TrackObject, setEnabled) : asMETHOD(::TrackObject, setEnabled), 
                                              call_conv_thiscall); assert(r >= 0);
                                              
-            r = engine->RegisterObjectMethod("TrackObject", "SoundEmitter@ getSoundEmitter()", 
-                                             mp ? WRAP_MFN(::TrackObject, getSoundEmitter) : asMETHOD(::TrackObject, getSoundEmitter), 
-                                             call_conv_thiscall); assert(r >= 0);
+//             r = engine->RegisterObjectMethod("TrackObject", "SoundEmitter@ getSoundEmitter()", 
+//                                              mp ? WRAP_MFN(::TrackObject, getSoundEmitter) : asMETHOD(::TrackObject, getSoundEmitter), 
+//                                              call_conv_thiscall); assert(r >= 0);
                                              
             r = engine->RegisterObjectMethod("TrackObject", "Light@ getLight()", 
                                              mp ? WRAP_MFN(::TrackObject, getLight) : asMETHOD(::TrackObject, getLight), 

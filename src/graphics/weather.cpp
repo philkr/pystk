@@ -63,10 +63,6 @@ void Weather::update(float dt)
 
 // ----------------------------------------------------------------------------
 
-void Weather::playSound()
-{
-}
-
 irr::core::vector3df Weather::getIntensity()
 {
     irr::core::vector3df value = {0.7f * m_lightning, 

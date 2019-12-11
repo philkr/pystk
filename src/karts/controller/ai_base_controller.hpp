@@ -91,7 +91,7 @@ public:
     static  void setTestAI(int n) {m_test_ai = n; }
     static  int  getTestAI() { return m_test_ai; }
     virtual void crashed(const AbstractKart *k) OVERRIDE {};
-    virtual void handleZipper(bool play_sound) OVERRIDE {};
+    virtual void handleZipper() OVERRIDE {};
     virtual void finishedRace(float time) OVERRIDE {};
     virtual void collectedItem(const ItemState &item,
                                float previous_energy=0) OVERRIDE {};

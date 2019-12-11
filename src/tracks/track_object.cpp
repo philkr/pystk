@@ -172,15 +172,6 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
             Track::getCurrentTrack()->addMetaLibrary(parent_library, this);
         }
     }
-    else if (type == "sfx-emitter")
-    {
-        // FIXME: at this time sound emitters are just disabled in multiplayer
-        //        otherwise the sounds would be constantly heard, for networking
-        //        the index of item needs to be same so we create and disable it
-        //        in TrackObjectPresentationSound constructor
-        m_presentation = new TrackObjectPresentationSound(xml_node, parent,
-            race_manager->getNumLocalPlayers() > 1);
-    }
     else if (type == "action-trigger")
     {
         std::string action;
@@ -559,21 +550,6 @@ void TrackObject::update(float dt)
     if (m_physical_object) m_physical_object->update(dt);
     if (m_animator) m_animator->updateWithWorldTicks(true/*has_physics*/);
 }   // update
-
-
-// ----------------------------------------------------------------------------
-/** This reset all physical object moved by 3d animation back to current ticks
- */
-void TrackObject::resetAfterRewind()
-{
-    if (!m_animator || !m_physical_object)
-        return;
-    m_animator->updateWithWorldTicks(true/*has_physics*/);
-    btTransform new_trans;
-    m_physical_object->getMotionState()->getWorldTransform(new_trans);
-    m_physical_object->getBody()->setCenterOfMassTransform(new_trans);
-    m_physical_object->getBody()->saveKinematicState(stk_config->ticks2Time(1));
-}   // resetAfterRewind
 
 // ----------------------------------------------------------------------------
 /** Does a raycast against the track object. The object must have a physical
