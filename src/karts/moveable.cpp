@@ -25,7 +25,6 @@
 #include "graphics/material.hpp"
 #include "graphics/material_manager.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
 #include "tracks/track.hpp"
 
 #include "ISceneNode.h"
@@ -53,26 +52,6 @@ void Moveable::setNode(scene::ISceneNode *n)
 }   // setNode
 
 //-----------------------------------------------------------------------------
-void Moveable::updateSmoothedGraphics(float dt)
-{
-    Vec3 velocity;
-    if (m_body)
-        velocity = m_body->getLinearVelocity();
-    SmoothNetworkBody::updateSmoothedGraphics(m_transform, velocity, dt);
-#undef DEBUG_SMOOTHING
-#ifdef DEBUG_SMOOTHING
-    // Gnuplot compare command
-    // plot "stdout.log" u 6:8 w lp lw 2, "stdout.log" u 10:12 w lp lw 2
-    Log::verbose("Smoothing", "%s smoothed-xyz(6-8) %f %f %f "
-        "xyz(10-12) %f %f %f", getIdent().c_str(),
-        getSmoothedTrans().getOrigin().getX(),
-        getSmoothedTrans().getOrigin().getY(),
-        getSmoothedTrans().getOrigin().getZ(),
-        getXYZ().getX(), getXYZ().getY(), getXYZ().getZ());
-#endif
-}   // updateSmoothedGraphics
-
-//-----------------------------------------------------------------------------
 /** Updates the graphics model. Mainly set the graphical position to be the
  *  same as the physics position, but uses offsets to position and rotation
  *  for special gfx effects (e.g. skidding will turn the karts more).
@@ -83,9 +62,9 @@ void Moveable::updateGraphics(const Vec3& offset_xyz,
                               const btQuaternion& rotation)
 {
 #ifndef SERVER_ONLY
-    Vec3 xyz = getSmoothedTrans().getOrigin() + offset_xyz;
+    Vec3 xyz = getTrans().getOrigin() + offset_xyz;
     m_node->setPosition(xyz.toIrrVector());
-    btQuaternion r_all = getSmoothedTrans().getRotation() * rotation;
+    btQuaternion r_all = getTrans().getRotation() * rotation;
     if(btFuzzyZero(r_all.getX()) && btFuzzyZero(r_all.getY()-0.70710677f) &&
        btFuzzyZero(r_all.getZ()) && btFuzzyZero(r_all.getW()-0.70710677f)   )
         r_all.setX(0.000001f);
@@ -110,8 +89,6 @@ void Moveable::reset()
     m_node->setVisible(true);  // In case that the objects was eliminated
 #endif
 
-    SmoothNetworkBody::reset();
-    SmoothNetworkBody::setSmoothedTransform(m_transform);
     Vec3 up       = getTrans().getBasis().getColumn(1);
     m_pitch       = atan2(up.getZ(), fabsf(up.getY()));
     m_roll        = atan2(up.getX(), up.getY());

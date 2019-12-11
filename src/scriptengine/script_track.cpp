@@ -25,6 +25,7 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/stk_text_billboard.hpp"
 #include "input/input.hpp"
+#include "items/item_manager.hpp"
 #include "modes/world.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "scriptengine/aswrappedcall.hpp"
@@ -145,10 +146,6 @@ namespace Scripting
             World::getWorld()->scheduleExitRace();
         }
 
-        void pauseRace()
-        {
-        }
-
         int getNumberOfKarts()
         {
             return race_manager->getNumberOfKarts();
@@ -177,6 +174,11 @@ namespace Scripting
         bool isDuringDay()
         {
             return ::Track::getCurrentTrack()->getIsDuringDay();
+        }
+
+        uint32_t getItemManagerRandomSeed()
+        {
+            return ItemManager::getRandomSeed();
         }
 
         void setFog(float maxDensity, float start, float end, int r, int g, int b, float duration)
@@ -367,12 +369,6 @@ namespace Scripting
             * @{
             */
 
-            /** Pause/resumes a curve-based animation */
-            void setPaused(bool mode /** \cond DOXYGEN_IGNORE */, void *memory /** \endcond */)
-            {
-                ((ThreeDAnimation*)(memory))->setPaused(mode);
-            }
-
             /** @} */
         }
 
@@ -527,10 +523,6 @@ namespace Scripting
                                                mp ? WRAP_FN(exitRace) : asFUNCTION(exitRace), 
                                                call_conv); assert(r >= 0);
                                                
-            r = engine->RegisterGlobalFunction("void pauseRace()", 
-                                               mp ? WRAP_FN(pauseRace) : asFUNCTION(pauseRace), 
-                                               call_conv); assert(r >= 0);
-                                               
             r = engine->RegisterGlobalFunction("void setFog(float maxDensity, float start, float end, int r, int g, int b, float duration)", 
                                                mp ? WRAP_FN(setFog) : asFUNCTION(setFog), 
                                                call_conv); assert(r >= 0);
@@ -551,6 +543,10 @@ namespace Scripting
                                                mp ? WRAP_FN(getMajorRaceMode) : asFUNCTION(getMajorRaceMode), 
                                                call_conv); assert(r >= 0);
                                                
+            r = engine->RegisterGlobalFunction("uint getItemManagerRandomSeed()",
+                                               mp ? WRAP_FN(getItemManagerRandomSeed) : asFUNCTION(getItemManagerRandomSeed),
+                                               call_conv); assert(r >= 0);
+
             r = engine->RegisterGlobalFunction("int getMinorRaceMode()", 
                                                mp ? WRAP_FN(getMinorRaceMode) : asFUNCTION(getMinorRaceMode), 
                                                call_conv); assert(r >= 0);
@@ -590,6 +586,10 @@ namespace Scripting
                                              
             r = engine->RegisterObjectMethod("TrackObject", "void moveTo(const Vec3 &in, bool)", 
                                              mp ? WRAP_MFN(::TrackObject, moveTo) : asMETHOD(::TrackObject, moveTo), 
+                                             call_conv_thiscall); assert(r >= 0);
+                                             
+            r = engine->RegisterObjectMethod("TrackObject", "void reset()", 
+                                             mp ? WRAP_MFN(::TrackObject, reset) : asMETHOD(::TrackObject, reset), 
                                              call_conv_thiscall); assert(r >= 0);
                                              
             r = engine->RegisterObjectMethod("TrackObject", "Vec3 getCenterPosition()", 
@@ -709,16 +709,6 @@ namespace Scripting
                                              mp ? WRAP_OBJ_LAST(Light::animateEnergy) : asFUNCTION(Light::animateEnergy), 
                                              call_conv_objlast); assert(r >= 0);
 
-            // Curve based Animation
-            //fails due to insufficient visibility to scripts TODO : Decide whether to fix visibility or introduce wrappers
-            //r = engine->RegisterObjectMethod("Animator", "void setPaused(bool mode)", 
-            //                                 mp ? WRAP_MFN(ThreeDAnimation, setPaused) : asMETHOD(ThreeDAnimation, setPaused), 
-            //                                 call_conv_thiscall); assert(r >= 0);
-            
-            r = engine->RegisterObjectMethod("Animator", "void setPaused(bool mode)", 
-                                             mp ? WRAP_OBJ_LAST(Animator::setPaused) : asFUNCTION(Animator::setPaused), 
-                                             call_conv_objlast); assert(r >= 0);
-                                             
             // TODO: add method to set current frame
             // TODO: add method to launch playback from frame X to frame Y
             // TODO: add method to register onAnimationComplete notifications ?

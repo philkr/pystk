@@ -37,8 +37,7 @@
 #include "karts/explosion_animation.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/capture_the_flag.hpp"
-#include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
+
 
 #define SWAT_POS_OFFSET        core::vector3df(0.0, 0.2f, -0.4f)
 #define SWAT_ANGLE_MIN  45
@@ -395,7 +394,7 @@ void Swatter::squashThingsAround()
         }
     }
 
-    if (has_created_explosion_animation && !RewindManager::get()->isRewinding())
+    if (has_created_explosion_animation)
     {
         HitEffect *he = new Explosion(m_kart->getXYZ(),  "explosion", "explosion.xml");
         if(m_kart->getController()->isLocalPlayerController())
@@ -405,52 +404,3 @@ void Swatter::squashThingsAround()
 
     // TODO: squash items
 }   // squashThingsAround
-
-// ----------------------------------------------------------------------------
-void Swatter::restoreState(BareNetworkString* buffer)
-{
-    int16_t prev_bomb_remaing = m_bomb_remaining;
-    m_bomb_remaining = buffer->getUInt16();
-    if (prev_bomb_remaing != m_bomb_remaining)
-    {
-        // Wrong state, clear mesh and let updateGraphics reset itself
-        m_scene_node = NULL;
-        if (m_bomb_scene_node)
-        {
-            irr_driver->removeNode(m_bomb_scene_node);
-            m_bomb_scene_node = NULL;
-        }
-    }
-    if (m_bomb_remaining == -1)
-    {
-        uint8_t combined = buffer->getUInt8();
-        int kart_id = combined & 31;
-        if (kart_id == 31)
-            m_closest_kart = NULL;
-        else
-            m_closest_kart = World::getWorld()->getKart(kart_id);
-        m_animation_phase = AnimationPhase((combined >> 5) & 3);
-        m_discard_now = (combined >> 7) == 1;
-        m_discard_ticks = buffer->getUInt32();
-        m_swatter_animation_ticks = buffer->getUInt16();
-    }
-    else
-        m_discard_ticks = buffer->getUInt32();
-}   // restoreState
-
-// ----------------------------------------------------------------------------
-void Swatter::saveState(BareNetworkString* buffer) const
-{
-    buffer->addUInt16(m_bomb_remaining);
-    if (m_bomb_remaining == -1)
-    {
-        uint8_t combined =
-            m_closest_kart ? (uint8_t)m_closest_kart->getWorldKartId() : 31;
-        combined |= m_animation_phase << 5;
-        combined |= (m_discard_now ? (1 << 7) : 0);
-        buffer->addUInt8(combined).addUInt32(m_discard_ticks)
-            .addUInt16(m_swatter_animation_ticks);
-    }
-    else
-        buffer->addUInt32(m_discard_ticks);
-}   // saveState

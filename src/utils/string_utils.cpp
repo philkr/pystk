@@ -213,6 +213,7 @@ namespace StringUtils
             }
             Log::fatal("StringUtils", "");
         }
+        return result;
     }   // split
 
     //-------------------------------------------------------------------------
@@ -272,6 +273,7 @@ namespace StringUtils
             }
             Log::fatal("StringUtils", "");
         }
+        return result;
     }   // split
 
     //-------------------------------------------------------------------------
@@ -324,6 +326,7 @@ namespace StringUtils
                        "Fatal error in split(stringw) : %s @ line %i : '%s'.",
                        __FILE__, __LINE__, e.what());
         }
+        return std::vector<irr::core::stringw>();
     }   // split
 
 
@@ -391,6 +394,7 @@ namespace StringUtils
                 "Fatal error in splitPath : %s @ line %i: '%s'.",
                         __FILE__, __LINE__, path.c_str());
         }
+        return std::vector<std::string>();
     }   // splitPath
 
     // ------------------------------------------------------------------------
@@ -461,6 +465,7 @@ namespace StringUtils
                        "Fatal error in insertValues(std::string) : %s @ "
                        "line %i: '%s'", __FILE__, __LINE__, s.c_str());
         }
+        return "";
     }
 
     // ------------------------------------------------------------------------
@@ -547,6 +552,7 @@ namespace StringUtils
                        "Fatal error in insertValues(stringw) : %s @ line %i.",
                        __FILE__, __LINE__);
         }
+        return "";
     }
 
     // ------------------------------------------------------------------------

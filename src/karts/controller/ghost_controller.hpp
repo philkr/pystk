@@ -61,9 +61,6 @@ public:
                         bool dry_run=false) OVERRIDE;
     virtual void skidBonusTriggered() OVERRIDE {}
     virtual void newLap(int lap) OVERRIDE {}
-    virtual bool saveState(BareNetworkString *buffer) const OVERRIDE
-                                                              { return false; }
-    virtual void rewindTo(BareNetworkString *buffer) OVERRIDE {}
 
     void         addReplayTime(float time);
     // ------------------------------------------------------------------------

@@ -24,7 +24,6 @@
 #include "modes/world.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
-#include "network/rewind_manager.hpp"
 #include "physics/physics.hpp"
 #include "race/race_manager.hpp"
 #include "tracks/track.hpp"
@@ -280,9 +279,6 @@ void History::Load()
 
     // We need to disable the rewind manager here (otherwise setting the
     // KartControl data would access the rewind manager).
-    bool rewind_manager_was_enabled = RewindManager::isEnabled();
-    RewindManager::setEnable(false);
-
     for (int i=0; i<count; i++)
     {
         fgets(s, 1023, fd);
@@ -295,7 +291,6 @@ void History::Load()
         }
         ie.m_action = (PlayerAction)action;
     }   // for i
-    RewindManager::setEnable(rewind_manager_was_enabled);
 
     fclose(fd);
 }   // Load

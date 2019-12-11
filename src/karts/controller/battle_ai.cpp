@@ -183,7 +183,7 @@ int BattleAI::getCurrentNode() const
 //-----------------------------------------------------------------------------
 bool BattleAI::isWaiting() const
 {
-    return m_world->isStartPhase();
+    return false;
 }   // isWaiting
 
 //-----------------------------------------------------------------------------

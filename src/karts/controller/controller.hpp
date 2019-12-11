@@ -21,8 +21,6 @@
 #include <irrString.h>
 using namespace irr;
 
-class BareNetworkString;
-
 /**
   * \defgroup controller Karts/controller
   * Contains kart controllers, which are either human players or AIs
@@ -76,8 +74,6 @@ public:
      *  rubber-banding. */
     virtual bool  isPlayerController () const = 0;
     virtual bool  disableSlipstreamBonus() const = 0;
-    virtual bool  saveState(BareNetworkString *buffer) const = 0;
-    virtual void  rewindTo(BareNetworkString *buffer) = 0;
 
     // ---------------------------------------------------------------------------
     /** Sets the controller name for this controller. */

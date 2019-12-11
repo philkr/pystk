@@ -18,21 +18,13 @@
 
 #include "karts/rescue_animation.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/referee.hpp"
 #include "items/attachment.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/follow_the_leader.hpp"
 #include "modes/three_strikes_battle.hpp"
-#include "network/network_string.hpp"
-#include "physics/physics.hpp"
-#include "physics/triangle_mesh.hpp"
-#include "race/race_manager.hpp"
-#include "tracks/drive_graph.hpp"
-#include "tracks/quad.hpp"
-#include "tracks/track.hpp"
-#include "tracks/track_sector.hpp"
+#include "utils/mini_glm.hpp"
 
 #include "ISceneNode.h"
 
@@ -64,6 +56,8 @@ RescueAnimation::RescueAnimation(AbstractKart* kart, bool is_auto_rescue)
     World::getWorld()->moveKartAfterRescue(kart);
 
     btTransform rescue_transform = kart->getTrans();
+    MiniGLM::compressbtTransform(rescue_transform,
+        m_rescue_transform_compressed);
     kart->getBody()->setCenterOfMassTransform(prev_trans);
     kart->setTrans(prev_trans);
 
@@ -168,15 +162,3 @@ void RescueAnimation::updateGraphics(float dt)
     m_referee->setAnimationFrameWithCreatedTicks(m_created_ticks);
     AbstractKartAnimation::updateGraphics(dt);
 }   // updateGraphics
-
-// ----------------------------------------------------------------------------
-void RescueAnimation::saveState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::saveState(buffer);
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void RescueAnimation::restoreState(BareNetworkString* buffer)
-{
-    AbstractKartAnimation::restoreState(buffer);
-}   // restoreState

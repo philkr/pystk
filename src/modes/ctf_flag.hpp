@@ -18,12 +18,12 @@
 #ifndef HEADER_CTF_FLAG_HPP
 #define HEADER_CTF_FLAG_HPP
 
-#include "network/rewinder.hpp"
 #include "utils/types.hpp"
 #include "utils/vec3.hpp"
 
 #include "LinearMath/btTransform.h"
 #include <cstring>
+#include <memory>
 
 enum FlagColor : unsigned int
 {
@@ -40,7 +40,7 @@ namespace irr
         class IAnimatedMeshSceneNode;
     }
 }
-class CTFFlag : public Rewinder
+class CTFFlag
 {
 public:
     static const int IN_BASE = -1;
@@ -71,9 +71,7 @@ private:
 public:
     // ------------------------------------------------------------------------
     CTFFlag(FlagColor fc, const btTransform& base_trans)
-        : Rewinder(fc == FC_RED ?
-          std::string{RN_RED_FLAG} : std::string{RN_BLUE_FLAG}),
-          m_flag_base_trans(base_trans)
+        : m_flag_base_trans(base_trans)
     {
         // updateFlagTrans is called after kart is rewound, see rewinder name
         // defined in rewinder header
@@ -88,16 +86,6 @@ public:
     virtual void saveTransform() {}
     // ------------------------------------------------------------------------
     virtual void computeError() {}
-    // ------------------------------------------------------------------------
-    virtual BareNetworkString* saveState(std::vector<std::string>* ru);
-    // ------------------------------------------------------------------------
-    virtual void undoEvent(BareNetworkString* buffer) {}
-    // ------------------------------------------------------------------------
-    virtual void rewindToEvent(BareNetworkString* buffer) {}
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer, int count);
-    // ------------------------------------------------------------------------
-    virtual void undoState(BareNetworkString* buffer) {}
     // ------------------------------------------------------------------------
     int getHolder() const
     {

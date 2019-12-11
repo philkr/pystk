@@ -23,7 +23,6 @@
 #include <ISceneManager.h>
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/b3d_mesh_loader.hpp"
 #include "graphics/irr_driver.hpp"

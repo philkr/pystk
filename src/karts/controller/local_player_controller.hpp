@@ -27,7 +27,6 @@
 
 class AbstractKart;
 class ParticleEmitter;
-class PlayerProfile;
 
 /** PlayerKart manages control events from the player and moves
   * them to the Kart

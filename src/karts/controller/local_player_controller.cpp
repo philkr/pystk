@@ -35,7 +35,6 @@
 #include "karts/skidding.hpp"
 #include "karts/rescue_animation.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
 #include "race/history.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
@@ -140,20 +139,12 @@ void LocalPlayerController::resetInputState()
 bool LocalPlayerController::action(PlayerAction action, int value,
                                    bool dry_run)
 {
-    // Pause race doesn't need to be sent to server
-    if (action == PA_PAUSE_RACE)
-    {
-        PlayerController::action(action, value);
-        return true;
-    }
-
     if (action == PA_ACCEL && value != 0 && !m_has_started)
     {
         m_has_started = true;
         
         {
-            float f = m_kart->getStartupBoostFromStartTicks(
-                World::getWorld()->getAuxiliaryTicks());
+            float f = m_kart->getStartupBoostFromStartTicks(0);
             m_kart->setStartupBoost(f);
         }
         

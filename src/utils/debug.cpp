@@ -19,7 +19,6 @@
 #include "debug.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "font/bold_face.hpp"
 #include "font/digit_face.hpp"
 #include "font/font_manager.hpp"

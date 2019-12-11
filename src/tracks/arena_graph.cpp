@@ -18,7 +18,6 @@
 
 #include "tracks/arena_graph.hpp"
 
-#include "config/user_config.hpp"
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
 #include "race/race_manager.hpp"

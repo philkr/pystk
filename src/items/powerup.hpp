@@ -27,7 +27,6 @@
 #include <set>
 
 class AbstractKart;
-class BareNetworkString;
 class ItemState;
 
 /**
@@ -55,8 +54,6 @@ public:
     Material*       getIcon      () const;
     void            use          ();
     void            hitBonusBox (const ItemState &item);
-    void            saveState(BareNetworkString *buffer) const;
-    void            rewindTo(BareNetworkString *buffer);
     void            update(int ticks);
 
     /** Returns the number of powerups. */

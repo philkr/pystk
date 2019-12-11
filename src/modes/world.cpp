@@ -40,8 +40,6 @@
 #include "karts/kart.hpp"
 #include "karts/kart_model.hpp"
 #include "karts/kart_properties_manager.hpp"
-#include "karts/kart_rewinder.hpp"
-#include "network/rewind_manager.hpp"
 #include "physics/btKart.hpp"
 #include "physics/physics.hpp"
 #include "physics/triangle_mesh.hpp"
@@ -106,14 +104,11 @@ World* World::m_world = NULL;
  */
 World::World() : WorldStatus()
 {
-    RewindManager::setEnable(false);
 #ifdef DEBUG
     m_magic_number = 0xB01D6543;
 #endif
 
     m_use_highscores     = true;
-    m_schedule_pause     = false;
-    m_schedule_unpause   = false;
     m_schedule_exit_race = false;
     m_schedule_tutorial  = false;
     m_is_network_world   = false;
@@ -148,7 +143,6 @@ void World::init()
     // in the World constuctor, since it might be overwritten by a the game
     // mode class, which would not have been constructed at the time that this
     // constructor is called, so the wrong race gui would be created.
-    RewindManager::create();
     // Grab the track file
     Track *track = track_manager->getTrack(race_manager->getTrackName());
     Scripting::ScriptEngine::getInstance<Scripting::ScriptEngine>();
@@ -274,11 +268,6 @@ void World::initTeamArrows(AbstractKart* k)
  */
 void World::reset(bool restart)
 {
-    RewindManager::get()->reset();
-
-    m_schedule_pause = false;
-    m_schedule_unpause = false;
-
     WorldStatus::reset(restart);
     m_faster_music_active = false;
     m_eliminated_karts    = 0;
@@ -308,7 +297,6 @@ void World::reset(bool restart)
     // of karts.
     Track::getCurrentTrack()->reset();
 
-    RewindManager::get()->reset();
     race_manager->reset();
     // Make sure to overwrite the data from the previous race.
     if(!history->replayHistory()) history->initRecording();
@@ -355,19 +343,7 @@ std::shared_ptr<AbstractKart> World::createKart
 
     int position           = index+1;
     btTransform init_pos   = getStartTransform(index - gk);
-    std::shared_ptr<AbstractKart> new_kart;
-    if (RewindManager::get()->isEnabled())
-    {
-        auto kr = std::make_shared<KartRewinder>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-        kr->rewinderAdd();
-        new_kart = kr;
-    }
-    else
-    {
-        new_kart = std::make_shared<Kart>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-    }
+    std::shared_ptr<AbstractKart> new_kart = std::make_shared<Kart>(kart_ident, index, position, init_pos, difficulty, ri);
 
     new_kart->init(race_manager->getKartType(index));
     Controller *controller = NULL;
@@ -449,7 +425,6 @@ Controller* World::loadAIController(AbstractKart* kart)
 World::~World()
 {
     material_manager->unloadAllTextures();
-    RewindManager::destroy();
 
     irr_driver->onUnloadWorld();
 
@@ -522,9 +497,6 @@ void World::onGo()
  */
 void World::terminateRace()
 {
-    m_schedule_pause = false;
-    m_schedule_unpause = false;
-
     // Update the estimated finishing time for all karts that haven't
     // finished yet.
     const unsigned int kart_amount = getNumKarts();
@@ -560,9 +532,6 @@ void World::resetAllKarts()
     // Reset the physics 'remaining' time to 0 so that the number
     // of timesteps is reproducible if doing a physics-based history run
     Physics::getInstance()->getPhysicsWorld()->resetLocalTime();
-
-    m_schedule_pause = false;
-    m_schedule_unpause = false;
 
     //Project karts onto track from above. This will lower each kart so
     //that at least one of its wheel will be on the surface of the track
@@ -660,33 +629,6 @@ void World::moveKartTo(AbstractKart* kart, const btTransform &transform)
 
 }   // moveKartTo
 
-// ----------------------------------------------------------------------------
-void World::schedulePause(Phase phase)
-{
-    if (m_schedule_unpause)
-    {
-        m_schedule_unpause = false;
-    }
-    else
-    {
-        m_schedule_pause = true;
-        m_scheduled_pause_phase = phase;
-    }
-}   // schedulePause
-
-// ----------------------------------------------------------------------------
-void World::scheduleUnpause()
-{
-    if (m_schedule_pause)
-    {
-        m_schedule_pause = false;
-    }
-    else
-    {
-        m_schedule_unpause = true;
-    }
-}   // scheduleUnpause
-
 //-----------------------------------------------------------------------------
 /** This is the main interface to update the world. This function calls
  *  update(), and checks then for the end of the race. Note that race over
@@ -702,21 +644,8 @@ void World::updateWorld(int ticks)
 #ifdef DEBUG
     assert(m_magic_number == 0xB01D6543);
 #endif
-
-
-    if (m_schedule_pause)
-    {
-        pause(m_scheduled_pause_phase);
-        m_schedule_pause = false;
-    }
-    else if (m_schedule_unpause)
-    {
-        unpause();
-        m_schedule_unpause = false;
-    }
-
     // Don't update world if a menu is shown or the race is over.
-    if (getPhase() == FINISH_PHASE || getPhase() == IN_GAME_MENU_PHASE)
+    if (isFinishPhase())
         return;
 
     try
@@ -823,9 +752,6 @@ void World::update(int ticks)
     PROFILER_PUSH_CPU_MARKER("World::update (sub-updates)", 0x20, 0x7F, 0x00);
     WorldStatus::update(ticks);
     PROFILER_POP_CPU_MARKER();
-    PROFILER_PUSH_CPU_MARKER("World::update (RewindManager)", 0x20, 0x7F, 0x40);
-    RewindManager::get()->update(ticks);
-    PROFILER_POP_CPU_MARKER();
 
     PROFILER_PUSH_CPU_MARKER("World::update (Track object manager)", 0x20, 0x7F, 0x40);
     Track::getCurrentTrack()->getTrackObjectManager()->update(stk_config->ticks2Time(ticks));
@@ -844,7 +770,7 @@ void World::update(int ticks)
         // Update all karts that are not eliminated
         if(!m_karts[i]->isEliminated() || (sta && sta->isMoving()))
             m_karts[i]->update(ticks);
-        if (isStartPhase())
+        if (getPhase() == SETUP_PHASE)
             m_karts[i]->makeKartRest();
     }
     PROFILER_POP_CPU_MARKER();
@@ -1063,31 +989,6 @@ void World::getDefaultCollectibles(int *collectible_type, int *amount )
 }   // getDefaultCollectibles
 
 //-----------------------------------------------------------------------------
-/** Pauses the music (and then pauses WorldStatus).
- */
-void World::pause(Phase phase)
-{
-    WorldStatus::pause(phase);
-}   // pause
-
-//-----------------------------------------------------------------------------
-void World::unpause()
-{
-    WorldStatus::unpause();
-
-    for(unsigned int i=0; i<m_karts.size(); i++)
-    {
-        // Note that we can not test for isPlayerController here, since
-        // an EndController will also return 'isPlayerController' if the
-        // kart belonged to a player.
-        LocalPlayerController *pc =
-            dynamic_cast<LocalPlayerController*>(m_karts[i]->getController());
-        if(pc)
-            pc->resetInputState();
-    }
-}   // pause
-
-//-----------------------------------------------------------------------------
 void World::escapePressed()
 {
 }   // escapePressed
@@ -1165,19 +1066,7 @@ std::shared_ptr<AbstractKart> World::createKartWithTeam
     ri = (team == KART_TEAM_BLUE ? std::make_shared<RenderInfo>(0.66f) :
         std::make_shared<RenderInfo>(1.0f));
 
-    std::shared_ptr<AbstractKart> new_kart;
-    if (RewindManager::get()->isEnabled())
-    {
-        auto kr = std::make_shared<KartRewinder>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-        kr->rewinderAdd();
-        new_kart = kr;
-    }
-    else
-    {
-        new_kart = std::make_shared<Kart>(kart_ident, index, position,
-            init_pos, difficulty, ri);
-    }
+    std::shared_ptr<AbstractKart> new_kart = std::make_shared<Kart>(kart_ident, index, position, init_pos, difficulty, ri);
 
     new_kart->init(race_manager->getKartType(index));
     Controller *controller = NULL;

@@ -38,7 +38,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "config/user_config.hpp"
 #include "io/file_manager.hpp"
 #include "utils/constants.hpp"
 #include "utils/file_utils.hpp"

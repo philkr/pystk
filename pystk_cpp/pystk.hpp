@@ -7,7 +7,7 @@ struct PySTKGraphicsConfig {
 	int screen_width=600, screen_height=400;
 	bool glow = false, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
 	int particles_effects = 2;
-	bool animated_characters = true;
+    bool animated_characters = true;
 	bool motionblur = true;
 	bool mlaa = true;
 	bool texture_compression = true;

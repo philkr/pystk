@@ -97,11 +97,6 @@ public:
     {
         return m_animation_phase == SWATTER_AIMING;
     }   // isSwatterReady
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString *buffer) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString *buffer) const OVERRIDE;
-
 private:
     /** Determine the nearest kart or item and update the current target accordingly */
     void    chooseTarget();

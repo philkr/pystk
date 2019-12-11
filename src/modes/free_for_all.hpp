@@ -23,8 +23,6 @@
 
 #include <vector>
 
-class NetworkString;
-
 class FreeForAll : public WorldWithRank
 {
 protected:
@@ -62,8 +60,6 @@ public:
     // ------------------------------------------------------------------------
     virtual void terminateRace() OVERRIDE;
     // ------------------------------------------------------------------------
-    void setKartScoreFromServer(NetworkString& ns);
-    // ------------------------------------------------------------------------
     int getKartScore(int kart_id) const        { return m_scores.at(kart_id); }
     // ------------------------------------------------------------------------
     bool getKartFFAResult(int kart_id) const;
@@ -76,11 +72,6 @@ public:
         WorldWithRank::addReservedKart(kart_id);
         m_scores.at(kart_id) = 0;
     }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns,
-                                   STKPeer* peer) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b) OVERRIDE;
 };   // FreeForAll
 
 

@@ -105,10 +105,6 @@ private:
             m_overall_distance  = 0.0f;
             m_wrong_way_timer   = 0.0f;
         }   // reset
-        // --------------------------------------------------------------------
-        void saveCompleteState(BareNetworkString* bns);
-        // --------------------------------------------------------------------
-        void restoreCompleteState(const BareNetworkString& b);
     };
     // ------------------------------------------------------------------------
 
@@ -210,15 +206,6 @@ public:
     // ------------------------------------------------------------------------
     virtual std::pair<uint32_t, uint32_t> getGameStartedProgress() const
         OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns,
-                                   STKPeer* peer) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b) OVERRIDE;
-    // ------------------------------------------------------------------------
-    void updateCheckLinesServer(int check_id, int kart_id);
-    // ------------------------------------------------------------------------
-    void updateCheckLinesClient(const BareNetworkString& b);
     // ------------------------------------------------------------------------
     void handleServerCheckStructureCount(unsigned count);
 };   // LinearWorld

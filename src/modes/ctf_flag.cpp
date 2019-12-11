@@ -21,7 +21,7 @@
 #include "graphics/sp/sp_mesh_node.hpp"
 #include "karts/abstract_kart.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
+
 #include "utils/mini_glm.hpp"
 
 #include "LinearMath/btQuaternion.h"
@@ -30,45 +30,6 @@
 // Position offset to attach in kart model
 const Vec3 g_kart_flag_offset(0.0, 0.2f, -0.5f);
 // ============================================================================
-BareNetworkString* CTFFlag::saveState(std::vector<std::string>* ru)
-{
-    ru->push_back(getUniqueIdentity());
-    BareNetworkString* buffer = new BareNetworkString();
-    int flag_status_unsigned = m_flag_status + 2;
-    flag_status_unsigned &= 31;
-    // Max 2047 for m_deactivated_ticks set by resetToBase
-    flag_status_unsigned |= m_deactivated_ticks << 5;
-    buffer->addUInt16((uint16_t)flag_status_unsigned);
-    if (m_flag_status == OFF_BASE)
-    {
-        buffer->addInt24(m_off_base_compressed[0])
-            .addInt24(m_off_base_compressed[1])
-            .addInt24(m_off_base_compressed[2])
-            .addUInt32(m_off_base_compressed[3]);
-        buffer->addUInt16(m_ticks_since_off_base);
-    }
-    return buffer;
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void CTFFlag::restoreState(BareNetworkString* buffer, int count)
-{
-    using namespace MiniGLM;
-    unsigned flag_status_unsigned = buffer->getUInt16();
-    int flag_status = flag_status_unsigned & 31;
-    m_flag_status = (int8_t)(flag_status - 2);
-    m_deactivated_ticks = flag_status_unsigned >> 5;
-    if (m_flag_status == OFF_BASE)
-    {
-        m_off_base_compressed[0] = buffer->getInt24();
-        m_off_base_compressed[1] = buffer->getInt24();
-        m_off_base_compressed[2] = buffer->getInt24();
-        m_off_base_compressed[3] = buffer->getUInt32();
-        m_flag_trans = decompressbtTransform(m_off_base_compressed);
-        m_ticks_since_off_base = buffer->getUInt16();
-    }
-    updateFlagTrans(m_flag_trans);
-}   // restoreState
 
 // ----------------------------------------------------------------------------
 void CTFFlag::updateFlagTrans(const btTransform& off_base_trans)

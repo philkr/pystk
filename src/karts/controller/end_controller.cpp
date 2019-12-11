@@ -234,8 +234,7 @@ void EndController::handleSteering(float dt)
 void EndController::handleRescue(const float DELTA)
 {
     // check if kart is stuck
-    if(m_kart->getSpeed()<2.0f && !m_kart->getKartAnimation() &&
-        !m_world->isStartPhase())
+    if(m_kart->getSpeed()<2.0f && !m_kart->getKartAnimation())
     {
         m_time_since_stuck += DELTA;
         if(m_time_since_stuck > 2.0f)

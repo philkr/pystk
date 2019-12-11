@@ -19,7 +19,6 @@
 #include "script_track.hpp"
 
 #include "animations/three_d_animation.hpp"
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "modes/world.hpp"

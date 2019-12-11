@@ -24,7 +24,7 @@
 #include "karts/controller/controller.hpp"
 #include "karts/kart_model.hpp"
 #include "modes/ctf_flag.hpp"
-#include "network/network_string.hpp"
+
 #include "physics/triangle_mesh.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object_manager.hpp"
@@ -220,7 +220,6 @@ void CaptureTheFlag::update(int ticks)
                 kart->getBody()->proceedToTransform(t);
                 kart->setTrans(t);
                 kart->getPowerup()->reset();
-                static_cast<SmoothNetworkBody*>(kart)->reset();
             }
             it++;
         }
@@ -353,8 +352,6 @@ void CaptureTheFlag::ctfScored(int kart_id, bool red_team_scored,
     }
 #ifndef SERVER_ONLY
     // Don't set animation and show message if receiving in live join
-    if (isStartPhase())
-        return;
     kart->getKartModel()
         ->setAnimation(KartModel::AF_WIN_START, true/*play_non_loop*/);
 #endif
@@ -464,18 +461,3 @@ const std::string& CaptureTheFlag::getIdent() const
 {
     return IDENT_CTF;
 }   // getIdent
-
-// ----------------------------------------------------------------------------
-void CaptureTheFlag::saveCompleteState(BareNetworkString* bns, STKPeer* peer)
-{
-    FreeForAll::saveCompleteState(bns, peer);
-    bns->addUInt32(m_red_scores).addUInt32(m_blue_scores);
-}   // saveCompleteState
-
-// ----------------------------------------------------------------------------
-void CaptureTheFlag::restoreCompleteState(const BareNetworkString& b)
-{
-    FreeForAll::restoreCompleteState(b);
-    m_red_scores = b.getUInt32();
-    m_blue_scores = b.getUInt32();
-}   // restoreCompleteState

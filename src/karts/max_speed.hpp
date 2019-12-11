@@ -25,7 +25,6 @@
 /** \defgroup karts */
 
 class AbstractKart;
-class BareNetworkString;
 
 class MaxSpeed
 {
@@ -101,8 +100,6 @@ private:
         }   // reset
         // --------------------------------------------------------------------
         void update(int ticks);
-        void saveState(BareNetworkString *buffer) const;
-        void rewindTo(BareNetworkString *buffer, bool is_active);
         // --------------------------------------------------------------------
         /** Returns the current speedup for this category. */
         float getSpeedIncrease() const {return m_current_speedup;}
@@ -158,8 +155,6 @@ private:
         }   //reset
         // --------------------------------------------------------------------
         void update(int ticks);
-        void saveState(BareNetworkString *buffer) const;
-        void rewindTo(BareNetworkString *buffer, bool is_active);
         // --------------------------------------------------------------------
         /** Returns the current slowdown fracftion, taking a 'fade in'
          *  into account. */
@@ -199,8 +194,6 @@ public:
     int   isSpeedDecreaseActive(unsigned int category);
     void  update(int ticks);
     void  reset();
-    void  saveState(BareNetworkString *buffer) const;
-    void  rewindTo(BareNetworkString *buffer);
     // ------------------------------------------------------------------------
     /** Sets the minimum speed a kart should have. This is used to guarantee
      *  that e.g. zippers on ramps will always fast enough for the karts to

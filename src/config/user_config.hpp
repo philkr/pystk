@@ -53,7 +53,6 @@ using irr::core::stringw;
 #include "utils/ptr_vector.hpp"
 #include "utils/time.hpp"
 
-class PlayerProfile;
 class SavedGrandPrix;
 class XMLNode;
 class UTFWriter;
@@ -367,367 +366,57 @@ enum MultitouchControls
  *  file, loading from file)
  */
 
-#ifndef PARAM_PREFIX
-#define PARAM_PREFIX extern
-#endif
-
-#ifndef PARAM_DEFAULT
-#define PARAM_DEFAULT(X)
-#endif
-
 // ============================================================================
 /** \brief Contains all parameters that are stored in the user's config file
  *  \ingroup config
  */
-namespace UserConfigParams
+struct UserConfigParams
 {
-
-    // ---- Race setup
-    PARAM_PREFIX GroupUserConfigParam        m_race_setup_group
-        PARAM_DEFAULT( GroupUserConfigParam("RaceSetup",
-                                            "Race Setup Settings") );
-
-    PARAM_PREFIX IntUserConfigParam          m_default_num_karts
-            PARAM_DEFAULT(  IntUserConfigParam(4, "numkarts",
-                            &m_race_setup_group,
-                            "Default number of karts. -1 means use all") );
-    PARAM_PREFIX IntUserConfigParam          m_num_laps
-            PARAM_DEFAULT(  IntUserConfigParam(4, "numlaps",
-            &m_race_setup_group, "Default number of laps.") );
-    PARAM_PREFIX IntUserConfigParam          m_ffa_time_limit
-        PARAM_DEFAULT(IntUserConfigParam(3, "ffa-time-limit",
-            &m_race_setup_group, "Time limit in ffa mode."));
-    PARAM_PREFIX BoolUserConfigParam         m_use_ffa_mode
-        PARAM_DEFAULT(BoolUserConfigParam(false, "use-ffa-mode",
-            &m_race_setup_group, "Use ffa mode instead of 3 strikes battle."));
-    PARAM_PREFIX IntUserConfigParam          m_num_goals
-            PARAM_DEFAULT(  IntUserConfigParam(3, "numgoals",
-            &m_race_setup_group, "Default number of goals in soccer mode.") );
-    PARAM_PREFIX IntUserConfigParam          m_soccer_default_team
-            PARAM_DEFAULT(  IntUserConfigParam(0, "soccer-default-team",
-            &m_race_setup_group, "Default team in soccer mode for single player.") );
-    PARAM_PREFIX IntUserConfigParam          m_soccer_time_limit
-            PARAM_DEFAULT(  IntUserConfigParam(3, "soccer-time-limit",
-            &m_race_setup_group, "Time limit in soccer mode.") );
-    PARAM_PREFIX BoolUserConfigParam         m_soccer_use_time_limit
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "soccer-use-time-limit",
-            &m_race_setup_group, "Enable time limit in soccer mode.") );
-    PARAM_PREFIX BoolUserConfigParam         m_random_arena_item
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "random-arena-item",
-            &m_race_setup_group, "Enable random location of items in an arena.") );
-    PARAM_PREFIX IntUserConfigParam          m_difficulty
-            PARAM_DEFAULT(  IntUserConfigParam(0, "difficulty",
-                            &m_race_setup_group,
-                        "Default race difficulty. 0=easy, 1=medium, 2=hard") );
-    PARAM_PREFIX IntUserConfigParam          m_game_mode
-            PARAM_DEFAULT(  IntUserConfigParam(0, "game_mode",
-                            &m_race_setup_group,
-                            "Game mode. 0=standard, 1=time trial, 2=follow "
-                            "the leader, 3=3 strikes") );
-    PARAM_PREFIX StringUserConfigParam m_default_kart
-            PARAM_DEFAULT( StringUserConfigParam("tux", "kart",
-                           "Kart to select by default (the last used kart)") );
-    PARAM_PREFIX StringUserConfigParam m_last_used_kart_group
-            PARAM_DEFAULT( StringUserConfigParam("all", "last_kart_group",
-                                                 "Last selected kart group") );
-
+    static int m_default_num_karts;
+    static int m_num_laps;
+    static int m_ffa_time_limit;
+    static bool m_use_ffa_mode;
+    static int m_num_goals;
+    static int m_soccer_default_team;
+    static int m_soccer_time_limit;
+    static bool m_soccer_use_time_limit;
+    static bool m_random_arena_item;
+    static int m_difficulty;
+    static int m_game_mode;
+    static std::string m_default_kart;
     // ---- Video
-    PARAM_PREFIX GroupUserConfigParam        m_video_group
-        PARAM_DEFAULT( GroupUserConfigParam("Video", "Video Settings") );
+    static int m_width;
+    static int m_height;
 
-    PARAM_PREFIX IntUserConfigParam         m_width
-            PARAM_DEFAULT(  IntUserConfigParam(1024, "width", &m_video_group,
-                                            "Screen/window width in pixels") );
-    PARAM_PREFIX IntUserConfigParam         m_height
-            PARAM_DEFAULT(  IntUserConfigParam(768, "height", &m_video_group,
-                                           "Screen/window height in pixels") );
-    PARAM_PREFIX BoolUserConfigParam        m_fullscreen
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "fullscreen",
-                                                &m_video_group) );
-    PARAM_PREFIX IntUserConfigParam         m_prev_width
-            PARAM_DEFAULT(  IntUserConfigParam(1024, "prev_width",
-                            &m_video_group, "Previous screen/window width") );
-    PARAM_PREFIX IntUserConfigParam         m_prev_height
-            PARAM_DEFAULT(  IntUserConfigParam(768, "prev_height",
-                            &m_video_group,"Previous screen/window height") );
-    PARAM_PREFIX BoolUserConfigParam        m_prev_fullscreen
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "prev_fullscreen",
-                            &m_video_group) );
+    static bool m_texture_compression;
+    static int m_high_definition_textures;
+    static bool m_glow;
+    static bool m_bloom;
+    static bool m_light_shaft;
+    static bool m_dynamic_lights;
+    static bool m_dof;
+    static float m_scale_rtts_factor;
+    static int m_max_texture_size;
 
-
-    PARAM_PREFIX BoolUserConfigParam        m_remember_window_location
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "remember_window_location",
-                            &m_video_group) );
-    PARAM_PREFIX IntUserConfigParam         m_window_x
-            PARAM_DEFAULT(  IntUserConfigParam(-1, "window_x",
-                            &m_video_group,"If remember_window_location is true") );
-    PARAM_PREFIX IntUserConfigParam         m_window_y
-            PARAM_DEFAULT(  IntUserConfigParam(-1, "window_y",
-                            &m_video_group,"If remember_window_location is true") );
-
-    PARAM_PREFIX BoolUserConfigParam        m_display_fps
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "show_fps",
-                            &m_video_group, "Display frame per seconds") );
-    PARAM_PREFIX IntUserConfigParam         m_max_fps
-            PARAM_DEFAULT(  IntUserConfigParam(120, "max_fps",
-                       &m_video_group, "Maximum fps, should be at least 60") );
-    PARAM_PREFIX BoolUserConfigParam        split_screen_horizontally
-        PARAM_DEFAULT(BoolUserConfigParam(true, "split_screen_horizontally",
-            &m_video_group, "When playing a non-square amount of players (e.g. 2),"
-            " should it split horizontally (top/bottom)"));
-    PARAM_PREFIX BoolUserConfigParam        m_texture_compression
-        PARAM_DEFAULT(BoolUserConfigParam(true, "enable_texture_compression",
-        &m_video_group, "Enable Texture Compression"));
-    /** This is a bit flag: bit 0: enabled (1) or disabled(0).
-     *  Bit 1: setting done by default(0), or by user choice (2). This allows
-     *  to e.g. disable h.d. textures on hd3000 as default, but still allow the
-     *  user to enable it. */
-    PARAM_PREFIX IntUserConfigParam        m_high_definition_textures
-        PARAM_DEFAULT(IntUserConfigParam(1, "enable_high_definition_textures",
-        &m_video_group, "Enable high definition textures. Bit flag: "
-                        "bit 0 = enabled/disabled; bit 1 = set by user/set as default"));
-    PARAM_PREFIX BoolUserConfigParam        m_glow
-        PARAM_DEFAULT(BoolUserConfigParam(false, "enable_glow",
-        &m_video_group, "Enable Glow"));
-    PARAM_PREFIX BoolUserConfigParam        m_bloom
-        PARAM_DEFAULT(BoolUserConfigParam(false, "enable_bloom",
-        &m_video_group, "Enable Bloom"));
-    PARAM_PREFIX BoolUserConfigParam        m_light_shaft
-        PARAM_DEFAULT(BoolUserConfigParam(false, "enable_light_shaft",
-        &m_video_group, "Enable Light Shafts"));
-    PARAM_PREFIX BoolUserConfigParam        m_dynamic_lights
-        PARAM_DEFAULT(BoolUserConfigParam(true, "enable_dynamic_lights",
-        &m_video_group, "Enable Dynamic Lights"));
-    PARAM_PREFIX BoolUserConfigParam        m_dof
-        PARAM_DEFAULT(BoolUserConfigParam(false, "enable_dof",
-        &m_video_group, "Enable Depth of Field"));
-    PARAM_PREFIX BoolUserConfigParam        m_old_driver_popup
-        PARAM_DEFAULT(BoolUserConfigParam(true, "old_driver_popup",
-        &m_video_group, "Determines if popup message about too old drivers should be displayed."));
-    PARAM_PREFIX FloatUserConfigParam       m_scale_rtts_factor
-        PARAM_DEFAULT(FloatUserConfigParam(1.0f, "scale_rtts_factor",
-        &m_video_group, "Allows one to increase performance by setting lower RTTs "
-                        "resolution. Value should be smaller or equal to 1.0"));
-    PARAM_PREFIX IntUserConfigParam         m_max_texture_size
-        PARAM_DEFAULT(IntUserConfigParam(512, "max_texture_size",
-        &m_video_group, "Max texture size when high definition textures are "
-                        "disabled"));
-
-    PARAM_PREFIX BoolUserConfigParam        m_hq_mipmap
-        PARAM_DEFAULT(BoolUserConfigParam(false, "hq_mipmap",
-        &m_video_group, "Generate mipmap for textures using "
-                        "high quality method with SSE"));
-
-    PARAM_PREFIX int  m_verbosity         PARAM_DEFAULT( 0 );
-    PARAM_PREFIX bool m_race_now          PARAM_DEFAULT( false );
-    // ---- Gamemode setup
-    PARAM_PREFIX UIntToUIntUserConfigParam m_num_karts_per_gamemode
-        PARAM_DEFAULT(UIntToUIntUserConfigParam("num-karts-per-gamemode",
-            "The Number of karts per gamemode.",
-            {{ "gamemode-list", "gamemode", "num-karts" }},
-            {
-                { 0u, 4u },
-                { 1002u, 5u },
-                { 1100u, 4u },
-                { 1101u, 4u },
-                { 2000u, 4u },
-                { 2001u, 4u }
-            }
-        ));
-
-    // ---- Graphic Quality
-    PARAM_PREFIX GroupUserConfigParam        m_graphics_quality
-            PARAM_DEFAULT( GroupUserConfigParam("GFX",
-                                                "Graphics Quality Settings") );
-
-    PARAM_PREFIX IntUserConfigParam        m_particles_effects
-            PARAM_DEFAULT(  IntUserConfigParam(2, "particles-effecs",
-                            &m_graphics_quality, "Particles effects: 0 disabled, 1 only important, 2 enabled") );
-
-    // This saves the actual user preference.
-    PARAM_PREFIX IntUserConfigParam        m_xmas_mode
-            PARAM_DEFAULT(  IntUserConfigParam(0, "christmas-mode",
-                            &m_graphics_quality, "Christmas hats: 0 use current date, 1 always on, 2 always off") );
-
-    // This saves the actual user preference.
-    PARAM_PREFIX IntUserConfigParam        m_easter_ear_mode
-        PARAM_DEFAULT(IntUserConfigParam(0, "easter-ear-mode",
-        &m_graphics_quality, "Easter Bunny Ears: 0 use current date, 1 always on, 2 always off"));
-
-    PARAM_PREFIX BoolUserConfigParam       m_animated_characters
-            PARAM_DEFAULT(  BoolUserConfigParam(true,
-                            "animated-characters", &m_graphics_quality,
-                "Whether to display animated characters") );
-
-    PARAM_PREFIX IntUserConfigParam        m_geometry_level
-            PARAM_DEFAULT(  IntUserConfigParam(GEOLEVEL_0,
-                            "geometry_level", &m_graphics_quality,
-                "Geometry quality 0=everything is displayed; "
-                "1=a few details are displayed; 2=lowest level, no details") );
-
-    PARAM_PREFIX IntUserConfigParam         m_anisotropic
-            PARAM_DEFAULT( IntUserConfigParam(4, "anisotropic",
-                           &m_graphics_quality,
-                           "Quality of anisotropic filtering (usual values include 2-4-8-16; 0 to disable)") );
-
-    PARAM_PREFIX BoolUserConfigParam         m_vsync
-            PARAM_DEFAULT( BoolUserConfigParam(false, "vsync",
-                           &m_graphics_quality,
-                           "Whether vertical sync is enabled") );
-    PARAM_PREFIX BoolUserConfigParam         m_motionblur
-            PARAM_DEFAULT( BoolUserConfigParam(false,
-                           "motionblur_enabled", &m_graphics_quality,
-                           "Whether motion blur should be enabled") );
-    PARAM_PREFIX BoolUserConfigParam         m_mlaa
-            PARAM_DEFAULT( BoolUserConfigParam(false,
-                           "mlaa", &m_graphics_quality,
-                           "Whether MLAA anti-aliasing should be enabled") );
-    PARAM_PREFIX BoolUserConfigParam          m_ssao
-            PARAM_DEFAULT(BoolUserConfigParam(false,
-                           "ssao", &m_graphics_quality,
-                           "Enable Screen Space Ambient Occlusion") );
-    PARAM_PREFIX BoolUserConfigParam         m_light_scatter
-            PARAM_DEFAULT(BoolUserConfigParam(true,
-                           "light_scatter", &m_graphics_quality,
-                           "Enable light scattering shaders") );
-    PARAM_PREFIX IntUserConfigParam          m_shadows_resolution
-            PARAM_DEFAULT( IntUserConfigParam(0,
-                           "shadows_resolution", &m_graphics_quality,
-                           "Shadow resolution (0 = disabled") );
-    PARAM_PREFIX BoolUserConfigParam          m_degraded_IBL
-        PARAM_DEFAULT(BoolUserConfigParam(true,
-        "Degraded_IBL", &m_graphics_quality,
-        "Disable specular IBL"));
-
-    // ---- Misc
-    // TODO : is this used with new code? does it still work?
-    PARAM_PREFIX BoolUserConfigParam        m_crashed
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "crashed") );
+    // ---- Graphic Quality;
+    static int m_particles_effects;
+    static bool m_animated_characters;
+    static int m_geometry_level;
+    static int m_anisotropic;
+    static bool m_motionblur;
+    static bool m_mlaa;
+    static bool m_ssao;
+    static bool m_light_scatter;
+    static int m_shadows_resolution;
+    static bool m_degraded_IBL;
 
     // ---- Camera
-    PARAM_PREFIX GroupUserConfigParam        m_camera
-            PARAM_DEFAULT( GroupUserConfigParam("camera",
-                                                "(Debug) camera settings.") );
-
-    PARAM_PREFIX IntUserConfigParam         m_reverse_look_threshold
-            PARAM_DEFAULT(  IntUserConfigParam(0, "reverse_look_threshold",
-            &m_camera,
-            "If the kart is driving backwards faster than this value,\n"
-            "switch automatically to reverse camera (set to 0 to disable).") );
-
-    PARAM_PREFIX FloatUserConfigParam       m_fpscam_direction_speed
-            PARAM_DEFAULT(  FloatUserConfigParam(0.003f, "fpscam_rotation_speed",
-            &m_camera,
-            "How fast the first person camera's direction speed changes when\n"
-            "moving the mouse (means acceleration).") );
-
-    PARAM_PREFIX FloatUserConfigParam       m_fpscam_smooth_direction_max_speed
-            PARAM_DEFAULT(  FloatUserConfigParam(0.04f, "fpscam_smooth_rotation_max_speed",
-            &m_camera,
-            "How fast the first person camera's direction can change.") );
-
-    PARAM_PREFIX FloatUserConfigParam       m_fpscam_angular_velocity
-            PARAM_DEFAULT(  FloatUserConfigParam(0.02f, "fpscam_angular_velocity",
-            &m_camera,
-            "How fast the first person camera's rotation speed changes.") );
-
-    PARAM_PREFIX FloatUserConfigParam       m_fpscam_max_angular_velocity
-            PARAM_DEFAULT(  FloatUserConfigParam(1.0f, "fpscam_max_angular_velocity",
-            &m_camera,
-            "How fast the first person camera can rotate.") );
-
-    PARAM_PREFIX StringUserConfigParam      m_item_style
-            PARAM_DEFAULT(  StringUserConfigParam("items", "item_style",
-                            "Name of the .items file to use.") );
-
-    PARAM_PREFIX StringUserConfigParam      m_last_track
-            PARAM_DEFAULT(  StringUserConfigParam("olivermath", "last_track",
-                            "Name of the last track used.") );
-    PARAM_PREFIX StringUserConfigParam m_last_used_track_group
-            PARAM_DEFAULT( StringUserConfigParam("all", "last_track_group",
-                           "Last selected track group") );
-
-    PARAM_PREFIX StringUserConfigParam      m_skin_file
-            PARAM_DEFAULT(  StringUserConfigParam("Peach.stkskin", "skin_file",
-                                                  "Name of the skin to use") );
-
-    PARAM_PREFIX IntUserConfigParam        m_minimap_display
-        PARAM_DEFAULT(IntUserConfigParam(0, "minimap_display",
-                      "Minimap: 0 bottom-left, 1 middle-right, 2 hidden"));
-
-    // ---- Handicap
-    PARAM_PREFIX GroupUserConfigParam       m_handicap
-            PARAM_DEFAULT( GroupUserConfigParam("Handicap",
-                                          "Everything related to handicaps.") );
-
-    PARAM_PREFIX BoolUserConfigParam        m_per_player_difficulty
-            PARAM_DEFAULT(  BoolUserConfigParam(false, "per_player_difficulty",
-                            &m_handicap,
-                            "If handicapped users can be selected") );
-
-    PARAM_PREFIX StringUserConfigParam      m_commandline
-            PARAM_DEFAULT( StringUserConfigParam("", "commandline",
-                             "Allows one to set commandline args in config file") );
-
-    // TODO? implement blacklist for new irrlicht device and GUI
-    PARAM_PREFIX std::vector<std::string>   m_blacklist_res;
-
-    /** Some constants to bitmask to enable various messages to be printed. */
-    enum { LOG_MEMORY  = 0x0001,
-           LOG_GUI     = 0x0002,
-           LOG_ADDONS  = 0x0004,
-           LOG_MISC    = 0x0008,
-           LOG_FLYABLE = 0x0010,
-           LOG_ALL     = 0xffff };
-
-    /** Returns true if the user want additional messages for memory usage. */
-    bool   logMemory();
-    /** Returns true if the user want additional messages related to GUI. */
-    bool   logGUI   ();
-    /** Returns true if the user want additional messages related to addons. */
-    bool   logAddons();
-    /** Returns true if the user want additional debug info for flyables */
-    bool   logFlyable();
-    /** Returns true if the user want additional messages for general items. */
-    bool   logMisc  ();
-
-
-}
-#undef PARAM_PREFIX
-#undef PARAM_SUFFIX
-
-// ============================================================================
-/**
-  * \brief Class for managing general STK user configuration data.
-  * \ingroup config
-  */
-class UserConfig : public NoCopy
-{
-private:
-
-    /** Filename of the user config file. */
-    std::string        m_filename;
-    irr::core::stringw m_warning;
-
-    static const int m_current_config_version;
-
-public:
-          /** Create the user config object; does not actually load it,
-           *  UserConfig::loadConfig needs to be called. */
-          UserConfig();
-         ~UserConfig();
-
-    bool  loadConfig();
-    void  saveConfig();
-
-    const irr::core::stringw& getWarning()        { return m_warning;  }
-    void  resetWarning()                          { m_warning="";      }
-    void  setWarning(irr::core::stringw& warning) { m_warning=warning; }
-
-};   // UserConfig
-
-
-extern UserConfig *user_config;
+    static int m_reverse_look_threshold;
+    static float m_fpscam_direction_speed;
+    static float m_fpscam_smooth_direction_max_speed;
+    static float m_fpscam_angular_velocity;
+    static float m_fpscam_max_angular_velocity;
+};
 
 #endif
 

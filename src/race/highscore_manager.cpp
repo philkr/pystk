@@ -21,7 +21,6 @@
 #include <stdexcept>
 #include <fstream>
 
-#include "config/user_config.hpp"
 #include "io/file_manager.hpp"
 #include "io/utf_writer.hpp"
 #include "race/race_manager.hpp"
@@ -97,11 +96,6 @@ void HighscoreManager::loadHighscores()
         int v;
         if (!root->get("version", &v) || v<(int)CURRENT_HSCORE_FILE_VERSION)
         {
-            Log::error("Highscore Manager", "Highscore file format too old, a new one will be created.\n");
-            irr::core::stringw warning =
-                _("The highscore file was too old,\nall highscores have been erased.");
-            user_config->setWarning( warning );
-
             // since we haven't had the chance to load the current scores yet,
             // calling Save() now will generate an empty file with the right format.
             saveHighscores();
@@ -126,10 +120,6 @@ void HighscoreManager::loadHighscores()
             }
             m_all_scores.push_back(highscores);
         }   // next entry
-
-        if(UserConfigParams::logMisc())
-            Log::error("Highscore Manager", "Highscores will be saved in '%s'.\n",
-                    m_filename.c_str());
     }
     catch(std::exception& err)
     {

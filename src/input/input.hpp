@@ -126,22 +126,12 @@ enum PlayerAction
     PA_RESCUE,
     PA_FIRE,
     PA_LOOK_BACK,
-    PA_PAUSE_RACE,
-
-    PA_MENU_UP,
-    PA_MENU_DOWN,
-    PA_MENU_LEFT,
-    PA_MENU_RIGHT,
-    PA_MENU_SELECT,
-    PA_MENU_CANCEL,
 
     PA_COUNT
 };
 
 const PlayerAction PA_FIRST_GAME_ACTION = PA_STEER_LEFT;
-const PlayerAction PA_LAST_GAME_ACTION = PA_PAUSE_RACE;
-const PlayerAction PA_FIRST_MENU_ACTION = PA_MENU_UP;
-const PlayerAction PA_LAST_MENU_ACTION = PA_MENU_CANCEL;
+const PlayerAction PA_LAST_GAME_ACTION = PA_LOOK_BACK;
 
 /**
   * \brief  human-readable strings for each PlayerAction
@@ -155,14 +145,7 @@ static std::string KartActionStrings[PA_COUNT] = {std::string("steerLeft"),
                                                   std::string("drift"),
                                                   std::string("rescue"),
                                                   std::string("fire"),
-                                                  std::string("lookBack"),
-                                                  std::string("pauserace"),
-                                                  std::string("menuUp"),
-                                                  std::string("menuDown"),
-                                                  std::string("menuLeft"),
-                                                  std::string("menuRight"),
-                                                  std::string("menuSelect"),
-                                                  std::string("menuCancel")
+                                                  std::string("lookBack")
                                                   };
 
 #endif

@@ -18,7 +18,6 @@
 
 #include "tracks/check_line.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_dynamic_draw_call.hpp"
@@ -27,7 +26,7 @@
 #include "karts/abstract_kart.hpp"
 #include "modes/linear_world.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
+
 #include "race/race_manager.hpp"
 
 #include "irrlicht.h"
@@ -179,25 +178,3 @@ bool CheckLine::isTriggered(const Vec3 &old_pos, const Vec3 &new_pos,
     }
     return result;
 }   // isTriggered
-
-// ----------------------------------------------------------------------------
-void CheckLine::saveCompleteState(BareNetworkString* bns)
-{
-    CheckStructure::saveCompleteState(bns);
-    World* world = World::getWorld();
-    for (unsigned int i = 0; i < world->getNumKarts(); i++)
-        bns->addUInt8(m_previous_sign[i] ? 1 : 0);
-}   // saveCompleteState
-
-// ----------------------------------------------------------------------------
-void CheckLine::restoreCompleteState(const BareNetworkString& b)
-{
-    CheckStructure::restoreCompleteState(b);
-    m_previous_sign.clear();
-    World* world = World::getWorld();
-    for (unsigned int i = 0; i < world->getNumKarts(); i++)
-    {
-        bool previous_sign = b.getUInt8() == 1;
-        m_previous_sign.push_back(previous_sign);
-    }
-}   // restoreCompleteState

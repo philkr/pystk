@@ -67,11 +67,6 @@ public:
     /** No hit effect when it ends. */
     virtual HitEffect *getHitEffect() const OVERRIDE           { return NULL; }
     // ------------------------------------------------------------------------
-    virtual BareNetworkString* saveState(std::vector<std::string>* ru)
-        OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString *buffer, int count) OVERRIDE;
-    // ------------------------------------------------------------------------
     virtual void onFireFlyable() OVERRIDE;
     // ------------------------------------------------------------------------
     virtual void onDeleteFlyable() OVERRIDE;

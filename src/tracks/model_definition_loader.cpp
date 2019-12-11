@@ -74,8 +74,7 @@ LODNode* ModelDefinitionLoader::instanciateAsLOD(const XMLNode* node, scene::ISc
         for (unsigned int m=0; m<group.size(); m++)
         {
 #ifndef SERVER_ONLY
-            if (group[m].m_skeletal_animation &&
-                UserConfigParams::m_animated_characters)
+            if (group[m].m_skeletal_animation && UserConfigParams::m_animated_characters)
             {
                 scene::IAnimatedMesh* a_mesh = irr_driver->getAnimatedMesh(group[m].m_model_file);
                 if (!a_mesh)

@@ -38,20 +38,12 @@ class Ipo;
 class CannonAnimation: public AbstractKartAnimation
 {
 protected:
-friend class KartRewinder;
 friend class Flyable;
-    // ------------------------------------------------------------------------
-    CannonAnimation(AbstractKart* kart, BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    CannonAnimation(Flyable* flyable, BareNetworkString* buffer);
     // ------------------------------------------------------------------------
     void init(Ipo *ipo, const Vec3 &start_left, const Vec3 &start_right,
               const Vec3 &end_left, const Vec3 &end_right, float skid_rot);
     // ------------------------------------------------------------------------
     void initDeltaHeading(float skidding_rotation);
-    // ------------------------------------------------------------------------
-    void restoreData(BareNetworkString* buffer);
-
 private:
     /** The \ref CheckCannon which created this animation. */
     CheckCannon*   m_check_cannon;
@@ -101,9 +93,5 @@ public:
     virtual void  update(int ticks);
     // ------------------------------------------------------------------------
     virtual KartAnimationType getAnimationType() const   { return KAT_CANNON; }
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer);
 };   // CannonAnimation
 #endif

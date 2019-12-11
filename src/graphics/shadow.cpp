@@ -82,7 +82,7 @@ void Shadow::update(bool enabled)
         v[1].m_position.X =  1; v[1].m_position.Z =  1; v[1].m_position.Y = 0;
         v[2].m_position.X = -1; v[2].m_position.Z = -1; v[2].m_position.Y = 0;
         v[3].m_position.X =  1; v[3].m_position.Z = -1; v[3].m_position.Y = 0;
-        btTransform kart_trans = m_kart.getSmoothedTrans();
+        btTransform kart_trans = m_kart.getTrans();
         btTransform skidding_rotation;
         skidding_rotation.setOrigin(Vec3(0, 0, 0));
         skidding_rotation.setRotation

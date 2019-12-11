@@ -17,7 +17,6 @@
 
 #include "profiler.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/glwrap.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/2dutils.hpp"
@@ -80,9 +79,6 @@ Profiler::Profiler()
     m_time_between_sync   = 0.0;
     m_freeze_state        = UNFROZEN;
 
-    // When initializing profile class during static initialization
-    // UserConfigParams::m_max_fps may not be properly initialized with default
-    // value, so we use hard-coded default value
     m_max_frames          = 20 * 120;
     m_current_frame       = 0;
     m_has_wrapped_around  = false;

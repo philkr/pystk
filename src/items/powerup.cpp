@@ -27,8 +27,7 @@
 #include "karts/controller/controller.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
+
 #include "physics/triangle_mesh.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
@@ -63,42 +62,6 @@ void Powerup::reset()
     World::getWorld()->getDefaultCollectibles( &type, &number );
     set( (PowerupManager::PowerupType)type, number );
 }   // reset
-
-//-----------------------------------------------------------------------------
-/** Save the powerup state. Called from the kart rewinder when saving the kart
- *  state or when a new powerup even is saved.
- *  \param buffer The buffer into which to save the state.
- */
-void Powerup::saveState(BareNetworkString *buffer) const
-{
-    buffer->addUInt8(uint8_t(m_type));
-    buffer->addUInt8(m_number);   // number is <=255
-}   // saveState
-
-//-----------------------------------------------------------------------------
-/** Restore a powerup state. Called from the kart rewinder when restoring a
- *  state.
- *  \param buffer Buffer with the state of this powerup object.
- */
-void Powerup::rewindTo(BareNetworkString *buffer)
-{
-    PowerupManager::PowerupType new_type = 
-        PowerupManager::PowerupType(buffer->getUInt8());
-    int n=0;
-    if(new_type==PowerupManager::POWERUP_NOTHING)
-    {
-        set(new_type, 0);
-        return;
-    }
-    n = buffer->getUInt8();
-    if(m_type == new_type)
-        m_number = n;
-    else
-    {
-        m_number = 0;
-        set(new_type, n);
-    }
-}   // rewindTo
 
 //-----------------------------------------------------------------------------
 void Powerup::update(int ticks)
@@ -139,10 +102,6 @@ void Powerup::set(PowerupManager::PowerupType type, int n)
     if(n>255) n = 255;
 
     m_number=n;
-
-    // Don't re-create sound sound during rewinding
-    if (RewindManager::get()->isRewinding())
-        return;
 }  // set
 
 //-----------------------------------------------------------------------------

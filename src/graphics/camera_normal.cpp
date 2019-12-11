@@ -20,7 +20,6 @@
 #include "graphics/camera_normal.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/explosion_animation.hpp"
 #include "karts/kart.hpp"
@@ -60,7 +59,7 @@ CameraNormal::CameraNormal(Camera::CameraType type,  int camera_index,
 
     if (kart)
     {
-        btTransform btt = kart->getSmoothedTrans();
+        btTransform btt = kart->getTrans();
         m_kart_position = btt.getOrigin();
         m_kart_rotation = btt.getRotation();
     }
@@ -79,10 +78,10 @@ void CameraNormal::moveCamera(float dt, bool smooth)
     Kart *kart = dynamic_cast<Kart*>(m_kart);
     if (kart->isFlying())
     {
-        Vec3 vec3 = m_kart->getSmoothedXYZ() + Vec3(sinf(m_kart->getHeading()) * -4.0f,
+        Vec3 vec3 = m_kart->getXYZ() + Vec3(sinf(m_kart->getHeading()) * -4.0f,
             0.5f,
             cosf(m_kart->getHeading()) * -4.0f);
-        m_camera->setTarget(m_kart->getSmoothedXYZ().toIrrVector());
+        m_camera->setTarget(m_kart->getXYZ().toIrrVector());
         m_camera->setPosition(vec3.toIrrVector());
         return;
     }   // kart is flying
@@ -127,7 +126,7 @@ void CameraNormal::moveCamera(float dt, bool smooth)
             delta2 = 1;
     }
 
-    btTransform btt = m_kart->getSmoothedTrans();
+    btTransform btt = m_kart->getTrans();
     m_kart_position = btt.getOrigin();
     btQuaternion q1, q2;
     q1 = m_kart_rotation.normalized();
@@ -269,7 +268,7 @@ void CameraNormal::update(float dt)
         // above the kart).
         // Note: this code is replicated from smoothMoveCamera so that
         // the camera keeps on pointing to the same spot.
-        core::vector3df current_target = (m_kart->getSmoothedXYZ().toIrrVector()
+        core::vector3df current_target = (m_kart->getXYZ().toIrrVector()
                                        +  core::vector3df(0, above_kart, 0));
         m_camera->setTarget(current_target);
     }
@@ -296,13 +295,13 @@ void CameraNormal::positionCamera(float dt, float above_kart, float cam_angle,
                            float cam_roll_angle)
 {
     Vec3 wanted_position;
-    Vec3 wanted_target = m_kart->getSmoothedTrans()(Vec3(0, above_kart, 0));
+    Vec3 wanted_target = m_kart->getTrans()(Vec3(0, above_kart, 0));
 
     float tan_up = tanf(cam_angle);
     Vec3 relative_position(side_way,
                            fabsf(distance)*tan_up+above_kart,
                            distance);
-    btTransform t=m_kart->getSmoothedTrans();
+    btTransform t=m_kart->getTrans();
     if(stk_config->m_camera_follow_skid &&
         m_kart->getSkidding()->getVisualSkidRotation()!=0)
     {
@@ -329,7 +328,7 @@ void CameraNormal::positionCamera(float dt, float above_kart, float cam_angle,
     if (kart && !kart->isFlying())
     {
         // Rotate the up vector (0,1,0) by the rotation ... which is just column 1
-        Vec3 up = m_kart->getSmoothedTrans().getBasis().getColumn(1);
+        Vec3 up = m_kart->getTrans().getBasis().getColumn(1);
         float f = 0.04f;  // weight for new up vector to reduce shaking
         m_camera->setUpVector(        f  * up.toIrrVector() +
                               (1.0f - f) * m_camera->getUpVector());

@@ -19,9 +19,8 @@
 #ifndef SERVER_ONLY
 
 #include "graphics/texture_shader.hpp"
-#include "graphics/central_settings.hpp"
-
 #include "config/user_config.hpp"
+#include "graphics/central_settings.hpp"
 
 TextureShaderBase::BindFunction TextureShaderBase::m_all_bind_functions[] =
 { /* ST_NEAREST_FILTERED               */ &TextureShaderBase::bindTextureNearest,
