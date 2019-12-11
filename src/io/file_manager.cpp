@@ -141,12 +141,10 @@ FileManager::FileManager()
     m_subdir_name[MUSIC      ] = "music";
     m_subdir_name[REPLAY     ] = "replay";
     m_subdir_name[SCRIPT     ] = "tracks";
-    m_subdir_name[SFX        ] = "sfx";
     m_subdir_name[SKIN       ] = "skins";
     m_subdir_name[SHADER     ] = "shaders";
     m_subdir_name[TEXTURE    ] = "textures";
     m_subdir_name[TTF        ] = "ttf";
-    m_subdir_name[TRANSLATION] = "po";
 #ifdef __APPLE__
     // irrLicht's createDevice method has a nasty habit of messing the CWD.
     // since the code above may rely on it, save it to be able to restore
@@ -244,7 +242,6 @@ FileManager::FileManager()
         checkAndCreateDirectoryP(m_stk_assets_download_dir + "/library");
         checkAndCreateDirectoryP(m_stk_assets_download_dir + "/models");
         checkAndCreateDirectoryP(m_stk_assets_download_dir + "/music");
-        checkAndCreateDirectoryP(m_stk_assets_download_dir + "/sfx");
         checkAndCreateDirectoryP(m_stk_assets_download_dir + "/textures");
         checkAndCreateDirectoryP(m_stk_assets_download_dir + "/tracks");
     }

@@ -133,20 +133,6 @@ void CheckManager::resetAfterKartMove(AbstractKart *kart)
 }   // resetAfterKartMove
 
 // ----------------------------------------------------------------------------
-/* After restoreState in rewind this is called to reset all positions of
- * \ref CheckStructure to old position (for example check line).
- */
-void CheckManager::resetAfterRewind()
-{
-    World* w = World::getWorld();
-    for (unsigned i = 0; i < w->getNumKarts(); i++)
-    {
-        for (unsigned j = 0; j < m_all_checks.size(); j++)
-            m_all_checks[j]->resetAfterRewind(w->getKart(i)->getWorldKartId());
-    }
-}   // resetAfterRewind
-
-// ----------------------------------------------------------------------------
 /** Adds a flyable object to be tested against cannons. This will allow
  *  bowling- and rubber-balls to fly in a cannon.
  *  \param flyable Pointer to the flyable to be added.

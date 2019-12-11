@@ -31,7 +31,6 @@ class Referee;
 class RescueAnimation: public AbstractKartAnimation
 {
 protected:
-friend class KartRewinder;
     /** The velocity with which the kart is moved. */
     float m_velocity;
 

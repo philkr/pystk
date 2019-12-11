@@ -40,7 +40,6 @@
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 /** The constructor for a loca player kart, i.e. a player that is playing
  *  on this machine (non-local player would be network clients).
@@ -104,7 +103,6 @@ void LocalPlayerController::initParticleEmitter()
 void LocalPlayerController::reset()
 {
     PlayerController::reset();
-    m_sound_schedule = false;
     m_has_started = false;
 }   // reset
 
@@ -116,7 +114,6 @@ void LocalPlayerController::reset()
 void LocalPlayerController::resetInputState()
 {
     PlayerController::resetInputState();
-    m_sound_schedule = false;
 }   // resetInputState
 
 // ----------------------------------------------------------------------------
@@ -208,14 +205,6 @@ void LocalPlayerController::update(int ticks)
     }
 
 #endif
-    if (m_kart->getKartAnimation() && m_sound_schedule == false)
-    {
-        m_sound_schedule = true;
-    }
-    else if (!m_kart->getKartAnimation() && m_sound_schedule == true)
-    {
-        m_sound_schedule = false;
-    }
 }   // update
 
 //-----------------------------------------------------------------------------
@@ -266,9 +255,9 @@ void LocalPlayerController::finishedRace(float time)
 //-----------------------------------------------------------------------------
 /** Called when a kart hits or uses a zipper.
  */
-void LocalPlayerController::handleZipper(bool play_sound)
+void LocalPlayerController::handleZipper()
 {
-    PlayerController::handleZipper(play_sound);
+    PlayerController::handleZipper();
 
     // Only play a zipper sound if it's not already playing, and
     // if the material has changed (to avoid machine gun effect
@@ -291,13 +280,6 @@ void LocalPlayerController::collectedItem(const ItemState &item_state,
                                           float old_energy)
 {
 }   // collectedItem
-
-//-----------------------------------------------------------------------------
-/** If the nitro level has gone under the nitro goal, play a bad effect sound 
- */
-void LocalPlayerController::nitroNotFullSound()
-{
-} //nitroNotFullSound
 
 // ----------------------------------------------------------------------------
 /** Returns true if the player of this controller can collect achievements.

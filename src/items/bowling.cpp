@@ -18,7 +18,7 @@
 
 #include "items/bowling.hpp"
 
-#include "graphics/hit_sfx.hpp"
+#include "graphics/hit_effect.hpp"
 #include "graphics/material.hpp"
 #include "io/xml_node.hpp"
 #include "karts/abstract_kart.hpp"
@@ -165,10 +165,6 @@ HitEffect* Bowling::getHitEffect() const
 {
     if (m_deleted_once)
         return NULL;
-    if(m_has_hit_kart)
-        return new HitSFX(getXYZ(), "strike");
-    else
-        return new HitSFX(getXYZ(), "crash");
 }   // getHitEffect
 
 // ----------------------------------------------------------------------------

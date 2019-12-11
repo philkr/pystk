@@ -27,7 +27,6 @@
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 HighscoreManager* highscore_manager=0;
 const unsigned int HighscoreManager::CURRENT_HSCORE_FILE_VERSION = 4;

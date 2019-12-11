@@ -24,7 +24,6 @@
 #include "replay/replay_play.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 //-----------------------------------------------------------------------------
 /** Constructor. Sets up the clock mode etc.

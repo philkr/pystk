@@ -44,8 +44,6 @@ private:
     /** The owner (kart) of this powerup. */
     AbstractKart*               m_kart;
 
-    std::set<int>               m_played_sound_ticks;
-
 public:
                     Powerup      (AbstractKart* kart_);
                    ~Powerup      ();

@@ -397,8 +397,7 @@ public:
      *  used with a specific material, in which case the zipper parmaters are
      *  taken from this material (parameters that are <0 will be using the
      *  kart-specific values from kart-properties. */
-    virtual void handleZipper(const Material *m=NULL,
-                              bool play_sound=false) = 0;
+    virtual void handleZipper(const Material *m=NULL) = 0;
     // ------------------------------------------------------------------------
     /** Returns true if this kart has finished the race. */
     virtual bool hasFinishedRace() const = 0;

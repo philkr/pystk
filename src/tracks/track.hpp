@@ -283,7 +283,6 @@ private:
 
     /** Use a special built-in wheather */
     bool                     m_weather_lightning;
-    std::string              m_weather_sound;
 
     /** A simple class to keep information about a track mode. */
     class TrackMode
@@ -557,8 +556,6 @@ public:
                             { return (unsigned int)m_start_transforms.size(); }
     // ------------------------------------------------------------------------
     bool getWeatherLightning() {return m_weather_lightning;}
-    // ------------------------------------------------------------------------
-    const std::string& getWeatherSound() {return m_weather_sound;}
     // ------------------------------------------------------------------------
     ParticleKind* getSkyParticles         () { return m_sky_particles; }
     //-------------------------------------------------------------------------

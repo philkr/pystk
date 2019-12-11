@@ -59,7 +59,6 @@
 #include "utils/log.hpp"
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 #include "utils/vs.hpp"
 
 #include <irrlicht.h>
@@ -80,8 +79,7 @@
         !defined(SERVER_ONLY)               &&         \
         !defined(_IRR_COMPILE_WITH_OGLES2_)       ) || \
       !defined(_IRR_COMPILE_WITH_B3D_LOADER_)             )
-#error "Building against an incompatible Irrlicht. Distros, \
-please use the included version."
+#error "Building against an incompatible Irrlicht. Distros, please use the included version."
 #endif
 
 using namespace irr;

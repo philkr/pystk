@@ -72,7 +72,6 @@
 #include "utils/log.hpp" //TODO: remove after debugging is done
 #include "utils/profiler.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 #include "utils/vs.hpp"
 
 #include <ICameraSceneNode.h>
@@ -134,7 +133,6 @@ Kart::Kart (const std::string& ident, unsigned int world_kart_id,
 
     // Set position and heading:
     m_reset_transform         = init_transform;
-    m_last_factor_engine_sound = 0.0f;
 
     m_kart_model->setKart(this);
 
@@ -1362,7 +1360,6 @@ void Kart::update(int ticks)
             fabs(getSpeed()) < 3.0f)
         {
             RescueAnimation::create(this, /*is_auto_rescue*/true);
-            m_last_factor_engine_sound = 0.0f;
         }
     }
 
@@ -1447,7 +1444,6 @@ void Kart::update(int ticks)
            !has_animation_before)
         {
             RescueAnimation::create(this);
-            m_last_factor_engine_sound = 0.0f;
         }
     }
     else
@@ -1455,7 +1451,6 @@ void Kart::update(int ticks)
         if (!has_animation_before && material->isDriveReset() && isOnGround())
         {
             RescueAnimation::create(this);
-            m_last_factor_engine_sound = 0.0f;
         }
         else if(material->isZipper()     && isOnGround())
         {
@@ -1526,8 +1521,7 @@ void Kart::update(int ticks)
 
         if (!has_animation_before)
         {
-            HitEffect *effect =  new Explosion(getXYZ(), "jump",
-                                              "jump_explosion.xml");
+            HitEffect *effect =  new Explosion(getXYZ(), "jump_explosion.xml");
             projectile_manager->addHitEffect(effect);
         }
     }
@@ -1791,10 +1785,8 @@ void Kart::handleMaterialGFX(float dt)
  *  \param material If not NULL, will be used to determine the zipper
  *                  parameters, otherwise the defaults from kart properties
  *                  will be used.
- * \param play_sound If true this will cause a sfx to be played even if the
- *                  terrain hasn't changed. It is used by the zipper powerup.
  */
-void Kart::handleZipper(const Material *material, bool play_sound)
+void Kart::handleZipper(const Material *material)
 {
     /** The additional speed allowed on top of the kart-specific maximum kart
      *  speed. */
@@ -2021,7 +2013,6 @@ void Kart::crashed(const Material *m, const Vec3 &normal)
         if (m->getCollisionReaction() == Material::RESCUE)
         {
             RescueAnimation::create(this);
-            m_last_factor_engine_sound = 0.0f;
         }
         else if (m->getCollisionReaction() == Material::PUSH_BACK)
         {

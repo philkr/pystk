@@ -90,7 +90,6 @@ public:
     virtual void terminateRace();
     void         setTime(const float time);
     void         setTicks(int ticks);
-    void         setTicksForRewind(int ticks);
     // ------------------------------------------------------------------------
     bool     isRacePhase()  const  { return m_phase>=RACE_PHASE &&
                                             m_phase<FINISH_PHASE;           }

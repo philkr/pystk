@@ -208,10 +208,7 @@ void Attachment::hitBanana(ItemState *item_state)
         {
         add_a_new_item = false;
         {
-            HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion",
-                "explosion_bomb.xml");
-            if (m_kart->getController()->isLocalPlayerController())
-                he->setLocalPlayerKartHit();
+            HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion_bomb.xml");
             projectile_manager->addHitEffect(he);
         }
         if (m_kart->getKartAnimation() == NULL)
@@ -406,10 +403,7 @@ void Attachment::update(int ticks)
         if (m_ticks_left <= 0)
         {
             {
-                HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion",
-                    "explosion_bomb.xml");
-                if (m_kart->getController()->isLocalPlayerController())
-                    he->setLocalPlayerKartHit();
+                HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion_bomb.xml");
                 projectile_manager->addHitEffect(he);
             }
             if (m_kart->getKartAnimation() == NULL)

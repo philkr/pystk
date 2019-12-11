@@ -40,7 +40,6 @@
 Plunger::Plunger(AbstractKart *kart)
        : Flyable(kart, PowerupManager::POWERUP_PLUNGER)
 {
-    m_has_locally_played_sound = false;
     m_moved_to_infinity = false;
     m_reverse_mode = false;
     m_rubber_band = NULL;
@@ -57,7 +56,6 @@ Plunger::~Plunger()
 void Plunger::onFireFlyable()
 {
     Flyable::onFireFlyable();
-    m_has_locally_played_sound = false;
     m_moved_to_infinity = false;
     const float gravity = 0.0f;
 
@@ -201,11 +199,6 @@ bool Plunger::hit(AbstractKart *kart, PhysicalObject *obj)
         if(kart)
         {
             kart->blockViewWithPlunger();
-            if (kart->getController()->isLocalPlayerController() &&
-                !m_has_locally_played_sound)
-            {
-                m_has_locally_played_sound = true;
-            }
         }
 
         m_keep_alive = 0;

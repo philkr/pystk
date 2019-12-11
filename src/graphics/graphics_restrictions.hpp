@@ -73,8 +73,6 @@ namespace GraphicsRestrictions
               const std::string &card_name,
               const std::string &vendor       );
     bool isDisabled(GraphicsRestrictionsType type);
-
-    void unitTesting();
 };   // HardwareStats
 
 #endif

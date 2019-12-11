@@ -62,9 +62,8 @@ public:
                     CHALLENGE=ASSET_MIN,
                     GFX, GRANDPRIX, GUI_ICON, GUI_SCREEN, GUI_DIALOG,
                     LIBRARY, MODEL, MUSIC, REPLAY,
-                    SCRIPT, SFX, SHADER, SKIN, TEXTURE, TTF,
-                    TRANSLATION, ASSET_MAX = TRANSLATION,
-                    ASSET_COUNT};
+                    SCRIPT, SHADER, SKIN, TEXTURE, TTF,
+                    ASSET_MAX = TTF, ASSET_COUNT};
 
 private:
     mutable std::mutex m_file_system_lock;

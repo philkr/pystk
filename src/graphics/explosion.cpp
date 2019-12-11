@@ -32,8 +32,8 @@
 
 
 /** Creates an explosion effect. */
-Explosion::Explosion(const Vec3& coord, const char* explosion_sound, const char * particle_file)
-                     : HitSFX(coord, explosion_sound)
+Explosion::Explosion(const Vec3& coord, const char * particle_file)
+                     : HitEffect()
 {
     // short emision time, explosion, not constant flame
 
@@ -86,10 +86,6 @@ Explosion::~Explosion()
  */
 bool Explosion::updateAndDelete(int ticks)
 {
-    // The explosion sfx is shorter than the particle effect,
-    // so no need to save the result of the update call.
-    HitSFX::updateAndDelete(ticks);
-
     m_emission_frames++;
     m_remaining_ticks -= ticks;
 

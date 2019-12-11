@@ -68,8 +68,6 @@ private:
 public:
     static ArenaGraph* get()     { return dynamic_cast<ArenaGraph*>(m_graph); }
     // ------------------------------------------------------------------------
-    static void unitTesting();
-    // ------------------------------------------------------------------------
     ArenaGraph(const std::string &navmesh, const XMLNode *node = NULL);
     // ------------------------------------------------------------------------
     virtual ~ArenaGraph() {}

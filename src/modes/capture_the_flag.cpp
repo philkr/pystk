@@ -29,7 +29,6 @@
 #include "tracks/track.hpp"
 #include "tracks/track_object_manager.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <algorithm>
 
@@ -157,34 +156,10 @@ void CaptureTheFlag::updateGraphics(float dt)
         getTicksSinceStart() - m_last_captured_flag_ticks < stk_config->time2Ticks(2.0f);
     if (m_red_flag_status != m_red_flag->getStatus())
     {
-        if (m_red_flag->getHolder() != -1)
-        {
-            AbstractKart* kart = getKart(m_red_flag->getHolder());
-            const core::stringw& name = kart->getController()->getName();
-            // I18N: Show when a player gets the red flag in CTF
-            msg = _("%s has the red flag!", name);
-        }
-        else if (m_red_flag->isInBase() && !scored_recently)
-        {
-            // I18N: Show when the red flag is returned to its base in CTF
-            msg = _("The red flag has returned!");
-        }
         m_red_flag_status = m_red_flag->getStatus();
     }
     else if (m_blue_flag_status != m_blue_flag->getStatus())
     {
-        if (m_blue_flag->getHolder() != -1)
-        {
-            AbstractKart* kart = getKart(m_blue_flag->getHolder());
-            const core::stringw& name = kart->getController()->getName();
-            // I18N: Show when a player gets the blue flag in CTF
-            msg = _("%s has the blue flag!", name);
-        }
-        else if (m_blue_flag->isInBase() && !scored_recently)
-        {
-            // I18N: Show when the blue flag is returned to its base in CTF
-            msg = _("The blue flag has returned!");
-        }
         m_blue_flag_status = m_blue_flag->getStatus();
     }
 #endif
@@ -338,18 +313,9 @@ void CaptureTheFlag::ctfScored(int kart_id, bool red_team_scored,
 {
     m_scores.at(kart_id) = new_kart_score;
     AbstractKart* kart = getKart(kart_id);
-    core::stringw scored_msg;
     const core::stringw& name = kart->getController()->getName();
     m_red_scores = new_red_score;
     m_blue_scores = new_blue_score;
-    if (red_team_scored)
-    {
-        scored_msg = _("%s captured the blue flag!", name);
-    }
-    else
-    {
-        scored_msg = _("%s captured the red flag!", name);
-    }
 #ifndef SERVER_ONLY
     // Don't set animation and show message if receiving in live join
     kart->getKartModel()

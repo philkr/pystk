@@ -35,7 +35,6 @@
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <climits>
 #include <iostream>
@@ -410,10 +409,6 @@ void LinearWorld::newLap(unsigned int kart_index)
         // (remove the stringw before the wchar_t* is used).
         const core::stringw &kart_name = kart->getController()->getName();
         m_fastest_lap_kart_name = kart_name;
-
-        //I18N: as in "fastest lap: 60 seconds by Wilber"
-        irr::core::stringw m_fastest_lap_message =
-            _C("fastest_lap", "%s by %s", s.c_str(), kart_name);
     } // end if new fastest lap
 
     kart_info.m_lap_start_ticks = getTimeTicks();
