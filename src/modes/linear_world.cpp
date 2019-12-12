@@ -422,7 +422,7 @@ void LinearWorld::newLap(unsigned int kart_index)
  */
 float LinearWorld::getDistanceDownTrackForKart(const int kart_id, bool account_for_checklines) const
 {
-    return getTrackSector(kart_id)->getDistanceFromStart(account_for_checklines);
+    return getTrackSector(kart_id)->getDistanceFromStart(account_for_checklines, true);
 }   // getDistanceDownTrackForKart
 
 //-----------------------------------------------------------------------------

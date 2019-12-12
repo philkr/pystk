@@ -73,6 +73,8 @@ if __name__ == "__main__":
             if args.verbose and config.mode == config.RaceMode.SOCCER:
                 print('Score ', state.soccer.score)
                 print('      ', state.soccer.ball.location)
+            elif args.verbose:
+                print('Dist  ', state.players[0].kart.overall_distance, state.players[0].kart.distance_down_track,state.players[0].kart.finished_laps)
 
         for ui, d in zip(uis, race.render_data):
             ui.show(d)
