@@ -109,6 +109,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
 		true,
 		true,
 		true,
+		true,
 		false,
 		1 | 2,
 	};
@@ -122,6 +123,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
 		true,
 		true,
 		true,
+		true,
 		false,
 		1 | 2,
 	};
@@ -131,6 +133,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
 	static PySTKGraphicsConfig config = {600,400,
 		false, false, false, false, false,
 		0,
+		false,
 		false,
 		false,
 		false,
@@ -437,12 +440,12 @@ bool PySTKRace::step() {
 			last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
 	}
 	
+    PropertyAnimator::get()->update(dt);
+    if (World::getWorld())
+        World::getWorld()->updateGraphics(dt);
+
 	// Then render
 	if (config_.render) {
-		PropertyAnimator::get()->update(dt);
-		if (World::getWorld())
-			World::getWorld()->updateGraphics(dt);
-		
 		// irr_driver->update alternative
 		if (render_window) {
 			irr_driver->update(dt);
