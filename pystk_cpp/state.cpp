@@ -679,6 +679,7 @@ void pickle(std::ostream & s, const PyKart & o) {
     pickle(s, o.player_id);
     pickle(s, o.name);
     pickle(s, o.location);
+    pickle(s, o.rotation);
     pickle(s, o.front);
     pickle(s, o.velocity);
     pickle(s, o.size);
@@ -701,6 +702,7 @@ void unpickle(std::istream & s, PyKart * o) {
     unpickle(s, &o->player_id);
     unpickle(s, &o->name);
     unpickle(s, &o->location);
+    unpickle(s, &o->rotation);
     unpickle(s, &o->front);
     unpickle(s, &o->velocity);
     unpickle(s, &o->size);
