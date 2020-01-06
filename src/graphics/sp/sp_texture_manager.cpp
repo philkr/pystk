@@ -32,45 +32,7 @@ namespace SP
 SPTextureManager* SPTextureManager::m_sptm = NULL;
 // ----------------------------------------------------------------------------
 SPTextureManager::SPTextureManager()
-                : m_max_threaded_load_obj
-                  ((unsigned)std::thread::hardware_concurrency()),
-                  m_gl_cmd_function_count(0)
 {
-    if (m_max_threaded_load_obj.load() == 0)
-    {
-        m_max_threaded_load_obj.store(2);
-    }
-    m_max_threaded_load_obj.store(m_max_threaded_load_obj.load() + 1);
-    for (unsigned i = 0; i < m_max_threaded_load_obj; i++)
-    {
-        m_threaded_load_obj.emplace_back(
-            [this, i]()->void
-            {
-                using namespace StringUtils;
-                VS::setThreadName((toString(i) + "SPTM").c_str());
-                while (true)
-                {
-                    std::unique_lock<std::mutex> ul(m_thread_obj_mutex);
-                    m_thread_obj_cv.wait(ul, [this]
-                        {
-                            return !m_threaded_functions.empty();
-                        });
-                    if (m_max_threaded_load_obj == 0)
-                    {
-                        return;
-                    }
-                    std::function<bool()> copied =
-                        m_threaded_functions.front();
-                    m_threaded_functions.pop_front();
-                    ul.unlock();
-                    // if return false, re-added it to the back
-                    if (copied() == false)
-                    {
-                        addThreadedFunction(copied);
-                    }
-                }
-            });
-    }
     m_textures["unicolor_white"] = SPTexture::getWhiteTexture();
     m_textures[""] = SPTexture::getTransparentTexture();
 }   // SPTextureManager
@@ -78,7 +40,6 @@ SPTextureManager::SPTextureManager()
 // ----------------------------------------------------------------------------
 SPTextureManager::~SPTextureManager()
 {
-    assert(m_threaded_load_obj.empty());
     removeUnusedTextures();
 #ifdef DEBUG
     for (auto p : m_textures)
@@ -89,55 +50,11 @@ SPTextureManager::~SPTextureManager()
 }   // ~SPTextureManager
 
 // ----------------------------------------------------------------------------
-void SPTextureManager::checkForGLCommand(bool before_scene)
-{
-    if (m_gl_cmd_function_count.load() == 0)
-    {
-        return;
-    }
-    while (true)
-    {
-        std::unique_lock<std::mutex> ul(m_gl_cmd_mutex);
-        if (m_gl_cmd_functions.empty())
-        {
-            if (before_scene && m_gl_cmd_function_count.load() != 0)
-            {
-                ul.unlock();
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                continue;
-            }
-            else
-            {
-                return;
-            }
-        }
-        std::function<bool()> gl_cmd = m_gl_cmd_functions.front();
-        m_gl_cmd_functions.pop_front();
-        ul.unlock();
-        // if return false, re-added it to the back
-        if (gl_cmd() == false)
-        {
-            std::lock_guard<std::mutex> lock(m_gl_cmd_mutex);
-            m_gl_cmd_functions.push_back(gl_cmd);
-            if (!before_scene)
-            {
-                return;
-            }
-        }
-        else
-        {
-            m_gl_cmd_function_count.fetch_sub(1);
-        }
-    }
-}   // checkForGLCommand
-
-// ----------------------------------------------------------------------------
 std::shared_ptr<SPTexture> SPTextureManager::getTexture(const std::string& p,
                                                         Material* m,
                                                         bool undo_srgb,
                                                         const std::string& cid)
 {
-    checkForGLCommand();
     auto ret = m_textures.find(p);
     if (ret != m_textures.end())
     {
@@ -145,7 +62,7 @@ std::shared_ptr<SPTexture> SPTextureManager::getTexture(const std::string& p,
     }
     std::shared_ptr<SPTexture> t =
         std::make_shared<SPTexture>(p, m, undo_srgb, cid);
-    addThreadedFunction(std::bind(&SPTexture::threadedLoad, t));
+    t->load();
     m_textures[p] = t;
     return t;
 }   // getTexture
@@ -189,7 +106,7 @@ core::stringw SPTextureManager::reloadTexture(const core::stringw& name)
             {
                 continue;
             }
-            addThreadedFunction(std::bind(&SPTexture::threadedLoad, p.second));
+            p.second->load();
             Log::info("SPTextureManager", "%s reloaded",
                 p.second->getPath().c_str());
         }
@@ -214,8 +131,7 @@ core::stringw SPTextureManager::reloadTexture(const core::stringw& name)
             std::string tex_name = StringUtils::getBasename(tex_path);
             if (fname == tex_name || fname == tex_path)
             {
-                addThreadedFunction(std::bind(&SPTexture::threadedLoad,
-                    p.second));
+                p.second->load();
                 result += tex_name.c_str();
                 result += L" ";
                 break;

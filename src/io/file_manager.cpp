@@ -441,7 +441,6 @@ FileManager::~FileManager()
  */
 bool FileManager::fileExists(const std::string& path) const
 {
-    std::lock_guard<std::mutex> lock(m_file_system_lock);
 #ifdef DEBUG
     bool exists = m_file_system->existFile(path.c_str());
     if(exists) return true;
@@ -536,8 +535,6 @@ io::path FileManager::createAbsoluteFilename(const std::string &f)
  */
 void FileManager::pushModelSearchPath(const std::string& path)
 {
-    std::lock_guard<std::mutex> lock(m_file_system_lock);
-
     m_model_search_path.push_back(path);
     const int n=m_file_system->getFileArchiveCount();
     m_file_system->addFileArchive(createAbsoluteFilename(path),
@@ -565,8 +562,6 @@ void FileManager::pushModelSearchPath(const std::string& path)
  */
 void FileManager::pushTextureSearchPath(const std::string& path, const std::string& container_id)
 {
-    std::lock_guard<std::mutex> lock(m_file_system_lock);
-
     m_texture_search_path.push_back(TextureSearchPath(path, container_id));
     const int n=m_file_system->getFileArchiveCount();
     m_file_system->addFileArchive(createAbsoluteFilename(path),
@@ -596,7 +591,6 @@ void FileManager::popTextureSearchPath()
 {
     if (!m_texture_search_path.empty())
     {
-        std::lock_guard<std::mutex> lock(m_file_system_lock);
         TextureSearchPath dir = m_texture_search_path.back();
         m_texture_search_path.pop_back();
         m_file_system->removeFileArchive(createAbsoluteFilename(dir.m_texture_search_path));
@@ -610,7 +604,6 @@ void FileManager::popModelSearchPath()
 {
     if (!m_model_search_path.empty())
     {
-        std::lock_guard<std::mutex> lock(m_file_system_lock);
         std::string dir = m_model_search_path.back();
         m_model_search_path.pop_back();
         m_file_system->removeFileArchive(createAbsoluteFilename(dir));

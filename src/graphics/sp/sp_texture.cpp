@@ -434,7 +434,7 @@ std::shared_ptr<video::IImage> SPTexture::getTextureCache(const std::string& p,
 }   // getTextureCache
 
 // ----------------------------------------------------------------------------
-bool SPTexture::threadedLoad()
+bool SPTexture::load()
 {
 #ifndef SERVER_ONLY
     std::string cache_loc;
@@ -444,13 +444,7 @@ bool SPTexture::threadedLoad()
         std::shared_ptr<video::IImage> cache = getTextureCache(cache_loc,
             &sizes);
         if (cache)
-        {
-            SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-            SPTextureManager::get()->addGLCommandFunction(
-                [this, cache, sizes]()->bool
-                { return compressedTexImage2d(cache, sizes); });
-            return true;
-        }
+            return compressedTexImage2d(cache, sizes);
     }
 
     std::shared_ptr<video::IImage> image = getTextureImage();
@@ -471,28 +465,16 @@ bool SPTexture::threadedLoad()
         image->getDimension().Width >= 4 && image->getDimension().Height >= 4)
     {
         auto r = compressTexture(image);
-        SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-        SPTextureManager::get()->addGLCommandFunction(
-            [this, image, r]()->bool
-            { return compressedTexImage2d(image, r); });
+        compressedTexImage2d(image, r);
         if (!cache_loc.empty())
-        {
-            SPTextureManager::get()->addThreadedFunction(
-                [this, image, r, cache_loc]()->bool
-                {
-                    return saveCompressedTexture(image, r, cache_loc);
-                });
-        }
+            saveCompressedTexture(image, r, cache_loc);
     } else {
-        SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-        SPTextureManager::get()->addGLCommandFunction(
-            [this, image, mipmaps]()->bool
-            { return texImage2d(image, mipmaps); });
+        texImage2d(image, mipmaps);
     }
 
 #endif
     return true;
-}   // threadedLoad
+}   // load
 
 // ----------------------------------------------------------------------------
 std::shared_ptr<video::IImage>

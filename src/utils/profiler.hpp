@@ -18,8 +18,6 @@
 #ifndef PROFILER_HPP
 #define PROFILER_HPP
 
-#include "utils/synchronised.hpp"
-
 #include <irrlicht.h>
 
 #include <assert.h>
@@ -240,7 +238,7 @@ private:
      *  instance (since we need to avoid that a synch is done which changes
      *  the current frame while another threaded uses this variable, or
      *  while a new thread is added. */
-    Synchronised<bool> m_lock;
+    bool m_lock;
 
     /** True if the circular buffer has wrapped around. */
     bool m_has_wrapped_around;

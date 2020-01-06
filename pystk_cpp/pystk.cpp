@@ -372,9 +372,6 @@ void PySTKRace::stop() {
 	render_targets_.clear();
 	if (CVS->isGLSL())
 	{
-		// Flush all command before delete world, avoid later access
-		SP::SPTextureManager::get()
-			->checkForGLCommand(true/*before_scene*/);
 		// Reset screen in case the minimap was drawn
 		glViewport(0, 0, irr_driver->getActualScreenSize().Width,
 			irr_driver->getActualScreenSize().Height);
@@ -386,8 +383,6 @@ void PySTKRace::stop() {
 	}
 }
 void PySTKRace::render(float dt) {
-	SP::SPTextureManager::get()->checkForGLCommand();
-
 	World *world = World::getWorld();
 
     if (world)

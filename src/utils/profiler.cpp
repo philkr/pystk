@@ -171,10 +171,8 @@ void Profiler::draw()
 
     // Current frame points to the frame in which currently data is
     // being accumulated. Draw the previous (i.e. complete) frame.
-    m_lock.lock();
     int indx = m_current_frame - 1;
     if (indx < 0) indx = m_max_frames - 1;
-    m_lock.unlock();
 
     drawBackground();
 
@@ -364,7 +362,6 @@ void Profiler::drawBackground()
  */
 void Profiler::writeToFile()
 {
-    m_lock.lock();
     std::string base_name =
                file_manager->getUserConfigFile(file_manager->getStdoutName());
     // First CPU data
@@ -413,6 +410,5 @@ void Profiler::writeToFile()
         start = (start + 1) % m_max_frames;
     }
     f_gpu.close();
-    m_lock.unlock();
 
 }   // writeFile

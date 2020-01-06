@@ -22,14 +22,13 @@
 #include "utils/log.hpp"
 #include "utils/ptr_vector.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/synchronised.hpp"
 
 #ifdef DEBUG
 
 /** Define this to get the backtrace of the leaks (slows down execution a little) */
 #undef GET_STACK_TRACE
 
-Synchronised<int> m_lock_stacktrace;
+int m_lock_stacktrace;
 
 
 #ifdef GET_STACK_TRACE
@@ -46,7 +45,7 @@ Synchronised<int> m_lock_stacktrace;
 namespace MemoryLeaks
 {
     /** A set with all currently allocated objects. */
-    Synchronised< std::set<AllocatedObject*> > g_all_objects;
+    std::set<AllocatedObject*> g_all_objects;
 
     // ------------------------------------------------------------------------
     AllocatedObject::AllocatedObject()
@@ -109,18 +108,14 @@ namespace MemoryLeaks
     /** Adds an object to the sets of all allocated objects. */
     void addObject(AllocatedObject* obj)
     {
-        g_all_objects.lock();
-        g_all_objects.getData().insert(obj);
-        g_all_objects.unlock();
+        g_all_objects.insert(obj);
     }   // addObject
 
     // ------------------------------------------------------------------------
     /** Removes an object from the set of all allocated objects. */
     void removeObject(AllocatedObject* obj)
     {
-        g_all_objects.lock();
-        g_all_objects.getData().erase(obj);
-        g_all_objects.unlock();
+        g_all_objects.erase(obj);
         //delete obj;
     }   // removeObject
 
@@ -130,14 +125,13 @@ namespace MemoryLeaks
     void checkForLeaks()
     {
         Log::debug("LeackCheck", "checking for leaks... ");
-        g_all_objects.lock();
-        if (g_all_objects.getData().size()>0)
+        if (g_all_objects.size()>0)
         {
             Log::error("LeackCheck", "leaks detected!!");
             Log::error("LeackCheck", "\n\n* * * * WARNING * * * * WARNING * * * * "
                        "MEMORY LEAK! * * * *");
             Log::error("LeackCheck", "%d watched objects leaking.",
-                       g_all_objects.getData().size());
+                       g_all_objects.size());
 
         }
         else
@@ -146,12 +140,11 @@ namespace MemoryLeaks
         }
 
         std::set<AllocatedObject*>::iterator it;
-        for (it  = g_all_objects.getData().begin();
-             it != g_all_objects.getData().end();   ++it)
+        for (it  = g_all_objects.begin();
+             it != g_all_objects.end();   ++it)
         {
             (*it)->print();
         }
-        g_all_objects.unlock();
     }   // checkForLeaks
 
 }   // namespace MemoryLeaks

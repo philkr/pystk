@@ -59,9 +59,7 @@ SPDynamicDrawCall::SPDynamicDrawCall(scene::E_PRIMITIVE_TYPE pt,
     glBufferData(GL_ARRAY_BUFFER, SP_ID_SIZE, NULL, GL_DYNAMIC_DRAW);
     SPInstancedData id = SPInstancedData(m_trans, 0.0f, 0.0f, 0.0f, 0, 0);
     glBufferSubData(GL_ARRAY_BUFFER, 0, SP_ID_SIZE, &id);
-    SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-    SPTextureManager::get()->addGLCommandFunction
-        (std::bind(&SPDynamicDrawCall::initTextureDyDc, this));
+    initTextureDyDc();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glGenVertexArrays(1, &m_vao[0]);

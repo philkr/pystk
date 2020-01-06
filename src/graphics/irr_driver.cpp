@@ -1392,12 +1392,6 @@ void IrrDriver::update(float dt, bool is_loading)
     m_wind->update();
 
     PropertyAnimator::get()->update(dt);
-#ifndef SERVER_ONLY
-    if (CVS->isGLSL())
-    {
-        SP::SPTextureManager::get()->checkForGLCommand();
-    }
-#endif
     World *world = World::getWorld();
 
     int moved_height = irr_driver->getDevice()->getMovedHeight();
@@ -1442,12 +1436,6 @@ void IrrDriver::minimalUpdate(float dt) {
     m_wind->update();
 
     PropertyAnimator::get()->update(dt);
-#ifndef SERVER_ONLY
-    if (CVS->isGLSL())
-    {
-        SP::SPTextureManager::get()->checkForGLCommand();
-    }
-#endif
     if (World::getWorld())
     {
 #ifndef SERVER_ONLY

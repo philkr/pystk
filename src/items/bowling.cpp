@@ -163,8 +163,7 @@ bool Bowling::hit(AbstractKart* kart, PhysicalObject* obj)
  */
 HitEffect* Bowling::getHitEffect() const
 {
-    if (m_deleted_once)
-        return NULL;
+    return NULL;
 }   // getHitEffect
 
 // ----------------------------------------------------------------------------
