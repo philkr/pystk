@@ -85,8 +85,6 @@ public:
     
     virtual void clearGlowingNodes() {}
 
-    virtual void render(float dt, bool is_loading=false) = 0;
- 
      // ------------------------------------------------------------------------
     const irr::core::vector2df &getCurrentScreenSize() const
     {

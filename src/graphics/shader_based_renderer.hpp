@@ -102,7 +102,6 @@ public:
 
     void addSunLight(const irr::core::vector3df &pos) OVERRIDE;
 
-    void render(float dt, bool is_loading=false) OVERRIDE;
     void minimalRender(float dt);
 
     std::unique_ptr<RenderTarget> createRenderTarget(const irr::core::dimension2du &dimension,

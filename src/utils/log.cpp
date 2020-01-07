@@ -39,7 +39,7 @@ FILE*         Log::m_file_stdout   = NULL;
 std::string   Log::m_prefix        = "";
 size_t        Log::m_buffer_size = 1;
 bool          Log::m_console_log = true;
-Synchronised<std::vector<struct Log::LineInfo> > Log::m_line_buffer;
+std::vector<struct Log::LineInfo> Log::m_line_buffer;
 
 // ----------------------------------------------------------------------------
 /** Selects background/foreground colors for the message depending on
@@ -179,15 +179,12 @@ void Log::printMessage(int level, const char *component, const char *format,
     struct LineInfo li;
     li.m_level = level;
     li.m_line  = std::string(line);
-    m_line_buffer.lock();
-    m_line_buffer.getData().push_back(li);
-    if (m_line_buffer.getData().size() < m_buffer_size)
+    m_line_buffer.push_back(li);
+    if (m_line_buffer.size() < m_buffer_size)
     {
         // Buffer not yet full, don't flush data.
-        m_line_buffer.unlock();
         return;
     }
-    m_line_buffer.unlock();
     // Because of the unlock above it can happen that another thread adds
     // another line and calls flushBuffers() first before this thread can
     // call it, but that doesn't really matter, when this thread will finally
@@ -264,14 +261,12 @@ void Log::toggleConsoleLog(bool val)
  */
 void Log::flushBuffers()
 {
-    m_line_buffer.lock();
-    for (unsigned int i = 0; i < m_line_buffer.getData().size(); i++)
+    for (unsigned int i = 0; i < m_line_buffer.size(); i++)
     {
-        const LineInfo &li = m_line_buffer.getData()[i];
+        const LineInfo &li = m_line_buffer[i];
         writeLine(li.m_line.c_str(), li.m_level);
     }
-    m_line_buffer.getData().clear();
-    m_line_buffer.unlock();
+    m_line_buffer.clear();
 }   // flushBuffers
 
 // ----------------------------------------------------------------------------

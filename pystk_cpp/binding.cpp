@@ -84,8 +84,9 @@ PYBIND11_MODULE(pystk, m) {
     }
     {
         py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
-    
-        cls.def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface")
+        
+        cls.def(py::init<int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1)
+        .def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface")
         .def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height, "Height of the rendering surface")
         .def_readwrite("glow", &PySTKGraphicsConfig::glow, "Enable glow around pickup objects")
         .def_readwrite("bloom", &PySTKGraphicsConfig::bloom, "Enable the bloom effect")
@@ -99,8 +100,7 @@ PYBIND11_MODULE(pystk, m) {
         .def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression, "Use texture compression")
         .def_readwrite("ssao", &PySTKGraphicsConfig::ssao, "Enable screen space ambient occlusion")
         .def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL, "Disable specular IBL")
-        .def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures, "Enable high definition textures 0 / 2")
-        .def_readwrite("render_window", &PySTKGraphicsConfig::render_window, "Show the rendering window");
+        .def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures, "Enable high definition textures 0 / 2");
         add_pickle(cls);
         
         cls.def_static("hd", &PySTKGraphicsConfig::hd, "High-definitaiton graphics settings");

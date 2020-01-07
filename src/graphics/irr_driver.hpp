@@ -257,7 +257,6 @@ public:
     Camera               *addCamera(unsigned int index, AbstractKart *kart);
     void                  removeCameraSceneNode(scene::ICameraSceneNode *camera);
     void                  removeCamera(Camera *camera);
-    void                  update(float dt, bool loading=false);
     void                  minimalUpdate(float dt);
 
     bool                  moveWindow(int x, int y);

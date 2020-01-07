@@ -576,7 +576,6 @@ void init()
 void destroy()
 {
     g_dy_dc.clear();
-    SPTextureManager::get()->stopThreads();
     SPShaderManager::destroy();
     g_glow_shader = NULL;
     g_normal_visualizer = NULL;
@@ -1079,7 +1078,6 @@ void handleDynamicDrawCall()
 void updateModelMatrix()
 {
     // Make sure all textures (with handles) are loaded
-    SPTextureManager::get()->checkForGLCommand(true/*before_scene*/);
     if (!sp_culling)
     {
         return;

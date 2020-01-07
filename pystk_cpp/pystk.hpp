@@ -14,7 +14,6 @@ struct PySTKGraphicsConfig {
 	bool ssao = true;
 	bool degraded_IBL = false;
 	int high_definition_textures = 2 | 1;
-	bool render_window = false; // Render the main game window
 	
 	static const PySTKGraphicsConfig & hd();
 	static const PySTKGraphicsConfig & sd();
@@ -77,7 +76,6 @@ struct PySTKAction {
 
 class PySTKRace {
 protected: // Static methods
-	static bool render_window;
 	static void initRest();
 	static void initUserConfig();
 	static void initGraphicsConfig(const PySTKGraphicsConfig & config);

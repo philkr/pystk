@@ -1378,76 +1378,10 @@ void IrrDriver::doScreenShot()
     m_request_screenshot = false;
 }   // doScreenShot
 
-// ----------------------------------------------------------------------------
-/** Update, called once per frame.
- *  \param dt Time since last update
- *  \param is_loading True if the rendering is called during loading of world,
- *         in which case world, physics etc must not be accessed/
- */
-void IrrDriver::update(float dt, bool is_loading)
-{
-    // If the resolution should be switched, do it now. This will delete the
-    // old device and create a new one.
-
-    m_wind->update();
-
-    PropertyAnimator::get()->update(dt);
-#ifndef SERVER_ONLY
-    if (CVS->isGLSL())
-    {
-        SP::SPTextureManager::get()->checkForGLCommand();
-    }
-#endif
-    World *world = World::getWorld();
-
-    int moved_height = irr_driver->getDevice()->getMovedHeight();
-    if (world)
-    {
-#ifndef SERVER_ONLY
-        m_renderer->render(dt, is_loading);
-#endif
-    }
-    else
-    {
-#ifndef SERVER_ONLY
-        m_video_driver->beginScene(/*backBuffer clear*/ true, /*zBuffer*/ true,
-                                   video::SColor(255,100,101,140));
-
-        glViewport(0, 0, irr_driver->getActualScreenSize().Width,
-            irr_driver->getActualScreenSize().Height);
-        m_video_driver->endScene();
-#endif
-    }
-
-    if (m_request_screenshot) doScreenShot();
-
-    // Enable this next print statement to get render information printed
-    // E.g. number of triangles rendered, culled etc. The stats is only
-    // printed while the race is running and not while the in-game menu
-    // is shown. This way the output can be studied by just opening the
-    // menu.
-    //if(World::getWorld() && World::getWorld()->isRacePhase())
-    //    printRenderStats();
-#ifdef ENABLE_RECORDER
-    if (m_recording)
-    {
-        PROFILER_PUSH_CPU_MARKER("- Recording", 0x0, 0x50, 0x40);
-        ogrCapture();
-        PROFILER_POP_CPU_MARKER();
-    }
-#endif
-}   // update
-
 void IrrDriver::minimalUpdate(float dt) {
     m_wind->update();
 
     PropertyAnimator::get()->update(dt);
-#ifndef SERVER_ONLY
-    if (CVS->isGLSL())
-    {
-        SP::SPTextureManager::get()->checkForGLCommand();
-    }
-#endif
     if (World::getWorld())
     {
 #ifndef SERVER_ONLY

@@ -199,9 +199,7 @@ void SPMeshBuffer::uploadGLMesh()
     }
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-    SPTextureManager::get()->addGLCommandFunction
-        (std::bind(&SPMeshBuffer::initTexture, this));
+    initTexture();
 
     if (m_ibo != 0)
     {
