@@ -36,6 +36,7 @@ if __name__ == "__main__":
         race_time, t0 = time() - t0, time()
 
         race.start()
+        race.step()
         start_time, t0 = time() - t0, time()
 
         for it in range(500):

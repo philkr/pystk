@@ -283,8 +283,6 @@ public:
     void     popCPUMarker();
     void     toggleStatus(); 
     void     synchronizeFrame();
-    void     draw();
-    void     onClick(const core::vector2di& mouse_pos);
     void     writeToFile();
 
     // ------------------------------------------------------------------------

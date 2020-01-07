@@ -220,7 +220,6 @@ void PySTKAction::get(const KartControl * control) {
 }
 
 PySTKRace * PySTKRace::running_kart = 0;
-bool PySTKRace::render_window = 0;
 static int is_init = 0;
 #ifdef RENDERDOC
 static RENDERDOC_API_1_1_2 *rdoc_api = NULL;
@@ -441,12 +440,7 @@ bool PySTKRace::step() {
 
 	// Then render
 	if (config_.render) {
-		// irr_driver->update alternative
-		if (render_window) {
-			irr_driver->update(dt);
-		} else {
-			irr_driver->minimalUpdate(dt);
-		}
+		irr_driver->minimalUpdate(dt);
 		render(dt);
 	}
 
@@ -544,7 +538,6 @@ void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 	UserConfigParams::m_ssao = config.ssao;
 	UserConfigParams::m_degraded_IBL = config.degraded_IBL;
 	UserConfigParams::m_high_definition_textures = config.high_definition_textures;
-	render_window = config.render_window;
 }
 
 
