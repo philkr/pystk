@@ -155,10 +155,11 @@ PYBIND11_MODULE(pystk, m) {
     {
         py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
         cls
-        .def_property_readonly("image", [](const PySTKRenderData & rd) { return py::ro_view(rd.color_buf_.data(), {rd.height, rd.width, 3}); }, "Color image of the kart (memoryview[uint8] screen_height x screen_width x 3)")
-        .def_property_readonly("depth", [](const PySTKRenderData & rd) { return py::ro_view(rd.depth_buf_.data(), {rd.height, rd.width}); }, "Depth image of the kart (memoryview[float] screen_height x screen_width)")
-        .def_property_readonly("instance", [](const PySTKRenderData & rd) { return py::ro_view(rd.instance_buf_.data(), {rd.height, rd.width}); }, "Instance labels (memoryview[uint32] screen_height x screen_width)");
-        add_pickle(cls);
+       .def_property_readonly("image", [](const PySTKRenderData & rd) { return rd.color_buf_->get(); }, "Color image of the kart (memoryview[uint8] screen_height x screen_width x 3)")
+       .def_property_readonly("depth", [](const PySTKRenderData & rd) { return rd.depth_buf_->get(); }, "Depth image of the kart (memoryview[float] screen_height x screen_width)")
+       .def_property_readonly("instance", [](const PySTKRenderData & rd) { return rd.instance_buf_->get(); }, "Instance labels (memoryview[uint32] screen_height x screen_width)");
+;
+//        add_pickle(cls);
     }
 
     {

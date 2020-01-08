@@ -127,7 +127,7 @@ void GL3RenderTarget::renderToTexture(irr::scene::ICameraSceneNode* camera,
                                       float dt)
 {
     m_frame_buffer = NULL;
-	auto old_rtts = m_renderer->getRTTs();
+    auto old_rtts = m_renderer->getRTTs();
     m_renderer->setRTT(m_rtts);
     m_renderer->renderToTexture(this, camera, dt);
     m_renderer->setRTT(old_rtts);
@@ -136,8 +136,8 @@ void GL3RenderTarget::renderToTexture(irr::scene::ICameraSceneNode* camera,
 //-----------------------------------------------------------------------------
 irr::core::dimension2du GL3RenderTarget::getTextureSize() const
 {
-    return irr::core::dimension2du(m_frame_buffer->getWidth(),
-                                   m_frame_buffer->getHeight());
+    return irr::core::dimension2du(m_rtts->getWidth(),
+                                   m_rtts->getHeight());
 }   // getTextureSize
 
 //-----------------------------------------------------------------------------

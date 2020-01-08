@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include "buffer.hpp"
 
 struct PySTKGraphicsConfig {
 	int screen_width=600, screen_height=400;
@@ -54,10 +55,7 @@ struct PySTKRaceConfig {
 class PySTKRenderTarget;
 
 struct PySTKRenderData {
-	int width, height;
-	std::vector<uint8_t> color_buf_;
-	std::vector<float> depth_buf_;
-	std::vector<uint32_t> instance_buf_;
+    std::shared_ptr<NumpyPBO> color_buf_, depth_buf_, instance_buf_;
 };
 
 class KartControl;
