@@ -43,11 +43,11 @@ BasicPBO::~BasicPBO() {
 void BasicPBO::read() {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_id_);
     glReadPixels(0, 0, width_, height_, format_, type_, 0);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+//    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 void BasicPBO::write(void * mem) {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_id_);
     glGetBufferSubData(GL_PIXEL_PACK_BUFFER, 0, size_, mem);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+//    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 

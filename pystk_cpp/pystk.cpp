@@ -150,6 +150,8 @@ class PySTKRenderTarget {
 
 private:
 	std::unique_ptr<RenderTarget> rt_;
+	std::vector<std::shared_ptr<BasicPBO> > color_buf_, depth_buf_, instance_buf_;
+	int buf_num_=0;
 
 protected:
 	void render(irr::scene::ICameraSceneNode* camera, float dt);
@@ -161,6 +163,13 @@ public:
 };
 
 PySTKRenderTarget::PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt):rt_(std::move(rt)) {
+    int W = rt_->getTextureSize().Width, H = rt_->getTextureSize().Height;
+    buf_num_ = 0;
+    for(int i=0; i<10; i++) {
+        color_buf_.push_back(std::make_shared<BasicPBO>(W, H, GL_RGB, GL_UNSIGNED_BYTE));
+        depth_buf_.push_back(std::make_shared<BasicPBO>(W, H, GL_DEPTH_COMPONENT, GL_FLOAT));
+        instance_buf_.push_back(std::make_shared<BasicPBO>(W, H, GL_RED, GL_UNSIGNED_INT));
+    }
 }
 void PySTKRenderTarget::render(irr::scene::ICameraSceneNode* camera, float dt) {
 	rt_->renderToTexture(camera, dt);
@@ -176,13 +185,10 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 //		data->color_buf_.resize(W*H*3);
 //		data->depth_buf_.resize(W*H);
 //		data->instance_buf_.resize(W*H);
-        if (!data->color_buf_)
-            data->color_buf_ = std::make_shared<BasicPBO>(W, H, GL_RGB, GL_UNSIGNED_BYTE);
-        if (!data->depth_buf_)
-            data->depth_buf_ = std::make_shared<BasicPBO>(W, H, GL_DEPTH_COMPONENT, GL_FLOAT);
-        if (!data->instance_buf_)
-            data->instance_buf_ = std::make_shared<BasicPBO>(W, H, GL_RED, GL_UNSIGNED_INT);
-		
+        data->color_buf_ = color_buf_[buf_num_];
+        data->depth_buf_ = depth_buf_[buf_num_];
+        data->instance_buf_ = instance_buf_[buf_num_];
+
 		rtts->getFBO(FBO_COLOR_AND_LABEL).bind();
 		
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -200,6 +206,7 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 //		yflip(data->color_buf_.data(), H, W*3);
 //		yflip(data->depth_buf_.data(), H, W);
 //		yflip(data->instance_buf_.data(), H, W);
+        buf_num_ = (buf_num_+1) % 10;
 	}
 	
 }
