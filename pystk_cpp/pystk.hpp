@@ -56,10 +56,6 @@ class PySTKRenderTarget;
 
 struct PySTKRenderData {
     std::shared_ptr<NumpyPBO> color_buf_, depth_buf_, instance_buf_;
-//	int width, height;
-//	std::vector<uint8_t> color_buf_;
-//	std::vector<float> depth_buf_;
-//	std::vector<uint32_t> instance_buf_;
 };
 
 class KartControl;
