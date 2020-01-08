@@ -293,7 +293,7 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
 	resetObjectId();
 	
 	setupConfig(config);
-	for(int i=0; i<config.players.size(); i++)
+	for(int i=0; i<2*config.players.size(); i++)
 		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
 	
 }
@@ -394,21 +394,23 @@ void PySTKRace::stop() {
 	}
 }
 void PySTKRace::render(float dt) {
+    static int tic = 0;
 	World *world = World::getWorld();
 
     if (world)
     {
 		// Render all views
-		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
+		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size() / 2; i++) {
 			Camera::getCamera(i)->activate(false);
-			render_targets_[i]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
+			render_targets_[2*i+tic]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
 		}
-		while (render_data_.size() < render_targets_.size()) render_data_.push_back( std::make_shared<PySTKRenderData>() );
+		while (2*render_data_.size() < render_targets_.size()) render_data_.push_back( std::make_shared<PySTKRenderData>() );
 		// Fetch all views
-		for(unsigned int i = 0; i < render_targets_.size(); i++) {
-			render_targets_[i]->fetch(render_data_[i]);
+		for(unsigned int i = 0; i < render_targets_.size() / 2; i++) {
+			render_targets_[2*i+tic]->fetch(render_data_[i]);
 		}
     }
+    tic = !tic;
 }
 
 bool PySTKRace::step(const std::vector<PySTKAction> & a) {
