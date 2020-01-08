@@ -7,7 +7,7 @@ class BasicPBO {
     BasicPBO& operator=(BasicPBO&) = delete;
 public:
     BasicPBO(int width, int height, int format, int type);
-    void read();
+    void read(unsigned int texture);
     void write(void * mem);
     ~BasicPBO();
 };

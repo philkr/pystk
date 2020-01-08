@@ -149,6 +149,7 @@ class PySTKRenderTarget {
 	friend class PySTKRace;
 
 private:
+    const int BUF_SIZE = 2;
 	std::unique_ptr<RenderTarget> rt_;
 	std::vector<std::shared_ptr<BasicPBO> > color_buf_, depth_buf_, instance_buf_;
 	int buf_num_=0;
@@ -165,7 +166,7 @@ public:
 PySTKRenderTarget::PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt):rt_(std::move(rt)) {
     int W = rt_->getTextureSize().Width, H = rt_->getTextureSize().Height;
     buf_num_ = 0;
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<BUF_SIZE; i++) {
         color_buf_.push_back(std::make_shared<BasicPBO>(W, H, GL_RGB, GL_UNSIGNED_BYTE));
         depth_buf_.push_back(std::make_shared<BasicPBO>(W, H, GL_DEPTH_COMPONENT, GL_FLOAT));
         instance_buf_.push_back(std::make_shared<BasicPBO>(W, H, GL_RED, GL_UNSIGNED_INT));
@@ -188,25 +189,29 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
         data->color_buf_ = color_buf_[buf_num_];
         data->depth_buf_ = depth_buf_[buf_num_];
         data->instance_buf_ = instance_buf_[buf_num_];
+        
+		data->depth_buf_->read(rtts->getDepthStencilTexture());
+		data->color_buf_->read(rtts->getRenderTarget(RTT_COLOR));
+		data->instance_buf_->read(rtts->getRenderTarget(RTT_LABEL));
 
-		rtts->getFBO(FBO_COLOR_AND_LABEL).bind();
-		
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-		// Read color and depth
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		data->color_buf_->read();
-		data->depth_buf_->read();
-
-		// Read the labels
-		glReadBuffer(GL_COLOR_ATTACHMENT3);
-		data->instance_buf_->read();
+// 		rtts->getFBO(FBO_COLOR_AND_LABEL).bind();
+// 		
+// 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+// 
+// 		// Read color and depth
+// 		glReadBuffer(GL_COLOR_ATTACHMENT0);
+// 		data->color_buf_->read();
+// 		data->depth_buf_->read();
+// 
+// 		// Read the labels
+// 		glReadBuffer(GL_COLOR_ATTACHMENT3);
+// 		data->instance_buf_->read();
 //
 //		// Flip all buffers (thank you OpenGL)
 //		yflip(data->color_buf_.data(), H, W*3);
 //		yflip(data->depth_buf_.data(), H, W);
 //		yflip(data->instance_buf_.data(), H, W);
-        buf_num_ = (buf_num_+1) % 10;
+        buf_num_ = (buf_num_+1) % BUF_SIZE;
 	}
 	
 }
@@ -293,7 +298,7 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
 	resetObjectId();
 	
 	setupConfig(config);
-	for(int i=0; i<2*config.players.size(); i++)
+	for(int i=0; i<config.players.size(); i++)
 		render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
 	
 }
@@ -394,23 +399,21 @@ void PySTKRace::stop() {
 	}
 }
 void PySTKRace::render(float dt) {
-    static int tic = 0;
 	World *world = World::getWorld();
 
     if (world)
     {
 		// Render all views
-		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size() / 2; i++) {
+		for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
 			Camera::getCamera(i)->activate(false);
-			render_targets_[2*i+tic]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
+			render_targets_[i]->render(Camera::getCamera(i)->getCameraSceneNode(), dt);
 		}
-		while (2*render_data_.size() < render_targets_.size()) render_data_.push_back( std::make_shared<PySTKRenderData>() );
+		while (render_data_.size() < render_targets_.size()) render_data_.push_back( std::make_shared<PySTKRenderData>() );
 		// Fetch all views
-		for(unsigned int i = 0; i < render_targets_.size() / 2; i++) {
-			render_targets_[2*i+tic]->fetch(render_data_[i]);
+		for(unsigned int i = 0; i < render_targets_.size(); i++) {
+			render_targets_[i]->fetch(render_data_[i]);
 		}
     }
-    tic = !tic;
 }
 
 bool PySTKRace::step(const std::vector<PySTKAction> & a) {

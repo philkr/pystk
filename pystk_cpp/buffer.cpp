@@ -40,14 +40,15 @@ BasicPBO::BasicPBO(int width, int height, int format, int type): width_(width), 
 BasicPBO::~BasicPBO() {
     glDeleteBuffers(1, &buffer_id_);
 }
-void BasicPBO::read() {
+void BasicPBO::read(GLuint texture) {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_id_);
-    glReadPixels(0, 0, width_, height_, format_, type_, 0);
-//    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+//     glReadPixels(0, 0, width_, height_, format_, type_, 0);
+    glGetTextureImage(texture, 0, format_, type_, size_, 0);
+   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 void BasicPBO::write(void * mem) {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_id_);
     glGetBufferSubData(GL_PIXEL_PACK_BUFFER, 0, size_, mem);
-//    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
