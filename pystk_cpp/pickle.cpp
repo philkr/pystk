@@ -75,20 +75,6 @@ void unpickle(std::istream & s, PySTKRaceConfig * o) {
     unpickle(s, &o->num_kart);
     unpickle(s, &o->step_size);
 }
-//void pickle(std::ostream & s, const PySTKRenderData & o) {
-//    pickle(s, o.width);
-//    pickle(s, o.height);
-//    pickle(s, o.color_buf_);
-//    pickle(s, o.depth_buf_);
-//    pickle(s, o.instance_buf_);
-//}
-//void unpickle(std::istream & s, PySTKRenderData * o) {
-//    unpickle(s, &o->width);
-//    unpickle(s, &o->height);
-//    unpickle(s, &o->color_buf_);
-//    unpickle(s, &o->depth_buf_);
-//    unpickle(s, &o->instance_buf_);
-//}
 void pickle(std::ostream & s, const PySTKAction & o) {
     pickle(s, o.steering_angle);
     pickle(s, o.acceleration);
