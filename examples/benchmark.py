@@ -41,6 +41,10 @@ if __name__ == "__main__":
 
         for it in range(500):
             race.step()
+            if len(race.render_data):
+                race.render_data[0].image
+                race.render_data[0].depth
+                race.render_data[0].instance
         step_time, t0 = time() - t0, time()
         for it in range(5):
             race.restart()

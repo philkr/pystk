@@ -55,7 +55,7 @@ struct PySTKRaceConfig {
 class PySTKRenderTarget;
 
 struct PySTKRenderData {
-    std::shared_ptr<BasicPBO> color_buf_, depth_buf_, instance_buf_;
+    std::shared_ptr<NumpyPBO> color_buf_, depth_buf_, instance_buf_;
 //	int width, height;
 //	std::vector<uint8_t> color_buf_;
 //	std::vector<float> depth_buf_;
