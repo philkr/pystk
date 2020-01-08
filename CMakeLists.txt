@@ -242,7 +242,7 @@ endif()
 
 #add_executable(supertuxkart src/main.cpp )
 #target_link_libraries(supertuxkart stk)
-pybind11_add_module(pystk pystk_cpp/binding.cpp pystk_cpp/pystk.cpp pystk_cpp/util.cpp pystk_cpp/state.cpp pystk_cpp/pickle.cpp)
+pybind11_add_module(pystk pystk_cpp/binding.cpp pystk_cpp/buffer.cpp pystk_cpp/pystk.cpp pystk_cpp/util.cpp pystk_cpp/state.cpp pystk_cpp/pickle.cpp)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(pystk PUBLIC RENDERDOC)
 endif()

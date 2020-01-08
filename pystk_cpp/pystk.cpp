@@ -91,6 +91,7 @@
 #include "utils/string_utils.hpp"
 #include "utils/objecttype.h"
 #include "util.hpp"
+#include "buffer.hpp"
 
 #ifdef RENDERDOC
 #include "renderdoc_app.h"
@@ -170,11 +171,17 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 		
 		unsigned int W = rtts->getWidth(), H = rtts->getHeight();
 		// Read the color and depth image
-		data->width = W;
-		data->height = H;
-		data->color_buf_.resize(W*H*3);
-		data->depth_buf_.resize(W*H);
-		data->instance_buf_.resize(W*H);
+//		data->width = W;
+//		data->height = H;
+//		data->color_buf_.resize(W*H*3);
+//		data->depth_buf_.resize(W*H);
+//		data->instance_buf_.resize(W*H);
+        if (!data->color_buf_)
+            data->color_buf_ = std::make_shared<BasicPBO>(W, H, GL_RGB, GL_UNSIGNED_BYTE);
+        if (!data->depth_buf_)
+            data->depth_buf_ = std::make_shared<BasicPBO>(W, H, GL_DEPTH_COMPONENT, GL_FLOAT);
+        if (!data->instance_buf_)
+            data->instance_buf_ = std::make_shared<BasicPBO>(W, H, GL_RED, GL_UNSIGNED_INT);
 		
 		rtts->getFBO(FBO_COLOR_AND_LABEL).bind();
 		
@@ -182,19 +189,17 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
 
 		// Read color and depth
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		data->color_buf_->read();
+		data->depth_buf_->read();
 
-		glReadPixels(0, 0, W, H, GL_RGB, GL_UNSIGNED_BYTE, data->color_buf_.data());
-		glReadPixels(0, 0, W, H, GL_DEPTH_COMPONENT, GL_FLOAT, data->depth_buf_.data());
-		
 		// Read the labels
 		glReadBuffer(GL_COLOR_ATTACHMENT3);
-		glReadPixels(0, 0, W, H, GL_RED_INTEGER, GL_UNSIGNED_INT, data->instance_buf_.data());
-		
-		
-		// Flip all buffers (thank you OpenGL)
-		yflip(data->color_buf_.data(), H, W*3);
-		yflip(data->depth_buf_.data(), H, W);
-		yflip(data->instance_buf_.data(), H, W);
+		data->instance_buf_->read();
+//
+//		// Flip all buffers (thank you OpenGL)
+//		yflip(data->color_buf_.data(), H, W*3);
+//		yflip(data->depth_buf_.data(), H, W);
+//		yflip(data->instance_buf_.data(), H, W);
 	}
 	
 }
