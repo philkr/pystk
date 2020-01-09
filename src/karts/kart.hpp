@@ -540,9 +540,6 @@ public:
     /** Set this kart race result. */
     void setRaceResult();
     // ----------------------------------------------------------------------------------------
-    /** Returns whether this kart is a ghost (replay) kart. */
-    virtual bool isGhostKart() const OVERRIDE { return false;  }
-    // ----------------------------------------------------------------------------------------
     virtual bool isVisible() const OVERRIDE;
     // ----------------------------------------------------------------------------------------
     /** Shows the star effect for a certain time. */

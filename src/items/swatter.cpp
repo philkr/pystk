@@ -251,7 +251,7 @@ bool Swatter::updateAndTestFinished(int ticks)
                 float min_dist2
                      = m_kart->getKartProperties()->getSwatterDistance();
 
-                if (dist2 < min_dist2 && !m_kart->isGhostKart())
+                if (dist2 < min_dist2)
                 {
                     // Start squashing
                     m_animation_phase = SWATTER_TO_TARGET;
@@ -343,7 +343,7 @@ void Swatter::chooseTarget()
 void Swatter::pointToTarget()
 {
 #ifndef SERVER_ONLY
-    if (m_kart->isGhostKart() || !m_scene_node)
+    if (!m_scene_node)
         return;
 
     if (!m_closest_kart)
@@ -368,8 +368,6 @@ void Swatter::pointToTarget()
  */
 void Swatter::squashThingsAround()
 {
-    if (m_kart->isGhostKart()) return;
-
     const KartProperties *kp = m_kart->getKartProperties();
 
     float duration = kp->getSwatterSquashDuration();

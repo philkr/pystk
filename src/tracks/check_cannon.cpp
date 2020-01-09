@@ -97,7 +97,7 @@ void CheckCannon::update(float dt)
     for (unsigned int i = 0; i < world->getNumKarts(); i++)
     {
         AbstractKart* kart = world->getKart(i);
-        if (kart->getKartAnimation() || kart->isGhostKart() ||
+        if (kart->getKartAnimation() ||
             kart->isEliminated() || !m_is_active[i])
             continue;
 

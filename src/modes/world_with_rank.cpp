@@ -21,7 +21,6 @@
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/spare_tire_ai.hpp"
 #include "karts/kart_properties.hpp"
-#include "race/history.hpp"
 #include "tracks/graph.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_sector.hpp"

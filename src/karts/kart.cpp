@@ -60,7 +60,6 @@
 #include "physics/btKart.hpp"
 #include "physics/btKartRaycast.hpp"
 #include "physics/physics.hpp"
-#include "race/history.hpp"
 #include "tracks/terrain_info.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"
@@ -229,7 +228,7 @@ Kart::~Kart()
  */
 void Kart::reset()
 {
-    if (m_flying && !isGhostKart())
+    if (m_flying)
     {
         m_flying = false;
         stopFlying();
@@ -835,7 +834,6 @@ void Kart::finishedRace(float time, bool from_server)
     {
         // Save for music handling in race result gui
         setRaceResult();
-        if (!isGhostKart())
         {
             if (m_saved_controller == NULL)
             {
@@ -845,7 +843,7 @@ void Kart::finishedRace(float time, bool from_server)
                 m_saved_controller->finishedRace(time);
         }
         // Skip animation if this kart is eliminated
-        if (m_eliminated || isGhostKart()) return;
+        if (m_eliminated) return;
 
         m_kart_model->setAnimation(m_race_result ?
             KartModel::AF_WIN_START : KartModel::AF_LOSE_START);
@@ -1611,7 +1609,6 @@ bool Kart::setSquash(float time, float slowdown)
 void Kart::setSquashGraphics()
 {
 #ifndef SERVER_ONLY
-    if (isGhostKart()) return;
 
     m_node->setScale(core::vector3df(1.0f, 0.5f, 1.0f));
     if (m_vehicle->getNumWheels() > 0)
@@ -1637,7 +1634,6 @@ void Kart::setSquashGraphics()
 void Kart::unsetSquash()
 {
 #ifndef SERVER_ONLY
-    if (isGhostKart()) return;
 
     m_node->setScale(core::vector3df(1.0f, 1.0f, 1.0f));
     if (m_vehicle && m_vehicle->getNumWheels() > 0)

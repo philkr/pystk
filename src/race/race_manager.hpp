@@ -45,7 +45,6 @@ static const std::string IDENT_FFA      ("BATTLE_FFA"      );
 static const std::string IDENT_CTF      ("BATTLE_CTF"      );
 static const std::string IDENT_EASTER   ("EASTER_EGG_HUNT" );
 static const std::string IDENT_SOCCER   ("SOCCER"          );
-static const std::string IDENT_GHOST    ("GHOST"           );
 
 /**
  * The race manager has two functions:
@@ -218,7 +217,7 @@ public:
      *  an AI kart, the leader kart (currently not used), a ghost kart and
      *  spare tire karts which allow gain life in battle mode */
     enum KartType       { KT_PLAYER, KT_AI, KT_LEADER,
-                          KT_GHOST, KT_SPARE_TIRE };
+                          KT_SPARE_TIRE };
 public:
 
     /** This data structure accumulates kart data and race result data from
@@ -301,7 +300,6 @@ private:
      *  same list of AIs is used for all tracks of a GP. */
     std::vector<std::string>         m_ai_kart_list;
     int                              m_num_karts;
-    unsigned int                     m_num_ghost_karts;
     unsigned int                     m_num_spare_tire_karts;
     unsigned int                     m_num_finished_karts;
     unsigned int                     m_num_finished_players;
@@ -321,8 +319,6 @@ private:
     }
 
     bool m_is_recording_race;
-
-    bool m_has_ghost_karts;
 
     bool m_watching_replay;
 public:
@@ -448,9 +444,6 @@ public:
     {
         return (unsigned int)m_ai_kart_list.size(); 
     }   // getNumberOfAIKarts
-    // ------------------------------------------------------------------------
-    unsigned int getNumNonGhostKarts() const
-                                    { return m_num_karts - m_num_ghost_karts; }
     // ------------------------------------------------------------------------
     MinorRaceModeType getMinorMode() const { return m_minor_mode; }
     // ------------------------------------------------------------------------
@@ -697,11 +690,6 @@ public:
         m_is_recording_race = record;
     }   // setRecordRace
     // ------------------------------------------------------------------------
-    void setRaceGhostKarts(bool ghost)
-    {
-        m_has_ghost_karts = ghost;
-    }   // setRaceGhostKarts
-    // ------------------------------------------------------------------------
     void setWatchingReplay(bool watch)
     {
         m_watching_replay = watch;
@@ -711,11 +699,6 @@ public:
     {
         return m_is_recording_race;
     }   // isRecordingRace
-    // ------------------------------------------------------------------------
-    bool hasGhostKarts() const
-    {
-        return m_has_ghost_karts;
-    }   // hasGhostKarts
     // ------------------------------------------------------------------------
     bool isWatchingReplay() const
     {

@@ -73,11 +73,7 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "modes/world.hpp"
-#include "race/highscore_manager.hpp"
-#include "race/history.hpp"
 #include "race/race_manager.hpp"
-#include "replay/replay_play.hpp"
-#include "replay/replay_recorder.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/track.hpp"
@@ -570,16 +566,12 @@ void PySTKRace::initRest()
 
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
-    history                 = new History              ();
-    ReplayPlay::create();
-    ReplayRecorder::create();
     material_manager        = new MaterialManager      ();
     track_manager           = new TrackManager         ();
     kart_properties_manager = new KartPropertiesManager();
     projectile_manager      = new ProjectileManager    ();
     powerup_manager         = new PowerupManager       ();
     attachment_manager      = new AttachmentManager    ();
-    highscore_manager       = new HighscoreManager     ();
 
     // The maximum texture size can not be set earlier, since
     // e.g. the background image needs to be loaded in high res.
@@ -618,8 +610,6 @@ void PySTKRace::cleanSuperTuxKart()
     irr_driver->updateConfigIfRelevant();
     if(race_manager)            delete race_manager;
     race_manager = nullptr;
-    if(highscore_manager)       delete highscore_manager;
-    highscore_manager = nullptr;
     if(attachment_manager)      delete attachment_manager;
     attachment_manager = nullptr;
     ItemManager::removeTextures();
@@ -633,12 +623,8 @@ void PySTKRace::cleanSuperTuxKart()
     track_manager = nullptr;
     if(material_manager)        delete material_manager;
     material_manager = nullptr;
-    if(history)                 delete history;
-    history = nullptr;
     
     Referee::cleanup();
-    ReplayPlay::destroy();
-    ReplayRecorder::destroy();
     ParticleKindManager::destroy();
     if(font_manager)            delete font_manager;
     font_manager = nullptr;

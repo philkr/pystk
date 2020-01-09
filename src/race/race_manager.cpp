@@ -36,8 +36,6 @@
 #include "modes/world.hpp"
 #include "modes/three_strikes_battle.hpp"
 #include "modes/soccer_world.hpp"
-
-#include "replay/replay_play.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "tracks/track_manager.hpp"
 #include "utils/ptr_vector.hpp"
@@ -52,7 +50,6 @@ RaceManager::RaceManager()
     // Several code depends on this, e.g. kart_properties
     assert(DIFFICULTY_FIRST == 0);
     m_num_karts          = UserConfigParams::m_default_num_karts;
-    m_num_ghost_karts    = 0;
     m_difficulty         = DIFFICULTY_HARD;
     m_minor_mode         = MINOR_MODE_NORMAL_RACE;
     m_ai_superpower      = SUPERPOWER_NONE;
@@ -65,8 +62,6 @@ RaceManager::RaceManager()
     setTimeTarget(0.0f);
     setReverseTrack(false);
     setRecordRace(false);
-    setRaceGhostKarts(false);
-    setWatchingReplay(false);
     setTrack("jungle");
     m_default_ai_list.clear();
     setNumPlayers(0);
@@ -269,10 +264,6 @@ void RaceManager::computeRandomKartList()
  */
 void RaceManager::startNew()
 {
-    m_num_ghost_karts = 0;
-    if (m_has_ghost_karts)
-        m_num_ghost_karts = ReplayPlay::get()->getNumGhostKart();
-
     // command line parameters: negative numbers=all karts
     if(m_num_karts < 0 ) m_num_karts = stk_config->m_max_karts;
     if((size_t)m_num_karts < m_player_karts.size())
@@ -281,27 +272,16 @@ void RaceManager::startNew()
     // Create the kart status data structure to keep track of scores, times, ...
     // ==========================================================================
     m_kart_status.clear();
-    if (m_num_ghost_karts > 0)
-        m_num_karts += m_num_ghost_karts;
 
-    Log::verbose("RaceManager", "Nb of karts=%u, ghost karts:%u ai:%lu players:%lu\n",
-        (unsigned int) m_num_karts, m_num_ghost_karts, m_ai_kart_list.size(), m_player_karts.size());
+    Log::verbose("RaceManager", "Nb of karts=%u, ai:%lu players:%lu\n",
+        (unsigned int) m_num_karts, m_ai_kart_list.size(), m_player_karts.size());
 
-    assert((unsigned int)m_num_karts == m_num_ghost_karts+m_ai_kart_list.size()+m_player_karts.size());
+    assert((unsigned int)m_num_karts == m_ai_kart_list.size()+m_player_karts.size());
 
     // First add the ghost karts (if any)
     // ----------------------------------------
     // GP ranks start with -1 for the leader.
     int init_gp_rank = getMinorMode()==MINOR_MODE_FOLLOW_LEADER ? -1 : 0;
-    if (m_num_ghost_karts > 0)
-    {
-        for(unsigned int i = 0; i < m_num_ghost_karts; i++)
-        {
-            m_kart_status.push_back(KartStatus(ReplayPlay::get()->getGhostKartName(i),
-                i, -1, -1, init_gp_rank, KT_GHOST, PLAYER_DIFFICULTY_NORMAL));
-            init_gp_rank ++;
-        }
-    }
 
     // Then add the AI karts (randomly chosen)
     // ----------------------------------------
@@ -574,34 +554,3 @@ void RaceManager::setupPlayerKartInfo()
 {
     computeRandomKartList();
 }   // setupPlayerKartInfo
-
-//-----------------------------------------------------------------------------
-/** \brief Function to start the race with only ghost kart(s) and watch.
- * \param trackIdent Internal name of the track to race on
- * \param num_laps   Number of laps to race, or -1 if number of laps is
- *        not relevant in current mode
- */
-void RaceManager::startWatchingReplay(const std::string &track_ident,
-                                      const int num_laps)
-{
-    assert(m_watching_replay && m_has_ghost_karts && !m_is_recording_race);
-    setTrack(track_ident);
-    setNumLaps(num_laps);
-    setCoinTarget(0);
-    m_num_karts = ReplayPlay::get()->getNumGhostKart();
-    m_kart_status.clear();
-
-    Log::verbose("RaceManager", "%u ghost kart(s) for watching replay only\n",
-        (unsigned int)m_num_karts);
-
-    int init_gp_rank = 0;
-
-    for(int i = 0; i < m_num_karts; i++)
-    {
-        m_kart_status.push_back(KartStatus(ReplayPlay::get()->getGhostKartName(i),
-            i, -1, -1, init_gp_rank, KT_GHOST, PLAYER_DIFFICULTY_NORMAL));
-        init_gp_rank ++;
-    }
-
-    startNextRace();
-}   // startWatchingReplay

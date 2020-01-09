@@ -380,8 +380,7 @@ void SkiddingAI::handleSteering(float dt)
 
             // If we are faster, try to predict the point where we will hit
             // the other kart
-            if((m_kart_ahead->getSpeed() < m_kart->getSpeed()) &&
-                !m_kart_ahead->isGhostKart())
+            if((m_kart_ahead->getSpeed() < m_kart->getSpeed()))
             {
                 float time_till_hit = m_distance_ahead
                                     / (m_kart->getSpeed()-m_kart_ahead->getSpeed());
@@ -2499,7 +2498,7 @@ void SkiddingAI::checkCrashes(const Vec3& pos )
             {
                 const AbstractKart* kart = m_world->getKart(j);
                 // Ignore eliminated karts
-                if(kart==m_kart||kart->isEliminated()||kart->isGhostKart()) continue;
+                if(kart==m_kart||kart->isEliminated()) continue;
                 const AbstractKart *other_kart = m_world->getKart(j);
                 // Ignore karts ahead that are faster than this kart.
                 if(m_kart->getVelocityLC().getZ() < other_kart->getVelocityLC().getZ())

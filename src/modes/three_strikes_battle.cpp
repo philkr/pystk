@@ -45,7 +45,6 @@
 ThreeStrikesBattle::ThreeStrikesBattle() : WorldWithRank()
 {
     WorldStatus::setClockMode(CLOCK_CHRONO);
-    m_use_highscores = false;
     m_insert_tire = 0;
 
     m_tire = irr_driver->getMesh(file_manager->getAsset(FileManager::MODEL,

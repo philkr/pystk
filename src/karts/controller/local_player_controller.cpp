@@ -35,7 +35,6 @@
 #include "karts/skidding.hpp"
 #include "karts/rescue_animation.hpp"
 #include "modes/world.hpp"
-#include "race/history.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
@@ -151,10 +150,6 @@ bool LocalPlayerController::action(PlayerAction action, int value,
     // it's a (auto) repeat event), do nothing. This especially
     // optimises traffic to the server and other clients.
     if (!PlayerController::action(action, value, /*dry_run*/true)) return false;
-
-    // Register event with history
-    if(!history->replayHistory())
-        history->addEvent(m_kart->getWorldKartId(), action, value);
 
     return PlayerController::action(action, value, /*dry_run*/false);
 }   // action

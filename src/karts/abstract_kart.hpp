@@ -512,9 +512,6 @@ public:
     /** Returns whether this kart wins or loses. */
     virtual bool getRaceResult() const = 0;
     // ------------------------------------------------------------------------
-    /** Returns whether this kart is a ghost (replay) kart. */
-    virtual bool isGhostKart() const = 0;
-    // ------------------------------------------------------------------------
     /** Returns whether this kart is jumping. */
     virtual bool isJumping() const = 0;
     // ------------------------------------------------------------------------
