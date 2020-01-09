@@ -30,9 +30,9 @@ if __name__ == "__main__":
     if args.save_dir:
         args.save_dir.mkdir(parents=True, exist_ok=True)
 
-    config = pystk.GraphicsConfig.ld()
-    config.screen_width = 128
-    config.screen_height = 96
+    config = pystk.GraphicsConfig.hd()
+    config.screen_width = 800
+    config.screen_height = 600
     pystk.init(config)
 
     config = pystk.RaceConfig()

@@ -738,16 +738,6 @@ void World::update(int ticks)
 
     PROFILER_PUSH_CPU_MARKER("World::update()", 0x00, 0x7F, 0x00);
 
-#if MEASURE_FPS
-    static int time = 0.0f;
-    time += ticks;
-    if (time > stk_config->time2Ticks(5.0f))
-    {
-        time -= stk_config->time2Ticks(5.0f);
-        printf("%i\n",irr_driver->getVideoDriver()->getFPS());
-    }
-#endif
-
     PROFILER_PUSH_CPU_MARKER("World::update (sub-updates)", 0x20, 0x7F, 0x00);
     WorldStatus::update(ticks);
     PROFILER_POP_CPU_MARKER();
@@ -773,7 +763,6 @@ void World::update(int ticks)
             m_karts[i]->makeKartRest();
     }
     PROFILER_POP_CPU_MARKER();
-    if(race_manager->isRecordingRace()) ReplayRecorder::get()->update(ticks);
 
     PROFILER_PUSH_CPU_MARKER("World::update (projectiles)", 0xa0, 0x7F, 0x00);
     projectile_manager->update(ticks);

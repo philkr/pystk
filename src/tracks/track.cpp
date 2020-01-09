@@ -223,13 +223,6 @@ bool Track::isInGroup(const std::string &group_name)
 }   // isInGroup
 
 //-----------------------------------------------------------------------------
-/** Returns number of completed challenges */
-unsigned int Track::getNumOfCompletedChallenges()
-{
-    return m_challenges.size();
-}   // getNumOfCompletedChallenges
-
-//-----------------------------------------------------------------------------
 /** Removes all cached data structures. This is called before the resolution
  *  is changed.
  */
@@ -485,7 +478,6 @@ void Track::loadTrackInfo()
     root->get("color-level-in",        &m_color_inlevel);
     root->get("color-level-out",       &m_color_outlevel);
 
-    getMusicInformation(filenames, m_music);
     if (m_default_number_of_laps <= 0)
         m_default_number_of_laps = 3;
     m_actual_number_of_laps = m_default_number_of_laps;
@@ -578,18 +570,6 @@ void Track::loadCurves(const XMLNode &node)
         m_all_curves.push_back(new BezierCurve(*curve));
     }   // for i<node.getNumNodes
 }   // loadCurves
-
-//-----------------------------------------------------------------------------
-/** Loads all music information for the specified files (which is taken from
- *  the track.xml file).
- *  \param filenames List of filenames to load.
- *  \param music On return contains the music information object for the
- *         specified files.
- */
-void Track::getMusicInformation(std::vector<std::string>&       filenames,
-                                std::vector<MusicInformation*>& music    )
-{
-}   // getMusicInformation
 
 //-----------------------------------------------------------------------------
 /** Select and set the music for this track (doesn't actually start it yet).
@@ -964,8 +944,6 @@ bool Track::loadMainTrack(const XMLNode &root)
 {
     assert(m_track_mesh==NULL);
     assert(m_gfx_effect_mesh==NULL);
-
-    m_challenges.clear();
 
     m_track_mesh      = new TriangleMesh(/*can_be_transformed*/false);
     m_gfx_effect_mesh = new TriangleMesh(/*can_be_transformed*/false);
@@ -1992,23 +1970,6 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
         {
             // TODO: eventually remove, this is now automatic
         }
-        else if (name == "subtitles")
-        {
-            std::vector<XMLNode*> subtitles;
-            node->getNodes("subtitle", subtitles);
-            for (unsigned int i = 0; i < subtitles.size(); i++)
-            {
-                int from = -1, to = -1;
-                std::string subtitle_text;
-                subtitles[i]->get("from", &from);
-                subtitles[i]->get("to", &to);
-                subtitles[i]->get("text", &subtitle_text);
-                if (from != -1 && to != -1 && subtitle_text.size() > 0)
-                {
-                    m_subtitles.push_back( Subtitle(from, to, subtitle_text.c_str()) );
-                }
-            }
-        }
         else
         {
             Log::warn("track", "While loading track '%s', element '%s' was "
@@ -2305,45 +2266,6 @@ void Track::itemCommand(const XMLNode *node)
 
     ItemManager::get()->placeItem(type, drop ? hit_point : loc, normal);
 }   // itemCommand
-
-// ----------------------------------------------------------------------------
-
-std::vector< std::vector<float> > Track::buildHeightMap()
-{
-    std::vector< std::vector<float> > out(HEIGHT_MAP_RESOLUTION);
-
-    float x = m_aabb_min.getX();
-    const float x_len = m_aabb_max.getX() - m_aabb_min.getX();
-    const float z_len = m_aabb_max.getZ() - m_aabb_min.getZ();
-
-    const float x_step = x_len/HEIGHT_MAP_RESOLUTION;
-    const float z_step = z_len/HEIGHT_MAP_RESOLUTION;
-
-    btVector3 hitpoint;
-    const Material* material;
-    btVector3 normal;
-
-    for (int i=0; i<HEIGHT_MAP_RESOLUTION; i++)
-    {
-        out[i].resize(HEIGHT_MAP_RESOLUTION);
-        float z = m_aabb_min.getZ();
-
-        for (int j=0; j<HEIGHT_MAP_RESOLUTION; j++)
-        {
-            btVector3 pos(x, 100.0f, z);
-            btVector3 to = pos;
-            to.setY(-100000.f);
-
-            m_track_mesh->castRay(pos, to, &hitpoint, &material, &normal);
-            z += z_step;
-
-            out[i][j] = hitpoint.getY();
-        }   // j<HEIGHT_MAP_RESOLUTION
-        x += x_step;
-    }
-
-    return out;
-}   // buildHeightMap
 
 // ----------------------------------------------------------------------------
 /** Returns the rotation of the sun. */
