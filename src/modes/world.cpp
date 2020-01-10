@@ -650,6 +650,19 @@ void World::updateGraphics(float dt)
     Track::getCurrentTrack()->updateGraphics(dt);
 }   // updateGraphics
 
+void World::updateGraphicsMinimal(float dt)
+{
+    PROFILER_PUSH_CPU_MARKER("World::updateGraphics (camera)", 0x60, 0x7F, 0);
+    for (unsigned int i = 0; i < Camera::getNumCameras(); i++)
+        Camera::getCamera(i)->update(dt);
+    PROFILER_POP_CPU_MARKER();
+
+    Scripting::ScriptEngine *script_engine =
+        Scripting::ScriptEngine::getInstance();
+    if (script_engine)
+        script_engine->update(dt);
+}   // updateGraphicsMinimal
+
 //-----------------------------------------------------------------------------
 /** Updates the physics, all karts, the track, and projectile manager.
  *  \param ticks Number of physics time steps - should be 1.

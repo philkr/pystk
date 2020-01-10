@@ -593,40 +593,7 @@ void LinearWorld::updateRacePosition()
             }
 
         } //next kart
-
-#ifndef DEBUG
         setKartPosition(i, p);
-#else
-        rank_changed |= kart->getPosition()!=p;
-        if (!setKartPosition(i,p))
-        {
-            Log::error("[LinearWorld]", "Same rank used twice!!");
-
-            Log::debug("[LinearWorld]", "Info used to decide ranking :");
-            for (unsigned int d=0; d<kart_amount; d++)
-            {
-                Log::debug("[LinearWorld]", "Kart %s has finished (%d), is at lap (%u),"
-                            "is at distance (%u), is eliminated(%d)",
-                            m_karts[d]->getIdent().c_str(),
-                            m_karts[d]->hasFinishedRace(),
-                            getLapForKart(d),
-                            m_kart_info[d].m_overall_distance,
-                            m_karts[d]->isEliminated());
-            }
-
-            Log::debug("[LinearWorld]", "Who has each ranking so far :");
-            for (unsigned int d=0; d<i; d++)
-            {
-                Log::debug("[LinearWorld]", "%s has rank %d", m_karts[d]->getIdent().c_str(),
-                            m_karts[d]->getPosition());
-            }
-
-            Log::debug("[LinearWorld]", "    --> And %s is being set at rank %d",
-                        kart->getIdent().c_str(), p);
-            history->Save();
-            assert(false);
-        }
-#endif
 
         // Switch on faster music if not already done so, if the
         // first kart is doing its last lap.
@@ -638,75 +605,6 @@ void LinearWorld::updateRacePosition()
             m_faster_music_active=true;
         }
     }   // for i<kart_amount
-
-    // Define this to get a detailled analyses each time a race position
-    // changes.
-#ifdef DEBUG
-#undef DEBUG_KART_RANK
-#ifdef DEBUG_KART_RANK
-    if(rank_changed)
-    {
-        Log::debug("[LinearWorld]", "Counting laps at %u seconds.", getTime());
-        for (unsigned int i=0; i<kart_amount; i++)
-        {
-            AbstractKart* kart = m_karts[i].get();
-            Log::debug("[LinearWorld]", "counting karts ahead of %s (laps %u,"
-                        " progress %u, finished %d, eliminated %d, initial position %u.",
-                        kart->getIdent().c_str(),
-                        m_kart_info[i].m_race_lap,
-                        m_kart_info[i].m_overall_distance,
-                        kart->hasFinishedRace(),
-                        kart->isEliminated(),
-                        kart->getInitialPosition());
-            // Karts that are either eliminated or have finished the
-            // race already have their (final) position assigned. If
-            // these karts would get their rank updated, it could happen
-            // that a kart that finished first will be overtaken after
-            // crossing the finishing line and become second!
-            if(kart->isEliminated() || kart->hasFinishedRace()) continue;
-            KartInfo& kart_info = m_kart_info[i];
-            int p = 1 ;
-            const int my_id         = kart->getWorldKartId();
-            const float my_distance = m_kart_info[my_id].m_overall_distance;
-
-            for (unsigned int j = 0 ; j < kart_amount ; j++)
-            {
-                if(j == my_id) continue;
-                if(m_karts[j]->isEliminated())
-                {
-                    Log::debug("[LinearWorld]", " %u: %s because it is eliminated.",
-                                p, m_karts[j]->getIdent().c_str());
-                    continue;
-                }
-                if(!kart->hasFinishedRace() && m_karts[j]->hasFinishedRace())
-                {
-                    p++;
-                    Log::debug("[LinearWorld]", " %u: %s because it has finished the race.",
-                                p, m_karts[j]->getIdent().c_str());
-                    continue;
-                }
-                if(m_kart_info[j].m_overall_distance > my_distance)
-                {
-                    p++;
-                    Log::debug("[LinearWorld]", " %u: %s because it is ahead %u.",
-                                p, m_karts[j]->getIdent().c_str(),
-                                m_kart_info[j].m_overall_distance);
-                    continue;
-                }
-                if(m_kart_info[j].m_overall_distance == my_distance &&
-                   m_karts[j]->getInitialPosition()<kart->getInitialPosition())
-                {
-                    p++;
-                    Log::debug("[LinearWorld]"," %u: %s has same distance, but started ahead %d",
-                                p, m_karts[j]->getIdent().c_str(),
-                                m_karts[j]->getInitialPosition());
-                }
-            }   // next kart j
-        }   // for i<kart_amount
-        Log::debug("LinearWorld]", "-------------------------------------------");
-    }   // if rank_changed
-#endif
-#endif
 
     endSetKartPositions();
 }   // updateRacePosition

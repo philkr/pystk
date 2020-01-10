@@ -215,6 +215,7 @@ public:
     // Virtual functions
     // =================
     virtual void    init();
+    virtual void    updateGraphicsMinimal(float dt);
     virtual void    updateGraphics(float dt);
     virtual void    terminateRace() OVERRIDE;
     virtual void    reset(bool restart=false) OVERRIDE;

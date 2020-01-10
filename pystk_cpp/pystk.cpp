@@ -403,33 +403,34 @@ bool PySTKRace::step(const PySTKAction & a) {
 }
 bool PySTKRace::step() {
     const float dt = config_.step_size;
+    if (!World::getWorld()) return false;
     
 #ifdef RENDERDOC
     if(rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
     // Update first
-    if (World::getWorld()) {
-        time_leftover_ += dt;
-        int ticks = stk_config->time2Ticks(time_leftover_);
-        time_leftover_ -= stk_config->ticks2Time(ticks);
-        for(int i=0; i<ticks; i++) {
-            World::getWorld()->updateWorld(1);
-            World::getWorld()->updateTime(1);
-        }
-        last_action_.resize(config_.players.size());
-        for(int i=0; i<last_action_.size(); i++)
-            last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
+    time_leftover_ += dt;
+    int ticks = stk_config->time2Ticks(time_leftover_);
+    time_leftover_ -= stk_config->ticks2Time(ticks);
+    for(int i=0; i<ticks; i++) {
+        World::getWorld()->updateWorld(1);
+        World::getWorld()->updateTime(1);
     }
+    last_action_.resize(config_.players.size());
+    for(int i=0; i<last_action_.size(); i++)
+        last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
     
     PropertyAnimator::get()->update(dt);
-    if (World::getWorld())
-        World::getWorld()->updateGraphics(dt);
-
+    
     // Then render
     if (config_.render) {
+        World::getWorld()->updateGraphics(dt);
+
         irr_driver->minimalUpdate(dt);
         render(dt);
+    } else {
+        World::getWorld()->updateGraphicsMinimal(dt);
     }
 
     if (config_.render && !irr_driver->getDevice()->run())
