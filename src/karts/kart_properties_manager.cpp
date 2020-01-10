@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdexcept>
 #include <iostream>
+#include <random>
 
 KartPropertiesManager *kart_properties_manager=0;
 
@@ -570,8 +571,7 @@ void KartPropertiesManager::getRandomKartList(int count,
 
             assert(random_kart_queue.size() > 0);
 
-            std::random_shuffle(random_kart_queue.begin(),
-                                random_kart_queue.end()   );
+            std::shuffle(random_kart_queue.begin(), random_kart_queue.end(), std::mt19937(0));
         }
 
         while (count > 0 && random_kart_queue.size() > 0)

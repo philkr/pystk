@@ -60,7 +60,7 @@ public:
     enum AssetType {ASSET_MIN,
                     CHALLENGE=ASSET_MIN,
                     GFX, GRANDPRIX, GUI_ICON, GUI_SCREEN, GUI_DIALOG,
-                    LIBRARY, MODEL, MUSIC, REPLAY,
+                    LIBRARY, MODEL, MUSIC,
                     SCRIPT, SHADER, SKIN, TEXTURE, TTF,
                     ASSET_MAX = TTF, ASSET_COUNT};
 
@@ -88,9 +88,6 @@ private:
 
     /** Directory to store screenshots in. */
     std::string       m_screenshot_dir;
-
-    /** Directory to store replays in. */
-    std::string       m_replay_dir;
 
     /** Directory where resized textures are cached. */
     std::string       m_cached_textures_dir;
@@ -123,7 +120,6 @@ private:
     void              checkAndCreateConfigDir();
     void              checkAndCreateAddonsDir();
     void              checkAndCreateScreenshotDir();
-    void              checkAndCreateReplayDir();
     void              checkAndCreateCachedTexturesDir();
     void              checkAndCreateGPDir();
     void              discoverPaths();
@@ -148,7 +144,6 @@ public:
     XMLNode          *createXMLTreeFromString(const std::string & content);
 
     std::string       getScreenshotDir() const;
-    std::string       getReplayDir() const;
     std::string       getCachedTexturesDir() const;
     std::string       getGPDir() const;
     bool              checkAndCreateDirectory(const std::string &path);

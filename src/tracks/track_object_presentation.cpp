@@ -366,6 +366,7 @@ TrackObjectPresentationLOD::~TrackObjectPresentationLOD()
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationLOD::reset()
 {
+    RandomGenerator rg;
     LODNode* ln = dynamic_cast<LODNode*>(m_node);
     if (ln)
     {
@@ -377,7 +378,6 @@ void TrackObjectPresentationLOD::reset()
             {
                 a_node->setLoopMode(true);
                 a_node->setAnimationEndCallback(NULL);
-                RandomGenerator rg;
                 int animation_set = 0;
                 if (a_node->getAnimationSetNum() > 0)
                     animation_set = rg.get(a_node->getAnimationSetNum());
@@ -615,6 +615,7 @@ TrackObjectPresentationMesh::~TrackObjectPresentationMesh()
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationMesh::reset()
 {
+    RandomGenerator rg;
     if (m_node->getType()==scene::ESNT_ANIMATED_MESH)
     {
         scene::IAnimatedMeshSceneNode *a_node =
@@ -633,7 +634,6 @@ void TrackObjectPresentationMesh::reset()
 
         // irrlicht's "setFrameLoop" is a misnomer, it just sets the first and
         // last frame, even if looping is disabled
-        RandomGenerator rg;
         int animation_set = 0;
         if (a_node->getAnimationSetNum() > 0)
             animation_set = rg.get(a_node->getAnimationSetNum());

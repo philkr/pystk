@@ -82,8 +82,7 @@ void SpareTireAI::findDefaultPath()
 {
     assert(m_idx == -1);
 
-    RandomGenerator random;
-    m_idx = random.get(4);
+    m_idx = m_random.get(4);
     m_target_node = m_fixed_target_nodes[m_idx];
 
 }   // findDefaultPath

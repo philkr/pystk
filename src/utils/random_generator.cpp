@@ -21,48 +21,11 @@
 #include <stdlib.h>
 #include <ctime>
 
-//std::vector<RandomGenerator*> RandomGenerator::m_all_random_generators;
-
 RandomGenerator::RandomGenerator()
 {
-    m_a = 1103515245;
-    m_c = 12345;
-    //m_all_random_generators.push_back(this);
-    m_random_value = 3141591;
 }   // RandomGenerator
 
-// ----------------------------------------------------------------------------
-#if 0
-std::vector<int> RandomGenerator::generateAllSeeds()
+RandomGenerator::RandomGenerator(int s)
 {
-    std::vector<int> all_seeds;
-    for(unsigned int i=0; i<m_all_random_generators.size(); i++)
-    {
-        int seed = rand();
-        all_seeds.push_back(seed);
-        m_all_random_generators[i]->seed(seed);
-    }
-    return all_seeds;
-}   // generateAllSeeds
-
-
-// ----------------------------------------------------------------------------
-int RandomGenerator::get(int n)
-{
-    // This generator is (currently) not good enough, i.e. it often gives
-    // long sequences of same numbers. And the seeding is not done (the
-    // mid term goal is to synchronise all random number generators on
-    // client and server to make less communication necessary).
-    // For now: just use standard random numbers:
-    return rand() % n;
-#ifdef NOT_USED_ATM
-    m_random_value = m_random_value*m_a+m_c;
-    // Note: the lower bits can have a very short cycle, e.g. for n = 4 the
-    // cycle length is 4, meaning that the same sequence 1,2,3,4 is repeated
-    // over and over again. The higher bits are more random, so the lower
-    // 8 bits are discarded.
-    return (m_random_value >> 8) % n;
-#endif
-}   // get
-
-#endif // if 0
+    seed(s);
+}   // RandomGenerator

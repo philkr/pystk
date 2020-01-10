@@ -605,7 +605,7 @@ void ThreeStrikesBattle::loadCustomModels()
             }
 
             // Find random nodes to pre-spawn spare tire karts
-            RandomGenerator random;
+            RandomGenerator random(0);
             while (true)
             {
                 const int node = random.get(all_nodes);

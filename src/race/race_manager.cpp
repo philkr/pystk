@@ -52,7 +52,6 @@ RaceManager::RaceManager()
     m_num_karts          = UserConfigParams::m_default_num_karts;
     m_difficulty         = DIFFICULTY_HARD;
     m_minor_mode         = MINOR_MODE_NORMAL_RACE;
-    m_ai_superpower      = SUPERPOWER_NONE;
     m_coin_target        = 0;
     m_num_local_players = 0;
     m_hit_capture_limit = 0;
@@ -514,8 +513,6 @@ void RaceManager::rerunRace()
 void RaceManager::startSingleRace(const std::string &track_ident,
                                   const int num_laps)
 {
-    assert(!m_watching_replay);
-
     // In networking, make sure that the tracks screen is shown. This will
     // allow for a 'randomly pick track' animation to be shown while
     // world is loaded.

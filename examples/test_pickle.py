@@ -1,26 +1,29 @@
 import argparse
 import pystk
-
+import numpy as np
 
 def recursive_cmp(a, b, name=''):
-    import inspect
     assert type(a) == type(b), 'Type mismatch for %s: %s vs %s' % (name, type(a), type(b))
     if isinstance(a, list):
-        print('%s L' % name, len(a), len(b))
-    elif isinstance(a, (float, int, str, type(None))):
-        assert a == b, 'Value mismatch for %s: %s vs %s' % (name, a, b)
-        print('%s V' % name)
+        assert len(a) == len(b), 'List mismatch for len(%s): %d vs %d' % (name, len(a), len(b))
+        for i in range(len(a)):
+            recursive_cmp(a[i], b[i], name+'[%d]' % i)
+    elif isinstance(a, float):
+        assert abs(a-b) < 1e-5, 'Value mismatch for %s: %s vs %s' % (name, a, b)
+    elif isinstance(a, (int, str, type(None))):
+        if len(name) < 3 or name[-3:] != '.id':
+            assert a == b, 'Value mismatch for %s: %s vs %s' % (name, a, b)
     elif callable(a):
         pass
-    elif inspect.isclass(a):
+    elif isinstance(a, object):
         for p in dir(a):
-            if p[0] != '_':
+            if p[0] != '_' and type(getattr(a, p)) != type(a):
                 assert hasattr(b, p), 'b.%s.%s not not exist!' % (name, p)
                 p_a = getattr(a, p)
                 p_b = getattr(b, p)
                 recursive_cmp(p_a, p_b, name+'.'+p)
     else:
-        print('UNKNOWN', name, a.__class__.__name__, dir(a.__class__))
+        assert False, 'unknown object type %s' % type(a)
 
 
 if __name__ == "__main__":
@@ -41,8 +44,10 @@ if __name__ == "__main__":
     for i in range(1, args.num_player):
         race_config.players.append(pystk.PlayerConfig(args.kart, pystk.PlayerConfig.Controller.AI_CONTROL))
 
+    random_sa = np.random.rand(1000, 2)
+
     states = {}
-    for config in [pystk.GraphicsConfig.ld(), pystk.GraphicsConfig.sd(), pystk.GraphicsConfig.hd(), None]:
+    for config in [pystk.GraphicsConfig.ld(), pystk.GraphicsConfig.sd(), pystk.GraphicsConfig.hd()]:
         s_vec = []
         states[config] = s_vec
 
@@ -57,18 +62,26 @@ if __name__ == "__main__":
         race.start()
         race.step()
 
-        for it in range(10):
+        for a, s in random_sa:
             w = pystk.WorldState()
             w.update()
             s_vec.append(w)
 
-            race.step()
+            race.step(pystk.Action(acceleration=a, steer=s))
         race.stop()
         del race
         pystk.clean()
 
     state_names = list(states)
-    for i in range(len(states[None])):
+    for i in range(len(states[state_names[0]])):
+        mismatch = False
         for k, n in enumerate(state_names):
             for m in state_names[k+1:]:
-                recursive_cmp(states[n][i], states[m][i])
+                try:
+                    recursive_cmp(states[n][i], states[m][i], 'state[%d]' % i)
+                except AssertionError as e:
+                    print('State mismatch between %s and %s' % (n, m))
+                    print(e.args)
+                    mismatch = True
+        if mismatch:
+            break

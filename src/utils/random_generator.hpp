@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <vector>
 #include <stdlib.h>
+#include <random>
 
 /** A random number generator. Each objects that needs a random number uses
     its own number random generator. They are all seeded with number provided
@@ -33,17 +34,17 @@
 class RandomGenerator
 {
 private:
-    unsigned int m_random_value;
-    unsigned int m_a, m_c;
-    static std::vector<RandomGenerator*> m_all_random_generators;
+    std::mt19937 engine;
 
 public:
     RandomGenerator();
+    RandomGenerator(int seed);
 
     //std::vector<int> generateAllSeeds();
     /** Returns a pseudo random number between 0 and n-1 inclusive */
-    int  get(int n)  {return rand() % n; }
-    void seed(int s) {m_random_value = s;}
+    int  get(int n)  {return engine() % n; }
+    int operator()() {return engine();}
+    void seed(int s) {engine.seed(s);}
 };  // RandomGenerator
 
 #endif // HEADER_RANDOM_GENERATOR_HPP

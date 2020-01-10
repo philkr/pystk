@@ -52,7 +52,7 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
                                              PerPlayerDifficulty d)
                      : PlayerController(kart)
 {
-    m_has_started = false;
+//     m_has_started = false;
     m_difficulty = d;
 
     // Keep a pointer to the camera to remove the need to search for
@@ -102,7 +102,7 @@ void LocalPlayerController::initParticleEmitter()
 void LocalPlayerController::reset()
 {
     PlayerController::reset();
-    m_has_started = false;
+//     m_has_started = false;
 }   // reset
 
 // ----------------------------------------------------------------------------
@@ -135,16 +135,16 @@ void LocalPlayerController::resetInputState()
 bool LocalPlayerController::action(PlayerAction action, int value,
                                    bool dry_run)
 {
-    if (action == PA_ACCEL && value != 0 && !m_has_started)
-    {
-        m_has_started = true;
-        
-        {
-            float f = m_kart->getStartupBoostFromStartTicks(0);
-            m_kart->setStartupBoost(f);
-        }
-        
-    }
+//     if (action == PA_ACCEL && value != 0 && !m_has_started)
+//     {
+//         m_has_started = true;
+//         
+//         {
+//             float f = m_kart->getStartupBoostFromStartTicks(0);
+//             m_kart->setStartupBoost(f);
+//         }
+//         
+//     }
 
     // If this event does not change the control state (e.g.
     // it's a (auto) repeat event), do nothing. This especially

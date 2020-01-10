@@ -233,9 +233,6 @@ void CameraNormal::getCameraSettings(float *above_kart, float *cam_angle,
             *cam_roll_angle = 0.0f;
             break;
         }
-    case CM_SIMPLE_REPLAY:
-        // TODO: Implement
-        break;
     }
 
 }   // getCameraSettings

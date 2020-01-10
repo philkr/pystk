@@ -518,12 +518,12 @@ public:
     virtual bool isVisible() const = 0;
     // ------------------------------------------------------------------------
     virtual void makeKartRest();
-    // ------------------------------------------------------------------------
-    virtual void setStartupBoost(float val) = 0;
-    // ------------------------------------------------------------------------
-    virtual float getStartupBoost() const = 0;
-    // ------------------------------------------------------------------------
-    virtual float getStartupBoostFromStartTicks(int ticks) const = 0;
+//     // ------------------------------------------------------------------------
+//     virtual void setStartupBoost(float val) = 0;
+//     // ------------------------------------------------------------------------
+//     virtual float getStartupBoost() const = 0;
+//     // ------------------------------------------------------------------------
+//     virtual float getStartupBoostFromStartTicks(int ticks) const = 0;
     // ------------------------------------------------------------------------
     virtual Stars* getStarsEffect() const = 0;
     // ------------------------------------------------------------------------

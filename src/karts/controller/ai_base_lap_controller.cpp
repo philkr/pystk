@@ -159,6 +159,7 @@ void AIBaseLapController::computePath()
         // For now pick one part on random, which is not adjusted during the
         // race. Long term statistics might be gathered to determine the
         // best way, potentially depending on race position etc.
+        // TODO: Make this a property of the kart
         int r = rand();
         int indx = (int)( r / ((float)(RAND_MAX)+1.0f) * next.size() );
         // In case of rounding errors0

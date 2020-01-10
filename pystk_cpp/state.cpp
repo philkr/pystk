@@ -452,7 +452,6 @@ struct PyCamera {
 		 .value("CLOSEUP", Camera::CM_CLOSEUP)
 		 .value("REVERSE", Camera::CM_REVERSE)
 		 .value("LEADER_MODE", Camera::CM_LEADER_MODE)
-		 .value("SIMPLE_REPLAY", Camera::CM_SIMPLE_REPLAY)
 		 .value("FALLING", Camera::CM_FALLING);
 		c
          .def(py::init<>())

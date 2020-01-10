@@ -108,7 +108,6 @@ protected:
 
     /** The list of all karts. */
     KartList                  m_karts;
-    RandomGenerator           m_random;
 
     AbstractKart* m_fastest_kart;
     /** Number of eliminated karts. */

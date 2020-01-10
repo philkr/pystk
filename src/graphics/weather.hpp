@@ -21,11 +21,13 @@
 
 #include "utils/singleton.hpp"
 #include <vector3d.h>
+#include "utils/random_generator.hpp"
 
 class Weather : public AbstractSingleton<Weather>
 {
     float m_next_lightning;
     float m_lightning;
+    RandomGenerator random;
 
 public:
              Weather();

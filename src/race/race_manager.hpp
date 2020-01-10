@@ -108,15 +108,6 @@ public:
     };
 
     // ------------------------------------------------------------------------
-    /** True if the AI should have additional abbilities, e.g.
-     *  nolok will get special bubble gums in the final challenge. */
-    enum AISuperPower
-    {
-        SUPERPOWER_NONE       = 0,
-        SUPERPOWER_NOLOK_BOSS = 1
-    };
-
-    // ------------------------------------------------------------------------
     /** Returns a string identifier for each minor race mode.
      *  \param mode Minor race mode.
      */
@@ -294,8 +285,6 @@ private:
     /** If set, specifies which kart to use for AI(s) */
     std::string                      m_ai_kart_override;
 
-    AISuperPower                     m_ai_superpower;
-
     /** The list of AI karts to use. This is stored here so that the
      *  same list of AIs is used for all tracks of a GP. */
     std::vector<std::string>         m_ai_kart_list;
@@ -319,8 +308,6 @@ private:
     }
 
     bool m_is_recording_race;
-
-    bool m_watching_replay;
 public:
          RaceManager();
         ~RaceManager();
@@ -353,7 +340,6 @@ public:
     void rerunRace();
     void exitRace(bool delete_world=true);
     void startSingleRace(const std::string &track_ident, const int num_laps);
-    void startWatchingReplay(const std::string &track_ident, const int num_laps);
     void setupPlayerKartInfo();
     void kartFinishedRace(const AbstractKart* kart, float time);
     void setNumPlayers(int players, int local_players=-1);
@@ -378,13 +364,6 @@ public:
         m_ai_kart_override = kart;
     }   // setAIKartOverride
     // ------------------------------------------------------------------------
-    void setAISuperPower(AISuperPower superpower)
-    {
-        m_ai_superpower = superpower;
-    }   // setAISuperPower
-    // ------------------------------------------------------------------------
-    AISuperPower getAISuperPower() const { return m_ai_superpower; }
-    // ------------------------------------------------------------------------
     void setNumLaps(int num)
     {
         m_num_laps = num;
@@ -404,7 +383,6 @@ public:
     {
         m_num_karts = num;
         m_ai_kart_override = "";
-        m_ai_superpower = SUPERPOWER_NONE;
     }   // setNumKarts
     // ------------------------------------------------------------------------
     void setTimeTarget(float time)
@@ -690,20 +668,10 @@ public:
         m_is_recording_race = record;
     }   // setRecordRace
     // ------------------------------------------------------------------------
-    void setWatchingReplay(bool watch)
-    {
-        m_watching_replay = watch;
-    }   // setWatchingReplay
-    // ------------------------------------------------------------------------
     bool isRecordingRace() const
     {
         return m_is_recording_race;
     }   // isRecordingRace
-    // ------------------------------------------------------------------------
-    bool isWatchingReplay() const
-    {
-        return m_watching_replay;
-    }   // isWatchingReplay
     // ------------------------------------------------------------------------
     void addSpareTireKart(const std::string& name)
     {
