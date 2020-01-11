@@ -342,13 +342,8 @@ public:
 };
 void PySTKRace::restart() {
     World::getWorld()->reset(true /* restart */);
-    // TODO: Set random seeds
-//     ItemManager::getRandomSeed()
-//     PowerupManager::setRandomSeed
-//     KartPropertiesManager::getRandomKartList
-    // TODO: On reset only
-//     SkiddingAI::m_random_collect_item
-//     SkiddingAI::m_random_skid
+    ItemManager::updateRandomSeed(config_.seed);
+    powerup_manager->setRandomSeed(config_.seed);
 }
 
 void PySTKRace::start() {
@@ -361,8 +356,8 @@ void PySTKRace::start() {
         if (config_.players[i].controller == PySTKPlayerConfig::AI_CONTROL)
             player_kart->setController(new LocalPlayerAIController(World::getWorld()->loadAIController(player_kart)));
     }
-    ItemManager::updateRandomSeed(0);
-    powerup_manager->setRandomSeed(0);
+    ItemManager::updateRandomSeed(config_.seed);
+    powerup_manager->setRandomSeed(config_.seed);
 }
 void PySTKRace::stop() {
     render_targets_.clear();
