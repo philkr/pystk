@@ -55,16 +55,9 @@ Attachment::Attachment(AbstractKart* kart)
     m_previous_owner       = NULL;
     m_initial_speed        = 0.0f;
 
-    // If we attach a NULL mesh, we get a NULL scene node back. So we
-    // have to attach some kind of mesh, but make it invisible.
-    if (kart->isGhostKart())
-        m_node = irr_driver->addAnimatedMesh(
-            attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
-            NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
-    else
-        m_node = irr_driver->addAnimatedMesh(
-            attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
-            NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
+    m_node = irr_driver->addAnimatedMesh(
+        attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
+        NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
 #ifdef DEBUG
     std::string debug_name = kart->getIdent()+" (attachment)";
     m_node->setName(debug_name.c_str());
@@ -416,8 +409,7 @@ void Attachment::update(int ticks)
         m_initial_speed = 0;
         if (m_ticks_left <= 0)
         {
-            if (!m_kart->isGhostKart())
-                ItemManager::get()->dropNewItem(Item::ITEM_BUBBLEGUM, m_kart);
+            ItemManager::get()->dropNewItem(Item::ITEM_BUBBLEGUM, m_kart);
         }
         break;
     }   // switch

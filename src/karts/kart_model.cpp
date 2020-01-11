@@ -37,7 +37,6 @@
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
 #include "karts/abstract_kart.hpp"
-#include "karts/ghost_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "physics/btKart.hpp"
 #include "tracks/track.hpp"
@@ -986,14 +985,6 @@ void KartModel::OnAnimationEnd(scene::IAnimatedMeshSceneNode *node)
 // ----------------------------------------------------------------------------
 void KartModel::setDefaultSuspension()
 {
-    GhostKart* gk = dynamic_cast<GhostKart*>(m_kart);
-    if (gk)
-    {
-        for (int i = 0; i < 4; i++)
-            m_default_physics_suspension[i] = gk->getSuspensionLength(0, i);
-        return;
-    }
-
     for(int i=0; i<m_kart->getVehicle()->getNumWheels(); i++)
     {
         const btWheelInfo &wi = m_kart->getVehicle()->getWheelInfo(i);
@@ -1013,10 +1004,9 @@ void KartModel::setDefaultSuspension()
  *         speed-weighted objects' animations
  *  \param current_lean_angle How much the kart is leaning (positive meaning
  *         left side down)
- *  \param gt_replay_index The index to get replay data, used by ghost kart
  */
 void KartModel::update(float dt, float distance, float steer, float speed,
-                       float current_lean_angle, int gt_replay_index)
+                       float current_lean_angle)
 {
     core::vector3df wheel_steer(0, steer*30.0f, 0);
 
@@ -1026,20 +1016,9 @@ void KartModel::update(float dt, float distance, float steer, float speed,
         core::vector3df pos =  m_wheel_graphics_position[i].toIrrVector();
 
         float suspension_length = m_default_physics_suspension[i];
-        GhostKart* gk = dynamic_cast<GhostKart*>(m_kart);
         // Prevent using suspension length uninitialized
-        if ( !gk || gt_replay_index != -1)
-        {
-            if (gk)
-            {
-                suspension_length = gk->getSuspensionLength(gt_replay_index, i);
-            }
-            else
-            {
-                suspension_length = m_kart->getVehicle()->getWheelInfo(i).
-                                    m_raycastInfo.m_suspensionLength;
-            }
-        }
+        suspension_length = m_kart->getVehicle()->getWheelInfo(i).
+                            m_raycastInfo.m_suspensionLength;
 
         // Check documentation of Kart::updateGraphics for the following line
         pos.Y +=   m_default_physics_suspension[i]

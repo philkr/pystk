@@ -83,8 +83,7 @@ void Skidding::reset()
 
     btVector3 rot(0, 0, 0);
     // Only access the vehicle if the kart is not a ghost
-    if (!m_kart->isGhostKart())
-        m_kart->getVehicle()->setTimedRotation(0, 0);
+    m_kart->getVehicle()->setTimedRotation(0, 0);
 }   // reset
 
 // ----------------------------------------------------------------------------

@@ -582,8 +582,6 @@ void Flyable::explode(AbstractKart *kart_hit, PhysicalObject *object,
             world->getKartTeam(m_owner->getWorldKartId()))
             continue;
 
-        if (kart->isGhostKart()) continue;
-
         // If no secondary hits should be done, only hit the
         // direct hit kart.
         if(!secondary_hits && kart!=kart_hit)

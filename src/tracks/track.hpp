@@ -57,39 +57,6 @@ class TrackObjectManager;
 class TriangleMesh;
 class XMLNode;
 
-const int HEIGHT_MAP_RESOLUTION = 256;
-
-// TODO: eventually remove this and fully replace with scripting
-struct OverworldChallenge
-{
-public:
-    core::vector3df m_position;
-    std::string m_challenge_id;
-
-    OverworldChallenge(core::vector3df position, std::string challenge_id)
-    {
-        m_position = position;
-        m_challenge_id = challenge_id;
-    }
-};
-
-
-struct Subtitle
-{
-    int m_from, m_to;
-    core::stringw m_text;
-
-    Subtitle(int from, int to, core::stringw text)
-    {
-        m_from = from;
-        m_to = to;
-        m_text = text;
-    }
-    int getFrom() const { return m_from; }
-    int getTo()   const { return m_to;   }
-    const core::stringw& getText() const { return m_text; }
-};
-
 /**
   * \ingroup tracks
   */
@@ -114,12 +81,6 @@ private:
     std::string              m_ident;
     std::string              m_screenshot;
     bool                     m_is_day;
-    std::vector<MusicInformation*> m_music;
-
-    /** Will only be used on overworld */
-    std::vector<OverworldChallenge> m_challenges;
-
-    std::vector<Subtitle> m_subtitles;
 
     /** Start transforms of karts (either the default, or the ones taken
      *  from the scene file). */
@@ -388,8 +349,6 @@ private:
     btQuaternion getArenaStartRotation(const Vec3& xyz, float heading);
     bool loadMainTrack(const XMLNode &node);
     void createWater(const XMLNode &node);
-    void getMusicInformation(std::vector<std::string>&  filenames,
-                             std::vector<MusicInformation*>& m_music   );
     void loadCurves(const XMLNode &node);
     void handleSky(const XMLNode &root, const std::string &filename);
     void freeCachedMeshVertexBuffer();
@@ -439,7 +398,6 @@ public:
                                         unsigned int mode_id=0);
     bool findGround(AbstractKart *kart);
 
-    std::vector< std::vector<float> > buildHeightMap();
     // ------------------------------------------------------------------------
     /** Returns true if this track has an arena mode. */
     bool isArena() const { return m_is_arena; }
@@ -467,9 +425,6 @@ public:
         scene::ISceneNode* parent, TrackObject* parent_library);
     // ------------------------------------------------------------------------
     bool               isSoccer             () const { return m_is_soccer; }
-    // ------------------------------------------------------------------------
-    void               addMusic          (MusicInformation* mi)
-                                                  {m_music.push_back(mi);     }
     // ------------------------------------------------------------------------
     float              getGravity        () const {return m_gravity;          }
     // ------------------------------------------------------------------------
@@ -525,9 +480,6 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the number of modes available for this track. */
     unsigned int       getNumberOfModes() const { return (unsigned int) m_all_modes.size();  }
-    // ------------------------------------------------------------------------
-    /** Returns number of completed challenges. */
-    unsigned int getNumOfCompletedChallenges();
     // ------------------------------------------------------------------------
     /** Returns the name of the i-th. mode. */
     const std::string &getModeName(unsigned int i) const
@@ -607,14 +559,6 @@ public:
     {
         return m_track_object_manager;
     }   // getTrackObjectManager
-
-    // ------------------------------------------------------------------------
-    /** Get list of challenges placed on that world. Works only for overworld. */
-    const std::vector<OverworldChallenge>& getChallengeList() const
-        { return m_challenges; }
-
-    // ------------------------------------------------------------------------
-    const std::vector<Subtitle>& getSubtitles() const { return m_subtitles; }
 
     // ------------------------------------------------------------------------
     bool hasClouds() const { return m_clouds; }

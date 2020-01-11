@@ -73,11 +73,7 @@
 #include "karts/kart_properties.hpp"
 #include "karts/kart_properties_manager.hpp"
 #include "modes/world.hpp"
-#include "race/highscore_manager.hpp"
-#include "race/history.hpp"
 #include "race/race_manager.hpp"
-#include "replay/replay_play.hpp"
-#include "replay/replay_recorder.hpp"
 #include "scriptengine/property_animator.hpp"
 #include "tracks/arena_graph.hpp"
 #include "tracks/track.hpp"
@@ -346,6 +342,13 @@ public:
 };
 void PySTKRace::restart() {
     World::getWorld()->reset(true /* restart */);
+    // TODO: Set random seeds
+//     ItemManager::getRandomSeed()
+//     PowerupManager::setRandomSeed
+//     KartPropertiesManager::getRandomKartList
+    // TODO: On reset only
+//     SkiddingAI::m_random_collect_item
+//     SkiddingAI::m_random_skid
 }
 
 void PySTKRace::start() {
@@ -357,9 +360,9 @@ void PySTKRace::start() {
         AbstractKart * player_kart = World::getWorld()->getPlayerKart(i);
         if (config_.players[i].controller == PySTKPlayerConfig::AI_CONTROL)
             player_kart->setController(new LocalPlayerAIController(World::getWorld()->loadAIController(player_kart)));
-//         else
-//             player_kart->setController(NULL);
     }
+    ItemManager::updateRandomSeed(0);
+    powerup_manager->setRandomSeed(0);
 }
 void PySTKRace::stop() {
     render_targets_.clear();
@@ -407,35 +410,34 @@ bool PySTKRace::step(const PySTKAction & a) {
 }
 bool PySTKRace::step() {
     const float dt = config_.step_size;
+    if (!World::getWorld()) return false;
     
 #ifdef RENDERDOC
     if(rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
 #endif
 
     // Update first
-    if (World::getWorld()) {
-        time_leftover_ += dt;
-        int ticks = stk_config->time2Ticks(time_leftover_);
-        time_leftover_ -= stk_config->ticks2Time(ticks);
-        for(int i=0; i<ticks; i++) {
-            World::getWorld()->updateWorld(1);
-            World::getWorld()->updateTime(1);
-        }
+    time_leftover_ += dt;
+    int ticks = stk_config->time2Ticks(time_leftover_);
+    time_leftover_ -= stk_config->ticks2Time(ticks);
+    for(int i=0; i<ticks; i++) {
+        World::getWorld()->updateWorld(1);
+        World::getWorld()->updateTime(1);
     }
-    if (World::getWorld()) {
-        last_action_.resize(config_.players.size());
-        for(int i=0; i<last_action_.size(); i++)
-            last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
-    }
+    last_action_.resize(config_.players.size());
+    for(int i=0; i<last_action_.size(); i++)
+        last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
     
     PropertyAnimator::get()->update(dt);
-    if (World::getWorld())
-        World::getWorld()->updateGraphics(dt);
-
+    
     // Then render
     if (config_.render) {
+        World::getWorld()->updateGraphics(dt);
+
         irr_driver->minimalUpdate(dt);
         render(dt);
+    } else {
+        World::getWorld()->updateGraphicsMinimal(dt);
     }
 
     if (config_.render && !irr_driver->getDevice()->run())
@@ -572,16 +574,12 @@ void PySTKRace::initRest()
 
     // The order here can be important, e.g. KartPropertiesManager needs
     // defaultKartProperties, which are defined in stk_config.
-    history                 = new History              ();
-    ReplayPlay::create();
-    ReplayRecorder::create();
     material_manager        = new MaterialManager      ();
     track_manager           = new TrackManager         ();
     kart_properties_manager = new KartPropertiesManager();
     projectile_manager      = new ProjectileManager    ();
     powerup_manager         = new PowerupManager       ();
     attachment_manager      = new AttachmentManager    ();
-    highscore_manager       = new HighscoreManager     ();
 
     // The maximum texture size can not be set earlier, since
     // e.g. the background image needs to be loaded in high res.
@@ -620,8 +618,6 @@ void PySTKRace::cleanSuperTuxKart()
     irr_driver->updateConfigIfRelevant();
     if(race_manager)            delete race_manager;
     race_manager = nullptr;
-    if(highscore_manager)       delete highscore_manager;
-    highscore_manager = nullptr;
     if(attachment_manager)      delete attachment_manager;
     attachment_manager = nullptr;
     ItemManager::removeTextures();
@@ -635,12 +631,8 @@ void PySTKRace::cleanSuperTuxKart()
     track_manager = nullptr;
     if(material_manager)        delete material_manager;
     material_manager = nullptr;
-    if(history)                 delete history;
-    history = nullptr;
     
     Referee::cleanup();
-    ReplayPlay::destroy();
-    ReplayRecorder::destroy();
     ParticleKindManager::destroy();
     if(font_manager)            delete font_manager;
     font_manager = nullptr;

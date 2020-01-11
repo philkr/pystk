@@ -40,7 +40,6 @@ STKParticle::STKParticle(bool randomize_initial_y, ISceneNode* parent, s32 id,
                                       irr_driver->getSceneManager(), id,
                                       position, rotation, scale)
 {
-    m_hm = NULL;
     m_color_to = core::vector3df(1.0f);
     m_color_from = m_color_to;
     m_size_increase_factor = 0.0f;
@@ -49,6 +48,7 @@ STKParticle::STKParticle(bool randomize_initial_y, ISceneNode* parent, s32 id,
     m_randomize_initial_y = randomize_initial_y;
     m_flips = false;
     m_max_count = 0;
+    m_y_min = -10000;
     drop();
 }   // STKParticle
 
@@ -208,8 +208,6 @@ void STKParticle::setEmitter(scene::IParticleEmitter* emitter)
         return;
     }
 
-    delete m_hm;
-    m_hm = NULL;
     m_first_execution = true;
     m_pre_generating = true;
     m_flips = false;
@@ -250,7 +248,7 @@ void STKParticle::generate(std::vector<CPUParticle>* out, float dt_in_sec)
         for (int i = 0; i <
             (m_max_count > 5000 ? 5 : m_pre_generating ? 100 : 0); i++)
         {
-            if (m_hm != NULL)
+            if (m_y_min > -10000)
             {
                 stimulateHeightMap((float)i, active_count, NULL);
             }
@@ -263,7 +261,7 @@ void STKParticle::generate(std::vector<CPUParticle>* out, float dt_in_sec)
     }
 
     float dt = dt_in_sec * 1000.f;
-    if (m_hm != NULL)
+    if (m_y_min > -10000)
     {
         stimulateHeightMap(dt, active_count, out);
     }
@@ -294,55 +292,30 @@ inline float glslMix(float x, float y, float a)
 void STKParticle::stimulateHeightMap(float dt, unsigned int active_count,
                                      std::vector<CPUParticle>* out)
 {
-    assert(m_hm != NULL);
     const core::matrix4 cur_matrix = AbsoluteTransformation;
     for (unsigned i = 0; i < m_max_count; i++)
     {
-        core::vector3df new_particle_position;
-        core::vector3df new_particle_direction;
-        float new_size = 0.0f;
-        float new_lifetime = 0.0f;
+        core::vector3df new_particle_direction = m_particles_generating[i].m_direction;
+        core::vector3df new_particle_position = m_particles_generating[i].m_position + dt * new_particle_direction;
 
-        const core::vector3df particle_position =
-            m_particles_generating[i].m_position;
         const float lifetime = m_particles_generating[i].m_lifetime;
-        const core::vector3df particle_direction =
-            m_particles_generating[i].m_direction;
+        float new_lifetime = lifetime + (dt / m_initial_particles[i].m_lifetime);
+        float new_size = 0.0f;
 
-        const core::vector3df particle_position_initial =
-            m_initial_particles[i].m_position;
-        const float lifetime_initial = m_initial_particles[i].m_lifetime;
-        const core::vector3df particle_direction_initial =
-            m_initial_particles[i].m_direction;
-        const float size_initial = m_initial_particles[i].m_size;
+        if (new_particle_position.Y < m_y_min || lifetime < 0.0f || new_lifetime > 1.0f) {
+            core::vector3df initial_position, initial_new_position;
+            cur_matrix.transformVect(initial_position, m_initial_particles[i].m_position);
+            cur_matrix.transformVect(initial_new_position,
+                m_initial_particles[i].m_position + m_initial_particles[i].m_direction);
 
-        bool reset = false;
-        const int px = core::clamp((int)(256.0f *
-            (particle_position.X - m_hm->m_x) / m_hm->m_x_len), 0, 255);
-        const int py = core::clamp((int)(256.0f *
-            (particle_position.Z - m_hm->m_z) / m_hm->m_z_len), 0, 255);
-        const float h = particle_position.Y - m_hm->m_array[px][py];
-        reset = h < 0.0f;
-
-        core::vector3df initial_position, initial_new_position;
-        cur_matrix.transformVect(initial_position, particle_position_initial);
-        cur_matrix.transformVect(initial_new_position,
-            particle_position_initial + particle_direction_initial);
-
-        core::vector3df adjusted_initial_direction =
-            initial_new_position - initial_position;
-        float adjusted_lifetime = lifetime + (dt / lifetime_initial);
-        reset = reset || adjusted_lifetime > 1.0f;
-        reset = reset || lifetime < 0.0f;
-
-        new_particle_position = !reset ?
-            (particle_position + particle_direction * dt) : initial_position;
-        new_lifetime = !reset ? adjusted_lifetime : 0.0f;
-        new_particle_direction = !reset ?
-            particle_direction : adjusted_initial_direction;
-        new_size = !reset ?
-            glslMix(size_initial, size_initial * m_size_increase_factor,
-            adjusted_lifetime) : 0.0f;
+            new_particle_position = initial_position;
+            new_lifetime = 0.f;
+            new_particle_direction = initial_new_position - initial_position;
+        }
+        else {
+            const float size_initial = m_initial_particles[i].m_size;
+            new_size = size_initial * glslMix(1, m_size_increase_factor, new_lifetime);
+        }
 
         m_particles_generating[i].m_position = new_particle_position;
         m_particles_generating[i].m_lifetime = new_lifetime;

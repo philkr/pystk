@@ -19,7 +19,6 @@
 #include "graphics/weather.hpp"
 #include "modes/world.hpp"
 #include "tracks/track.hpp"
-#include "utils/random_generator.hpp"
 
 
 /**  The weather manager stores information about the weather.
@@ -28,8 +27,7 @@ Weather::Weather()
 {
     m_lightning = 0.0f;
     
-    RandomGenerator g;
-    m_next_lightning = (float)g.get(35);
+    m_next_lightning = (float)random.get(35);
 }   // Weather
 
 // ----------------------------------------------------------------------------
@@ -51,8 +49,7 @@ void Weather::update(float dt)
     {
         startLightning();
 
-        RandomGenerator g;
-        m_next_lightning = 35 + (float)g.get(35);
+        m_next_lightning = 35 + (float)random.get(35);
     }
     
     if (m_lightning > 0.0f)

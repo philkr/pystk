@@ -31,9 +31,6 @@
 
 #include <assert.h>
 
-bool AIBaseController::m_ai_debug = false;
-int  AIBaseController::m_test_ai  = 0;
-
 AIBaseController::AIBaseController(AbstractKart *kart)
                 : Controller(kart)
 {
@@ -48,7 +45,6 @@ AIBaseController::AIBaseController(AbstractKart *kart)
 
 void AIBaseController::reset()
 {
-    m_enabled_network_ai = false;
     m_stuck = false;
     m_collision_ticks.clear();
 }   // reset
@@ -68,10 +64,6 @@ void AIBaseController::update(int ticks)
 */
 void AIBaseController::setControllerName(const std::string &name)
 {
-#ifdef DEBUG
-    if(m_ai_debug && Camera::getActiveCamera()->getType()==Camera::CM_TYPE_NORMAL)
-        m_kart->setOnScreenText(core::stringw(name.c_str()).c_str());
-#endif
     Controller::setControllerName(name);
 }   // setControllerName
 

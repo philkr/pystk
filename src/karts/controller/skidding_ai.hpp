@@ -126,8 +126,6 @@ private:
         void clear() {m_road = false; m_kart = -1;}
     } m_crashes;
 
-    RaceManager::AISuperPower m_superpower;
-
     /*General purpose variables*/
 
     /** Pointer to the closest kart ahead of this kart. NULL if this
@@ -149,9 +147,6 @@ private:
         to avoid the leader slowing down */
     float m_distance_leader;
 
-
-    /** The actual start delay used in ticks. */
-    int m_start_delay;
 
     /** Time an item has been collected and not used. */
     float m_time_since_last_shot;
@@ -193,9 +188,6 @@ private:
     /** This bool allows to make the AI use nitro by series of two bursts */
     bool m_burster;
 
-    /** A random number generator to decide if the AI should skid or not. */
-    RandomGenerator m_random_skid;
-
     /** This implements a simple finite state machine: it starts in
      *  NOT_YET. The first time the AI decides to skid, the state is changed
      *  randomly (depending on skid probability) to NO_SKID or SKID.
@@ -216,7 +208,7 @@ private:
 
     /** True if m_last_item_random was randomly selected to be collected. */
     bool m_really_collect_item;
-
+    
     /** A random number generator for collecting items. */
     RandomGenerator m_random_collect_item;
 

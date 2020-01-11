@@ -506,68 +506,6 @@ void KartGFX::getGFXStatus(int* nitro, bool* zipper,
 }   // getGFXStatus
 
 // ----------------------------------------------------------------------------
-void KartGFX::setGFXFromReplay(int nitro, bool zipper,
-                               int skidding, bool red_skidding)
-{
-#ifndef SERVER_ONLY
-    if (nitro > 0)
-    {
-        setCreationRateAbsolute(KartGFX::KGFX_NITRO1,      (float)nitro);
-        setCreationRateAbsolute(KartGFX::KGFX_NITRO2,      (float)nitro);
-        setCreationRateAbsolute(KartGFX::KGFX_NITROSMOKE1, (float)nitro);
-        setCreationRateAbsolute(KartGFX::KGFX_NITROSMOKE2, (float)nitro);
-        
-        if (CVS->isGLSL())
-            m_nitro_light->setVisible(true);
-    }
-    else
-    {
-        setCreationRateAbsolute(KartGFX::KGFX_NITRO1,      0.0f);
-        setCreationRateAbsolute(KartGFX::KGFX_NITRO2,      0.0f);
-        setCreationRateAbsolute(KartGFX::KGFX_NITROSMOKE1, 0.0f);
-        setCreationRateAbsolute(KartGFX::KGFX_NITROSMOKE2, 0.0f);
-        
-        if (CVS->isGLSL())
-            m_nitro_light->setVisible(false);
-    }
-
-    if (zipper)
-        setCreationRateAbsolute(KartGFX::KGFX_ZIPPER, 800.0f);
-
-    if (skidding > 0)
-    {
-        const ParticleKind* skid_kind = red_skidding ? m_skid_kind2 
-                                                     : m_skid_kind1;
-
-        if (m_all_emitters[KGFX_SKID1L])
-            m_all_emitters[KGFX_SKID1L]->setParticleType(skid_kind);
-        if (m_all_emitters[KGFX_SKID1R])
-            m_all_emitters[KGFX_SKID1R]->setParticleType(skid_kind);
-
-        if (CVS->isGLSL())
-        {
-            m_skidding_light_1->setVisible(!red_skidding);
-            m_skidding_light_2->setVisible(red_skidding);
-        }
-        
-        setCreationRateAbsolute(KartGFX::KGFX_SKIDL, (float)skidding);
-        setCreationRateAbsolute(KartGFX::KGFX_SKIDR, (float)skidding);
-    }
-    else
-    {
-        setCreationRateAbsolute(KartGFX::KGFX_SKIDL, 0.0f);
-        setCreationRateAbsolute(KartGFX::KGFX_SKIDR, 0.0f);
-        
-        if (CVS->isGLSL())
-        {
-            m_skidding_light_1->setVisible(false);
-            m_skidding_light_2->setVisible(false);
-        }
-    }
-#endif
-}   // setGFXFromReplay
-
-// ----------------------------------------------------------------------------
 void KartGFX::setGFXInvisible()
 {
 #ifndef SERVER_ONLY

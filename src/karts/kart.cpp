@@ -60,7 +60,6 @@
 #include "physics/btKart.hpp"
 #include "physics/btKartRaycast.hpp"
 #include "physics/physics.hpp"
-#include "race/history.hpp"
 #include "tracks/terrain_info.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"
@@ -229,7 +228,7 @@ Kart::~Kart()
  */
 void Kart::reset()
 {
-    if (m_flying && !isGhostKart())
+    if (m_flying)
     {
         m_flying = false;
         stopFlying();
@@ -835,7 +834,6 @@ void Kart::finishedRace(float time, bool from_server)
     {
         // Save for music handling in race result gui
         setRaceResult();
-        if (!isGhostKart())
         {
             if (m_saved_controller == NULL)
             {
@@ -845,7 +843,7 @@ void Kart::finishedRace(float time, bool from_server)
                 m_saved_controller->finishedRace(time);
         }
         // Skip animation if this kart is eliminated
-        if (m_eliminated || isGhostKart()) return;
+        if (m_eliminated) return;
 
         m_kart_model->setAnimation(m_race_result ?
             KartModel::AF_WIN_START : KartModel::AF_LOSE_START);
@@ -958,28 +956,6 @@ void Kart::collectedItem(ItemState *item_state)
     m_controller->collectedItem(*item_state, old_energy);
 
 }   // collectedItem
-
-//-----------------------------------------------------------------------------
-/** Called the first time a kart accelerates after 'ready'. It searches
- *  through the startup times to find the appropriate slot, and returns the
- *  speed-boost from the corresponding entry.
- *  If the kart started too slow (i.e. slower than the longest time in the
- *  startup times list), it returns 0.
- */
-float Kart::getStartupBoostFromStartTicks(int ticks) const
-{
-    int ticks_since_ready = ticks - stk_config->time2Ticks(1.0f);
-    if (ticks_since_ready < 0)
-        return 0.0f;
-    float t = stk_config->ticks2Time(ticks_since_ready);
-    std::vector<float> startup_times = m_kart_properties->getStartupTime();
-    for (unsigned int i = 0; i < startup_times.size(); i++)
-    {
-        if (t <= startup_times[i])
-            return m_kart_properties->getStartupBoost()[i];
-    }
-    return 0.0f;
-}   // getStartupBoostFromStartTicks
 
 //-----------------------------------------------------------------------------
 /** Simulates gears by adjusting the force of the engine. It also takes the
@@ -1611,7 +1587,6 @@ bool Kart::setSquash(float time, float slowdown)
 void Kart::setSquashGraphics()
 {
 #ifndef SERVER_ONLY
-    if (isGhostKart()) return;
 
     m_node->setScale(core::vector3df(1.0f, 0.5f, 1.0f));
     if (m_vehicle->getNumWheels() > 0)
@@ -1637,7 +1612,6 @@ void Kart::setSquashGraphics()
 void Kart::unsetSquash()
 {
 #ifndef SERVER_ONLY
-    if (isGhostKart()) return;
 
     m_node->setScale(core::vector3df(1.0f, 1.0f, 1.0f));
     if (m_vehicle && m_vehicle->getNumWheels() > 0)

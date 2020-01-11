@@ -93,19 +93,6 @@ void ParticleEmitter::update(float dt)
         m_max_rate = m_min_rate = std::max(0.0f, (m_min_rate - m_emission_decay_rate*dt));
         setCreationRateAbsolute(m_min_rate);
     }
-
-    // There seems to be no way to randomise the velocity for particles,
-    // so we have to do this manually, by changing the default velocity.
-    // Irrlicht expects velocity (called 'direction') in m/ms!!
-    /*
-    const int x = m_particle_type->getAngleSpreadX();
-    const int y = m_particle_type->getAngleSpreadY();
-    const int z = m_particle_type->getAngleSpreadZ();
-    Vec3 dir(cos(DEGREE_TO_RAD*(rand()%x - x/2))*m_particle_type->getVelocityX(),
-             sin(DEGREE_TO_RAD*(rand()%y - x/2))*m_particle_type->getVelocityY(),
-             sin(DEGREE_TO_RAD*(rand()%z - x/2))*m_particle_type->getVelocityZ());
-    m_emitter->setDirection(dir.toIrrVector());
-     */
 }   // update
 
 //-----------------------------------------------------------------------------
@@ -331,12 +318,7 @@ void ParticleEmitter::addHeightMapAffector(Track* t)
     const Vec3* aabb_min;
     const Vec3* aabb_max;
     t->getAABB(&aabb_min, &aabb_max);
-    float track_x = aabb_min->getX();
-    float track_z = aabb_min->getZ();
-    const float track_x_len = aabb_max->getX() - aabb_min->getX();
-    const float track_z_len = aabb_max->getZ() - aabb_min->getZ();
-    std::vector<std::vector<float> > array = t->buildHeightMap();
-    m_node->setHeightmap(array, track_x, track_z, track_x_len, track_z_len);
+    m_node->setYMin(aabb_min->getY());
 }
 
 //-----------------------------------------------------------------------------

@@ -276,9 +276,6 @@ public:
     virtual void   flyDown() OVERRIDE;
 
     virtual void  collectedItem(ItemState *item) OVERRIDE;
-    virtual float getStartupBoostFromStartTicks(int ticks) const OVERRIDE;
-    virtual float getStartupBoost() const OVERRIDE  { return m_startup_boost; }
-    virtual void setStartupBoost(float val) OVERRIDE { m_startup_boost = val; }
     virtual const Material *getMaterial() const OVERRIDE;
     virtual const Material *getLastMaterial() const OVERRIDE;
     /** Returns the pitch of the terrain depending on the heading. */
@@ -539,9 +536,6 @@ public:
     // ----------------------------------------------------------------------------------------
     /** Set this kart race result. */
     void setRaceResult();
-    // ----------------------------------------------------------------------------------------
-    /** Returns whether this kart is a ghost (replay) kart. */
-    virtual bool isGhostKart() const OVERRIDE { return false;  }
     // ----------------------------------------------------------------------------------------
     virtual bool isVisible() const OVERRIDE;
     // ----------------------------------------------------------------------------------------

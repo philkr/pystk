@@ -33,21 +33,6 @@ class STKParticle : public scene::CParticleSystemSceneNode
 {
 private:
     // ------------------------------------------------------------------------
-    struct HeightMapData
-    {
-        const std::vector<std::vector<float> > m_array;
-        const float m_x;
-        const float m_z;
-        const float m_x_len;
-        const float m_z_len;
-        // --------------------------------------------------------------------
-        HeightMapData(std::vector<std::vector<float> >& array,
-                      float track_x, float track_z, float track_x_len,
-                      float track_z_len)
-            : m_array(std::move(array)), m_x(track_x), m_z(track_z),
-              m_x_len(track_x_len), m_z_len(track_z_len) {}
-    };
-    // ------------------------------------------------------------------------
     struct ParticleData
     {
         core::vector3df m_position;
@@ -56,7 +41,7 @@ private:
         float m_size;
     };
     // ------------------------------------------------------------------------
-    HeightMapData* m_hm;
+    float m_y_min;
 
     std::vector<ParticleData> m_particles_generating, m_initial_particles;
 
@@ -97,7 +82,6 @@ public:
     // ------------------------------------------------------------------------
     ~STKParticle()
     {
-        delete m_hm;
     }
     // ------------------------------------------------------------------------
     void setColorFrom(float r, float g, float b)
@@ -120,11 +104,9 @@ public:
     // ------------------------------------------------------------------------
     void setIncreaseFactor(float val)         { m_size_increase_factor = val; }
     // ------------------------------------------------------------------------
-    void setHeightmap(std::vector<std::vector<float> >& array, float track_x,
-                      float track_z, float track_x_len, float track_z_len)
+    void setYMin(float y_min)
     {
-        m_hm = new HeightMapData(array, track_x, track_z, track_x_len,
-            track_z_len);
+        m_y_min = y_min;
     }
     // ------------------------------------------------------------------------
     void generate(std::vector<CPUParticle>* out, float dt=0.1);

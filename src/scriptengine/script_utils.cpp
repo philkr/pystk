@@ -39,6 +39,8 @@ namespace Scripting
 
     namespace Utils
     {
+        RandomGenerator scripting_random;
+        
         /** \addtogroup Scripting
         * @{
         */
@@ -113,13 +115,13 @@ namespace Scripting
         /** Generate a random integer value */
         int randomInt(int min, int maxExclusive)
         {
-            return min + (rand() % (maxExclusive - min));
+            return min + (scripting_random() % (maxExclusive - min));
         }
 
         /** Generate a random floating-point value */
         float randomFloat(int min, int maxExclusive)
         {
-            int val = min * 100 + (rand() % ((maxExclusive - min) * 100));
+            int val = min * 100 + (scripting_random() % ((maxExclusive - min) * 100));
             return val / 100.0f;
         }
 

@@ -512,21 +512,18 @@ public:
     /** Returns whether this kart wins or loses. */
     virtual bool getRaceResult() const = 0;
     // ------------------------------------------------------------------------
-    /** Returns whether this kart is a ghost (replay) kart. */
-    virtual bool isGhostKart() const = 0;
-    // ------------------------------------------------------------------------
     /** Returns whether this kart is jumping. */
     virtual bool isJumping() const = 0;
     // ------------------------------------------------------------------------
     virtual bool isVisible() const = 0;
     // ------------------------------------------------------------------------
     virtual void makeKartRest();
-    // ------------------------------------------------------------------------
-    virtual void setStartupBoost(float val) = 0;
-    // ------------------------------------------------------------------------
-    virtual float getStartupBoost() const = 0;
-    // ------------------------------------------------------------------------
-    virtual float getStartupBoostFromStartTicks(int ticks) const = 0;
+//     // ------------------------------------------------------------------------
+//     virtual void setStartupBoost(float val) = 0;
+//     // ------------------------------------------------------------------------
+//     virtual float getStartupBoost() const = 0;
+//     // ------------------------------------------------------------------------
+//     virtual float getStartupBoostFromStartTicks(int ticks) const = 0;
     // ------------------------------------------------------------------------
     virtual Stars* getStarsEffect() const = 0;
     // ------------------------------------------------------------------------

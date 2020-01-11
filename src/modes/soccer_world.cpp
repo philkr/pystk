@@ -52,7 +52,6 @@ SoccerWorld::SoccerWorld() : WorldWithRank()
     }
 
     m_frame_count = 0;
-    m_use_highscores = false;
     m_red_ai = 0;
     m_blue_ai = 0;
     m_ball_track_sector = NULL;

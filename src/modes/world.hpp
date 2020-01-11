@@ -33,7 +33,7 @@
 
 #include "graphics/weather.hpp"
 #include "modes/world_status.hpp"
-#include "race/highscores.hpp"
+#include "race/race_manager.hpp"
 #include "utils/random_generator.hpp"
 
 #include "LinearMath/btTransform.h"
@@ -108,7 +108,6 @@ protected:
 
     /** The list of all karts. */
     KartList                  m_karts;
-    RandomGenerator           m_random;
 
     AbstractKart* m_fastest_kart;
     /** Number of eliminated karts. */
@@ -127,9 +126,6 @@ protected:
     /** Whether highscores should be used for this kind of race.
      *  True by default, change to false in a child class to disable.
     */
-    bool        m_use_highscores;
-
-    void  updateHighscores  (int* best_highscore_rank);
     void  resetAllKarts     ();
 
     virtual std::shared_ptr<AbstractKart> createKart
@@ -164,8 +160,6 @@ protected:
      */
     virtual float estimateFinishTimeForKart(AbstractKart* kart)
                                         {return getTime(); }
-    void updateAchievementDataEndRace();
-    void updateAchievementModeCounters(bool start);
 
 public:
                     World();
@@ -220,6 +214,7 @@ public:
     // Virtual functions
     // =================
     virtual void    init();
+    virtual void    updateGraphicsMinimal(float dt);
     virtual void    updateGraphics(float dt);
     virtual void    terminateRace() OVERRIDE;
     virtual void    reset(bool restart=false) OVERRIDE;
@@ -254,7 +249,6 @@ public:
 
     // Other functions
     // ===============
-    Highscores     *getHighscores() const;
     void            scheduleExitRace() { m_schedule_exit_race = true; }
     void            scheduleTutorial();
     void            updateWorld(int ticks);
@@ -295,9 +289,6 @@ public:
         if (m_eliminated_karts > 0)
             m_eliminated_karts--;
     }
-    // ------------------------------------------------------------------------
-    /** \return whether this world can generate/have highscores */
-    bool useHighScores() const { return m_use_highscores; }
     // ------------------------------------------------------------------------
     /** Override if you want to know when a kart presses fire */
     virtual void onFirePressed(Controller* who) {}
