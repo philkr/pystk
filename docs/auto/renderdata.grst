@@ -4,19 +4,19 @@
    SuperTuxKart rendering output
 
 
-   .. py:method:: depth () -> readonly_memoryview
+   .. py:method:: depth () -> array
       :property:
 
       Depth image of the kart (memoryview[float] screen_height x screen_width)
 
 
-   .. py:method:: image () -> readonly_memoryview
+   .. py:method:: image () -> array
       :property:
 
       Color image of the kart (memoryview[uint8] screen_height x screen_width x 3)
 
 
-   .. py:method:: instance () -> readonly_memoryview
+   .. py:method:: instance () -> array
       :property:
 
       Instance labels (memoryview[uint32] screen_height x screen_width)

@@ -104,7 +104,7 @@
          :annotation: = 1
 
       .. py:attribute:: FALLING
-         :annotation: = 5
+         :annotation: = 4
 
       .. py:attribute:: LEADER_MODE
          :annotation: = 3
@@ -114,9 +114,6 @@
 
       .. py:attribute:: REVERSE
          :annotation: = 2
-
-      .. py:attribute:: SIMPLE_REPLAY
-         :annotation: = 4
 
       .. py:method:: name () -> str
          :property:
