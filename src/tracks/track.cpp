@@ -146,7 +146,9 @@ Track::Track(const std::string &filename)
     m_godrays_opacity       = 1.0f;
     m_godrays_color         = video::SColor(255, 255, 255, 255);
     m_weather_lightning      = false;
-    m_cache_track           = m_ident=="overworld";
+    // A temporary fix for a bug there the m_track_mesh contained deleted
+    // texture (long term fix might be to use shared pointers)
+    m_cache_track           = true;
     m_render_target         = NULL;
     m_startup_run           = false;
     m_red_flag = m_blue_flag =
