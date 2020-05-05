@@ -150,7 +150,7 @@ def ignore(base, entries):
 
 setup(
     name='PySuperTuxKart',
-    version='1.0.2',
+    version='1.0.3',
     author='Philipp Krähenbühl',
     author_email='philkr@utexas.edu',
     description='Python SuperTuxKart inferface',

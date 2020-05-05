@@ -166,7 +166,7 @@ PySTKRenderTarget::PySTKRenderTarget(std::unique_ptr<RenderTarget>&& rt):rt_(std
     for(int i=0; i<BUF_SIZE; i++) {
         color_buf_.push_back(std::make_shared<NumpyPBO>(W, H, GL_RGB, GL_UNSIGNED_BYTE));
         depth_buf_.push_back(std::make_shared<NumpyPBO>(W, H, GL_DEPTH_COMPONENT, GL_FLOAT));
-        instance_buf_.push_back(std::make_shared<NumpyPBO>(W, H, GL_RED, GL_UNSIGNED_INT));
+        instance_buf_.push_back(std::make_shared<NumpyPBO>(W, H, GL_RED_INTEGER, GL_UNSIGNED_INT));
     }
 }
 void PySTKRenderTarget::render(irr::scene::ICameraSceneNode* camera, float dt) {

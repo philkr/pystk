@@ -6,6 +6,7 @@
 int n_channel(int format) {
     switch(format) {
     case GL_DEPTH_COMPONENT: return 1;
+    case GL_RED_INTEGER:
     case GL_RED:
     case GL_GREEN:
     case GL_BLUE: return 1;
