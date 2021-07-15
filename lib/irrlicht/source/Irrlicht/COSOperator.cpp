@@ -17,7 +17,9 @@
 #ifdef ANDROID
 #include <linux/sysctl.h>
 #else
+#ifdef _IRR_OSX_PLATFORM_
 #include <sys/sysctl.h>
+#endif
 #endif
 #endif
 #endif
