@@ -47,11 +47,6 @@ extern "C"
  */
 FontWithFace::FontWithFace(const std::string& name)
 {
-    m_spritebank = irr_driver->getGUI()->addEmptySpriteBank(name.c_str());
-
-    assert(m_spritebank != NULL);
-    m_spritebank->grab();
-
     m_fallback_font = NULL;
     m_fallback_font_scale = 1.0f;
     m_glyph_max_height = 0;
@@ -64,13 +59,9 @@ FontWithFace::FontWithFace(const std::string& name)
  */
 FontWithFace::~FontWithFace()
 {
-    for (unsigned int i = 0; i < m_spritebank->getTextureCount(); i++)
-    {
-        STKTexManager::getInstance()->removeTexture(
-            static_cast<STKTexture*>(m_spritebank->getTexture(i)));
-    }
-    m_spritebank->drop();
-    m_spritebank = NULL;
+    for (auto * t: m_spritebank_texture)
+        STKTexManager::getInstance()->removeTexture(t);
+    m_spritebank_texture.clear();
 
     delete m_face_ttf;
 }   // ~FontWithFace
@@ -112,12 +103,11 @@ void FontWithFace::reset()
 {
     m_new_char_holder.clear();
     m_character_glyph_info_map.clear();
-    for (unsigned int i = 0; i < m_spritebank->getTextureCount(); i++)
-    {
-        STKTexManager::getInstance()->removeTexture(
-            static_cast<STKTexture*>(m_spritebank->getTexture(i)));
-    }
-    m_spritebank->clear();
+    for (STKTexture * t: m_spritebank_texture)
+        STKTexManager::getInstance()->removeTexture(t);
+    m_spritebank_texture.clear();
+    m_spritebank_sprite.clear();
+    m_spritebank_texture.clear();
     m_face_ttf->reset();
     createNewGlyphPage();
 }   // reset
@@ -154,7 +144,7 @@ void FontWithFace::createNewGlyphPage()
     m_used_width = 0;
     m_used_height = 0;
     STKTexture* stkt = new STKTexture(data, typeid(*this).name() +
-        StringUtils::toString(m_spritebank->getTextureCount()),
+        StringUtils::toString(m_spritebank_texture.size()),
         getGlyphPageSize(),
 #ifndef SERVER_ONLY
         CVS->isARBTextureSwizzleUsable() && !useColorGlyphPage()
@@ -162,7 +152,8 @@ void FontWithFace::createNewGlyphPage()
         false
 #endif
         );
-    m_spritebank->addTexture(STKTexManager::getInstance()->addTexture(stkt));
+    STKTexManager::getInstance()->addTexture(stkt);
+    m_spritebank_texture.push_back(stkt);
 }   // createNewGlyphPage
 
 // ----------------------------------------------------------------------------
@@ -230,10 +221,10 @@ void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
         m_current_height = 0;
     }
 
-    const unsigned int cur_tex = m_spritebank->getTextureCount() - 1;
+    const unsigned int cur_tex = m_spritebank_texture.size() - 1;
     if (bits->buffer != NULL)
     {
-        video::ITexture* tex = m_spritebank->getTexture(cur_tex);
+        video::ITexture* tex = m_spritebank_texture[cur_tex];
         glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureName());
         if (bits->pixel_mode == FT_PIXEL_MODE_GRAY)
         {
@@ -314,18 +305,12 @@ void FontWithFace::insertGlyph(unsigned font_number, unsigned glyph_index)
     }
 
     // Store the rectangle of current glyph
-    gui::SGUISpriteFrame f;
-    gui::SGUISprite s;
     core::rect<s32> rectangle(m_used_width, m_used_height,
         m_used_width + cur_glyph_width, m_used_height + cur_glyph_height);
-    f.rectNumber = m_spritebank->getPositions().size();
-    f.textureNumber = cur_tex;
+    SpriteFrame f = {cur_tex, (u32)m_spritebank_position.size()};
 
-    // Add frame to sprite
-    s.Frames.push_back(f);
-    s.frameTime = 0;
-    m_spritebank->getPositions().push_back(rectangle);
-    m_spritebank->getSprites().push_back(s);
+    m_spritebank_position.push_back(rectangle);
+    m_spritebank_sprite.push_back(f);
 
     // Save glyph metrics
     FontArea a;
@@ -375,9 +360,9 @@ void FontWithFace::updateCharactersList()
 void FontWithFace::dumpGlyphPage(const std::string& name)
 {
 #ifndef SERVER_ONLY
-    for (unsigned int i = 0; i < m_spritebank->getTextureCount(); i++)
+    for (unsigned int i = 0; i < m_spritebank_texture.size(); i++)
     {
-        video::ITexture* tex = m_spritebank->getTexture(i);
+        video::ITexture* tex = m_spritebank_texture[i];
         core::dimension2d<u32> size = tex->getSize();
         video::ECOLOR_FORMAT col_format = tex->getColorFormat();
         void* data = tex->lock();
@@ -778,14 +763,14 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
 
     // Do the actual rendering
     const int indice_amount                 = indices.size();
-    core::array<gui::SGUISprite>& sprites   = m_spritebank->getSprites();
-    core::array<core::rect<s32>>& positions = m_spritebank->getPositions();
-    core::array<gui::SGUISprite>* fallback_sprites;
-    core::array<core::rect<s32>>* fallback_positions;
+    std::vector<SpriteFrame>& sprites   = m_spritebank_sprite;
+    std::vector<core::rect<s32>>& positions = m_spritebank_position;
+    std::vector<SpriteFrame>* fallback_sprites;
+    std::vector<core::rect<s32>>* fallback_positions;
     if (m_fallback_font != NULL)
     {
-        fallback_sprites   = &m_fallback_font->m_spritebank->getSprites();
-        fallback_positions = &m_fallback_font->m_spritebank->getPositions();
+        fallback_sprites   = &m_fallback_font->m_spritebank_sprite;
+        fallback_positions = &m_fallback_font->m_spritebank_position;
     }
     else
     {
@@ -811,12 +796,12 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
             if (indices[n].first == -1) continue;
 
             const int tex_id = (fallback[n] ?
-                (*fallback_sprites)[sprite_id].Frames[0].textureNumber :
-                sprites[sprite_id].Frames[0].textureNumber);
+                (*fallback_sprites)[sprite_id].textureNumber :
+                sprites[sprite_id].textureNumber);
 
             core::rect<s32> source = (fallback[n] ? (*fallback_positions)
-                [(*fallback_sprites)[sprite_id].Frames[0].rectNumber] :
-                positions[sprites[sprite_id].Frames[0].rectNumber]);
+                [(*fallback_sprites)[sprite_id].rectNumber] :
+                positions[sprites[sprite_id].rectNumber]);
 
             core::dimension2d<float> size(0.0f, 0.0f);
 
@@ -827,8 +812,7 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
             core::rect<float> dest(offsets[n], size);
 
             video::ITexture* texture = (fallback[n] ?
-                m_fallback_font->m_spritebank->getTexture(tex_id) :
-                m_spritebank->getTexture(tex_id));
+                m_fallback_font->m_spritebank_texture[tex_id] : m_spritebank_texture[tex_id]);
 
             bool thin_border = font_settings ?
                 font_settings->useThinBorder() : false;
@@ -877,12 +861,12 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
         if (indices[n].first == -1) continue;
 
         const int tex_id = (fallback[n] ?
-            (*fallback_sprites)[sprite_id].Frames[0].textureNumber :
-            sprites[sprite_id].Frames[0].textureNumber);
+            (*fallback_sprites)[sprite_id].textureNumber :
+            sprites[sprite_id].textureNumber);
 
         core::rect<s32> source = (fallback[n] ?
-            (*fallback_positions)[(*fallback_sprites)[sprite_id].Frames[0]
-            .rectNumber] : positions[sprites[sprite_id].Frames[0].rectNumber]);
+            (*fallback_positions)[(*fallback_sprites)[sprite_id].rectNumber] :
+            positions[sprites[sprite_id].rectNumber]);
 
         core::dimension2d<float> size(0.0f, 0.0f);
 
@@ -893,8 +877,8 @@ void FontWithFace::render(const std::vector<gui::GlyphLayout>& gl,
         core::rect<float> dest(offsets[n], size);
 
         video::ITexture* texture = (fallback[n] ?
-            m_fallback_font->m_spritebank->getTexture(tex_id) :
-            m_spritebank->getTexture(tex_id));
+            m_fallback_font->m_spritebank_texture[tex_id] :
+            m_spritebank_texture[tex_id]);
 
         const bool is_colored = indices[n].second;
         if (isBold())

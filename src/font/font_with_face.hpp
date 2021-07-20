@@ -44,6 +44,8 @@ const int BEARING = 64;
 class FaceTTF;
 class FontSettings;
 struct FontArea;
+class STKTexture;
+
 
 /** An abstract class which contains functions which convert vector fonts into
  *  bitmap and render them in STK. To make STK draw characters with different
@@ -72,6 +74,12 @@ public:
     };
 
 protected:
+    struct SpriteFrame
+    {
+        u32 textureNumber;
+        u32 rectNumber;
+    };
+
     /** Used in vertical dimension calculation. */
     int m_font_max_height;
 
@@ -146,7 +154,9 @@ private:
     std::set<wchar_t>            m_new_char_holder;
 
     /** Sprite bank to store each glyph. */
-    gui::IGUISpriteBank*         m_spritebank;
+    std::vector<STKTexture*>     m_spritebank_texture;
+    std::vector<SpriteFrame>     m_spritebank_sprite;
+    std::vector<core::rect<s32>> m_spritebank_position;
 
     /** The current max height at current drawing line in glyph page. */
     unsigned int                 m_current_height;
@@ -286,9 +296,6 @@ public:
     void dumpGlyphPage(const std::string& name);
     // ------------------------------------------------------------------------
     void dumpGlyphPage();
-    // ------------------------------------------------------------------------
-    /** Return the sprite bank. */
-    gui::IGUISpriteBank* getSpriteBank() const         { return m_spritebank; }
     // ------------------------------------------------------------------------
     const FontArea& getAreaFromCharacter(const wchar_t c,
                                          bool* fallback_font) const;
