@@ -36,6 +36,7 @@
 #endif
 
 #include <irrlicht.h>
+#include <GlyphLayout.h>
 
 using namespace irr;
 

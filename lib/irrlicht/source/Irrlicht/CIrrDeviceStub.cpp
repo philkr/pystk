@@ -6,7 +6,6 @@
 #include "ISceneManager.h"
 #include "IEventReceiver.h"
 #include "IFileSystem.h"
-#include "IGUIEnvironment.h"
 #include "os.h"
 #include "IrrCompileConfig.h"
 #include "CTimer.h"
@@ -18,7 +17,7 @@ namespace irr
 {
 //! constructor
 CIrrDeviceStub::CIrrDeviceStub(const SIrrlichtCreationParameters& params)
-: IrrlichtDevice(), VideoDriver(0), GUIEnvironment(0), SceneManager(0),
+: IrrlichtDevice(), VideoDriver(0), SceneManager(0),
 	Timer(0), CursorControl(0), UserReceiver(params.EventReceiver), Logger(0), Operator(0),
 	Randomizer(0), FileSystem(0), InputReceivingSceneManager(0), CreationParams(params),
 	Close(false), IsMousePressed(false)
@@ -60,9 +59,6 @@ CIrrDeviceStub::~CIrrDeviceStub()
 {
 	FileSystem->drop();
 
-	if (GUIEnvironment)
-		GUIEnvironment->drop();
-
 	if (VideoDriver)
 		VideoDriver->drop();
 
@@ -93,13 +89,8 @@ CIrrDeviceStub::~CIrrDeviceStub()
 
 void CIrrDeviceStub::createGUIAndScene()
 {
-	#ifdef _IRR_COMPILE_WITH_GUI_
-	// create gui environment
-	GUIEnvironment = gui::createGUIEnvironment(FileSystem, VideoDriver, Operator);
-	#endif
-
 	// create Scene manager
-	SceneManager = scene::createSceneManager(VideoDriver, FileSystem, CursorControl, GUIEnvironment);
+	SceneManager = scene::createSceneManager(VideoDriver, FileSystem, CursorControl);
 
 	setEventReceiver(UserReceiver);
 }
@@ -118,15 +109,6 @@ io::IFileSystem* CIrrDeviceStub::getFileSystem()
 {
 	return FileSystem;
 }
-
-
-
-//! returns the gui environment
-gui::IGUIEnvironment* CIrrDeviceStub::getGUIEnvironment()
-{
-	return GUIEnvironment;
-}
-
 
 
 //! returns the scene manager
@@ -223,9 +205,6 @@ bool CIrrDeviceStub::postEventFromUser(const SEvent& event)
 	if (UserReceiver)
 		absorbed = UserReceiver->OnEvent(event);
 
-	if (!absorbed && GUIEnvironment)
-		absorbed = GUIEnvironment->postEventFromUser(event);
-
 	scene::ISceneManager* inputReceiver = InputReceivingSceneManager;
 	if (!inputReceiver)
 		inputReceiver = SceneManager;
@@ -243,8 +222,6 @@ void CIrrDeviceStub::setEventReceiver(IEventReceiver* receiver)
 {
 	UserReceiver = receiver;
 	Logger->setReceiver(receiver);
-	if (GUIEnvironment)
-		GUIEnvironment->setUserEventReceiver(receiver);
 }
 
 

@@ -50,7 +50,6 @@
 #include "CTimer.h"
 #include "CVideoModeList.h"
 #include "IEventReceiver.h"
-#include "IGUIEnvironment.h"
 #include "IGUISpriteBank.h"
 #include "irrString.h"
 #include "ISceneManager.h"

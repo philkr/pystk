@@ -20,7 +20,6 @@ extern bool GLContextDebugBit;
 #include <locale.h>
 #include "IEventReceiver.h"
 #include "ISceneManager.h"
-#include "IGUIEnvironment.h"
 #include "os.h"
 #include "CTimer.h"
 #include "irrString.h"

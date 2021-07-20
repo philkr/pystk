@@ -61,7 +61,6 @@ namespace irr
     namespace scene { class ISceneManager; class IMesh; class IAnimatedMeshSceneNode; class IAnimatedMesh;
         class IMeshSceneNode; class IParticleSystemSceneNode; class ICameraSceneNode; class ILightSceneNode;
         class CLensFlareSceneNode; }
-    namespace gui   { class IGUIEnvironment; class IGUIFont; }
 }
 using namespace irr;
 
@@ -89,12 +88,8 @@ private:
     IrrlichtDevice             *m_device;
     /** Irrlicht scene manager. */
     scene::ISceneManager       *m_scene_manager;
-    /** Irrlicht gui environment. */
-    gui::IGUIEnvironment       *m_gui_env;
     /** Irrlicht video driver. */
     video::IVideoDriver        *m_video_driver;
-    /** Irrlicht race font. */
-    gui::IGUIFont              *m_race_font;
     /** Renderer. */
     ShaderBasedRenderer        *m_renderer;
     
@@ -303,9 +298,6 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the irrlicht scene manager. */
     scene::ISceneManager *getSceneManager() const { return m_scene_manager; }
-    // ------------------------------------------------------------------------
-    /** Returns the gui environment, used to add widgets to a screen. */
-    gui::IGUIEnvironment *getGUI() const { return m_gui_env; }
     // ------------------------------------------------------------------------
     /** Returns the current real time, which might not be 0 at start of the
      *  application. Value in msec. */

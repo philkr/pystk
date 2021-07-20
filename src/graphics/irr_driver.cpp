@@ -337,7 +337,6 @@ void IrrDriver::initDevice()
 
         m_device->closeDevice();
         m_video_driver  = NULL;
-        m_gui_env       = NULL;
         m_scene_manager = NULL;
         // In some circumstances it would happen that a WM_QUIT message
         // (apparently sent for this NULL device) is later received by
@@ -452,7 +451,6 @@ void IrrDriver::initDevice()
 #endif
 
     m_scene_manager = m_device->getSceneManager();
-    m_gui_env       = m_device->getGUIEnvironment();
     m_video_driver  = m_device->getVideoDriver();
 
     B3DMeshLoader* b3dl = new B3DMeshLoader(m_scene_manager);

@@ -17,17 +17,10 @@ namespace irr
 	class CLogger;
 	class IRandomizer;
 
-	namespace gui
-	{
-		class IGUIEnvironment;
-		IGUIEnvironment* createGUIEnvironment(io::IFileSystem* fs,
-			video::IVideoDriver* Driver, IOSOperator* op);
-	}
-
 	namespace scene
 	{
 		ISceneManager* createSceneManager(video::IVideoDriver* driver,
-			io::IFileSystem* fs, gui::ICursorControl* cc, gui::IGUIEnvironment *gui);
+			io::IFileSystem* fs, gui::ICursorControl* cc);
 	}
 
 	namespace io
@@ -63,9 +56,6 @@ namespace irr
 
 		//! return file system
 		virtual io::IFileSystem* getFileSystem();
-
-		//! returns the gui environment
-		virtual gui::IGUIEnvironment* getGUIEnvironment();
 
 		//! returns the scene manager
 		virtual scene::ISceneManager* getSceneManager();
@@ -166,7 +156,6 @@ namespace irr
 		void calculateGammaFromRamp ( f32 &gamma, const u16 *ramp );
 
 		video::IVideoDriver* VideoDriver;
-		gui::IGUIEnvironment* GUIEnvironment;
 		scene::ISceneManager* SceneManager;
 		ITimer* Timer;
 		gui::ICursorControl* CursorControl;

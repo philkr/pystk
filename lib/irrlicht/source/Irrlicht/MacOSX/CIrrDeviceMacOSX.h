@@ -13,7 +13,6 @@
 #include "../CIrrDeviceStub.h"
 #include "IrrlichtDevice.h"
 #include "../IImagePresenter.h"
-#include "IGUIEnvironment.h"
 #include "ICursorControl.h"
 
 #include <OpenGL/OpenGL.h>

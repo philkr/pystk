@@ -35,8 +35,7 @@ namespace scene
 
 		//! constructor
 		CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
-			gui::ICursorControl* cursorControl, IMeshCache* cache = 0,
-			gui::IGUIEnvironment *guiEnvironment = 0);
+			gui::ICursorControl* cursorControl, IMeshCache* cache = 0);
 
 		//! destructor
 		virtual ~CSceneManager();
@@ -52,9 +51,6 @@ namespace scene
 
 		//! returns the video driver
 		virtual video::IVideoDriver* getVideoDriver();
-
-		//! return the gui environment
-		virtual gui::IGUIEnvironment* getGUIEnvironment();
 
 		//! return the filesystem
 		virtual io::IFileSystem* getFileSystem();
@@ -170,21 +166,6 @@ namespace scene
 			u32 horiRes=16, u32 vertRes=8,
 			f32 texturePercentage=0.9, f32 spherePercentage=2.0,f32 radius = 1000.f,
 			ISceneNode* parent=0, s32 id=-1);
-
-		//! Adds a text scene node, which is able to display
-		//! 2d text at a position in three dimensional space
-		virtual ITextSceneNode* addTextSceneNode(gui::IGUIFont* font, const wchar_t* text,
-			video::SColor color=video::SColor(100,255,255,255),
-			ISceneNode* parent = 0,	const core::vector3df& position = core::vector3df(0,0,0),
-			s32 id=-1);
-
-		//! Adds a text scene node, which uses billboards
-		virtual IBillboardTextSceneNode* addBillboardTextSceneNode(gui::IGUIFont* font, const wchar_t* text,
-			ISceneNode* parent = 0,
-			const core::dimension2d<f32>& size = core::dimension2d<f32>(10.0f, 10.0f),
-			const core::vector3df& position = core::vector3df(0,0,0), s32 id=-1,
-			video::SColor colorTop = 0xFFFFFFFF, video::SColor colorBottom = 0xFFFFFFFF);
-
 
 		//! Adds a Hill Plane mesh to the mesh pool. The mesh is
 		//! generated on the fly and looks like a plane with some hills
@@ -590,9 +571,6 @@ namespace scene
 
 		//! file system
 		io::IFileSystem* FileSystem;
-
-		//! GUI Enviroment ( Debug Purpose )
-		gui::IGUIEnvironment* GUIEnvironment;
 
 		//! cursor control
 		gui::ICursorControl* CursorControl;

@@ -26,10 +26,6 @@ namespace irr
 		class IFileSystem;
 	} // end namespace io
 
-	namespace gui {
-		class IGUIEnvironment;
-	} // end namespace gui
-
 	namespace scene {
 		class ISceneManager;
 	} // end namespace scene
@@ -92,10 +88,6 @@ namespace irr
 		//! Provides access to the virtual file system.
 		/** \return Pointer to the file system. */
 		virtual io::IFileSystem* getFileSystem() = 0;
-
-		//! Provides access to the 2d user interface environment.
-		/** \return Pointer to the gui environment. */
-		virtual gui::IGUIEnvironment* getGUIEnvironment() = 0;
 
 		//! Provides access to the scene manager.
 		/** \return Pointer to the scene manager. */

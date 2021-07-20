@@ -17,7 +17,6 @@ extern bool GLContextDebugBit;
 #include <locale.h>
 #include "IEventReceiver.h"
 #include "ISceneManager.h"
-#include "IGUIEnvironment.h"
 #include "os.h"
 #include "CTimer.h"
 #include "irrString.h"
@@ -25,7 +24,6 @@ extern bool GLContextDebugBit;
 #include "COSOperator.h"
 #include "CColorConverter.h"
 #include "SIrrCreationParameters.h"
-#include "IGUISpriteBank.h"
 
 #ifdef _IRR_COMPILE_WITH_X11_
 #include <X11/XKBlib.h>
@@ -178,11 +176,6 @@ CIrrDeviceLinux::~CIrrDeviceLinux()
 	}
 
 	// Must free OpenGL textures etc before destroying context, so can't wait for stub destructor
-	if ( GUIEnvironment )
-	{
-		GUIEnvironment->drop();
-		GUIEnvironment = NULL;
-	}
 	if ( SceneManager )
 	{
 		SceneManager->drop();
@@ -3134,54 +3127,12 @@ void CIrrDeviceLinux::CCursorControl::setActiveIcon(gui::ECURSOR_ICON iconId)
 //! Add a custom sprite as cursor icon.
 gui::ECURSOR_ICON CIrrDeviceLinux::CCursorControl::addIcon(const gui::SCursorSprite& icon)
 {
-#ifdef _IRR_COMPILE_WITH_X11_
-	if ( icon.SpriteId >= 0 )
-	{
-		CursorX11 cX11;
-		cX11.FrameTime = icon.SpriteBank->getSprites()[icon.SpriteId].frameTime;
-		for ( u32 i=0; i < icon.SpriteBank->getSprites()[icon.SpriteId].Frames.size(); ++i )
-		{
-			irr::u32 texId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].textureNumber;
-			irr::u32 rectId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].rectNumber;
-			irr::core::rect<s32> rectIcon = icon.SpriteBank->getPositions()[rectId];
-			Cursor cursor = Device->TextureToCursor(icon.SpriteBank->getTexture(texId), rectIcon, icon.HotSpot);
-			cX11.Frames.push_back( CursorFrameX11(cursor) );
-		}
-
-		Cursors.push_back( cX11 );
-
-		return (gui::ECURSOR_ICON)(Cursors.size() - 1);
-	}
-#endif
 	return gui::ECI_NORMAL;
 }
 
 //! replace the given cursor icon.
 void CIrrDeviceLinux::CCursorControl::changeIcon(gui::ECURSOR_ICON iconId, const gui::SCursorSprite& icon)
 {
-#ifdef _IRR_COMPILE_WITH_X11_
-	if ( iconId >= (s32)Cursors.size() )
-		return;
-
-	for ( u32 i=0; i < Cursors[iconId].Frames.size(); ++i )
-		XFreeCursor(Device->display, Cursors[iconId].Frames[i].IconHW);
-
-	if ( icon.SpriteId >= 0 )
-	{
-		CursorX11 cX11;
-		cX11.FrameTime = icon.SpriteBank->getSprites()[icon.SpriteId].frameTime;
-		for ( u32 i=0; i < icon.SpriteBank->getSprites()[icon.SpriteId].Frames.size(); ++i )
-		{
-			irr::u32 texId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].textureNumber;
-			irr::u32 rectId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].rectNumber;
-			irr::core::rect<s32> rectIcon = icon.SpriteBank->getPositions()[rectId];
-			Cursor cursor = Device->TextureToCursor(icon.SpriteBank->getTexture(texId), rectIcon, icon.HotSpot);
-			cX11.Frames.push_back( CursorFrameX11(cursor) );
-		}
-
-		Cursors[iconId] = cX11;
-	}
-#endif
 }
 
 irr::core::dimension2di CIrrDeviceLinux::CCursorControl::getSupportedIconSize() const

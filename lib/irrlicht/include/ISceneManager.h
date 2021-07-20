@@ -33,12 +33,6 @@ namespace io
 	class IFileSystem;
 } // end namespace io
 
-namespace gui
-{
-	class IGUIFont;
-	class IGUIEnvironment;
-} // end namespace gui
-
 namespace video
 {
 	class IVideoDriver;
@@ -412,11 +406,6 @@ namespace scene
 		/** \return Pointer to the video Driver.
 		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 		virtual video::IVideoDriver* getVideoDriver() = 0;
-
-		//! Get the active GUIEnvironment
-		/** \return Pointer to the GUIEnvironment
-		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-		virtual gui::IGUIEnvironment* getGUIEnvironment() = 0;
 
 		//! Get the active FileSystem
 		/** \return Pointer to the FileSystem
@@ -905,29 +894,6 @@ namespace scene
 		virtual IDummyTransformationSceneNode* addDummyTransformationSceneNode(
 			ISceneNode* parent=0, s32 id=-1) = 0;
 
-		//! Adds a text scene node, which is able to display 2d text at a position in three dimensional space
-		virtual ITextSceneNode* addTextSceneNode(gui::IGUIFont* font, const wchar_t* text,
-			video::SColor color=video::SColor(100,255,255,255),
-			ISceneNode* parent = 0, const core::vector3df& position = core::vector3df(0,0,0),
-			s32 id=-1) = 0;
-
-		//! Adds a text scene node, which uses billboards. The node, and the text on it, will scale with distance.
-		/**
-		\param font The font to use on the billboard. Pass 0 to use the GUI environment's default font.
-		\param text The text to display on the billboard.
-		\param parent The billboard's parent. Pass 0 to use the root scene node.
-		\param size The billboard's width and height.
-		\param position The billboards position relative to its parent.
-		\param id: An id of the node. This id can be used to identify the node.
-		\param colorTop: The color of the vertices at the top of the billboard (default: white).
-		\param colorBottom: The color of the vertices at the bottom of the billboard (default: white).
-		\return Pointer to the billboard if successful, otherwise NULL.
-		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-		virtual IBillboardTextSceneNode* addBillboardTextSceneNode( gui::IGUIFont* font, const wchar_t* text,
-			ISceneNode* parent = 0,
-			const core::dimension2d<f32>& size = core::dimension2d<f32>(10.0f, 10.0f),
-			const core::vector3df& position = core::vector3df(0,0,0), s32 id=-1,
-			video::SColor colorTop = 0xFFFFFFFF, video::SColor colorBottom = 0xFFFFFFFF) = 0;
 
 		//! Adds a Hill Plane mesh to the mesh pool.
 		/** The mesh is generated on the fly
