@@ -130,13 +130,6 @@ namespace irr
         virtual bool getGammaRamp(f32 &red, f32 &green, f32 &blue,
                                   f32 &brightness, f32 &contrast);
 
-        //! gets text from the clipboard
-        //! \return Returns 0 if no string is in there.
-        virtual const c8* getTextFromClipboard() const;
-
-        //! copies text to the clipboard
-        virtual void copyToClipboard(const c8* text) const;
-
         //! Remove all messages pending in the system message loop
         virtual void clearSystemMessages();
 
@@ -226,7 +219,6 @@ namespace irr
         bool m_has_hardware_keyboard;
         bool m_window_has_focus;
         bool m_window_minimized;
-        mutable core::stringc m_clipboard;
         std::map<int, EKEY_CODE> m_key_map;
         std::vector<SEvent> m_events;
         std::vector<core::dimension2du> m_modes;

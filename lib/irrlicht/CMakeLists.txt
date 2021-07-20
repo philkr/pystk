@@ -374,7 +374,6 @@ source/Irrlicht/ITriangleRenderer.h
 source/Irrlicht/IZBuffer.h
 source/Irrlicht/MacOSX/AppDelegate.h
 source/Irrlicht/MacOSX/CIrrDeviceMacOSX.h
-source/Irrlicht/MacOSX/OSXClipboard.h
 source/Irrlicht/Octree.h
 source/Irrlicht/os.h
 source/Irrlicht/resource.h
@@ -576,8 +575,7 @@ if(APPLE)
         ${IRRLICHT_SOURCES}
         source/Irrlicht/MacOSX/AppDelegate.mm
         source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm
-        source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp
-        source/Irrlicht/MacOSX/OSXClipboard.mm)
+        source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp)
 
     #list(APPEND CMAKE_C_SOURCE_FILE_EXTENSIONS mm)
     #set(CMAKE_CXX_SOURCE_FILE_EXTENSIONS cpp)
@@ -587,10 +585,6 @@ if(APPLE)
 
     set_source_files_properties(source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
     set_source_files_properties(source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm PROPERTIES LANGUAGE C)
-
-    set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3 -fno-rtti")
-    set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES LANGUAGE C)
-    
 endif()
 
 

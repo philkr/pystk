@@ -1485,19 +1485,6 @@ bool CIrrDeviceWayland::getGammaRamp(f32 &red, f32 &green, f32 &blue,
     return false;
 }
 
-//! gets text from the clipboard
-//! \return Returns 0 if no string is in there.
-const c8* CIrrDeviceWayland::getTextFromClipboard() const
-{
-    return m_clipboard.c_str();
-}
-
-//! copies text to the clipboard
-void CIrrDeviceWayland::copyToClipboard(const c8* text) const
-{
-    m_clipboard = text;
-}
-
 //! Remove all messages pending in the system message loop
 void CIrrDeviceWayland::clearSystemMessages()
 {

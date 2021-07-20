@@ -115,14 +115,6 @@ namespace irr
 		//! Get the current Gamma Value for the Display
 		virtual bool getGammaRamp( f32 &red, f32 &green, f32 &blue, f32 &brightness, f32 &contrast );
 
-		//! gets text from the clipboard
-		//! \return Returns 0 if no string is in there.
-		virtual const c8* getTextFromClipboard() const;
-
-		//! copies text to the clipboard
-		//! This sets the clipboard selection and _not_ the primary selection which you have on X on the middle mouse button.
-		virtual void copyToClipboard(const c8* text) const;
-
 		//! Remove all messages pending in the system message loop
 		virtual void clearSystemMessages();
 
@@ -410,7 +402,6 @@ namespace irr
 		XFontSet m_font_set;
 		core::array<wchar_t> m_ime_char_holder;
 		XPoint m_ime_position;
-		mutable core::stringc Clipboard;
 		int numlock_mask;
 		bool m_ime_enabled;
 		#ifdef _IRR_LINUX_X11_VIDMODE_

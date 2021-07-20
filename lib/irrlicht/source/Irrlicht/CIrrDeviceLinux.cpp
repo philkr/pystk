@@ -82,7 +82,6 @@ namespace irr
 #if defined(_IRR_COMPILE_WITH_X11_)
 namespace
 {
-	Atom X_ATOM_CLIPBOARD;
 	Atom X_ATOM_TARGETS;
 	Atom X_ATOM_UTF8_STRING;
 };
@@ -1901,46 +1900,6 @@ bool CIrrDeviceLinux::run()
 				break;
 
 			case SelectionRequest:
-				{
-					XEvent respond;
-					XSelectionRequestEvent *req = &(event.xselectionrequest);
-					if (  req->target == X_ATOM_UTF8_STRING)
-					{
-						XChangeProperty (display,
-								req->requestor,
-								req->property, req->target,
-								8, // format
-								PropModeReplace,
-								(unsigned char*) Clipboard.c_str(),
-								Clipboard.size());
-						respond.xselection.property = req->property;
-					}
-					else if ( req->target == X_ATOM_TARGETS )
-					{
-						long data[1];
-
-						data[0] = X_ATOM_UTF8_STRING;
-
-						XChangeProperty (display, req->requestor,
-								req->property, XA_ATOM,
-								32, PropModeReplace,
-								(unsigned char *) &data,
-								sizeof (data));
-						respond.xselection.property = req->property;
-					}
-					else
-					{
-						respond.xselection.property= None;
-					}
-					respond.xselection.type= SelectionNotify;
-					respond.xselection.display= req->display;
-					respond.xselection.requestor= req->requestor;
-					respond.xselection.selection=req->selection;
-					respond.xselection.target= req->target;
-					respond.xselection.time = req->time;
-					XSendEvent (display, req->requestor,0,0,&respond);
-					XFlush (display);
-				}
 				break;
 
 			default:
@@ -2882,84 +2841,6 @@ bool CIrrDeviceLinux::getGammaRamp( f32 &red, f32 &green, f32 &blue, f32 &bright
 	return false;
 }
 
-
-//! gets text from the clipboard
-//! \return Returns 0 if no string is in there.
-const c8* CIrrDeviceLinux::getTextFromClipboard() const
-{
-#if defined(_IRR_COMPILE_WITH_X11_)
-	if (X_ATOM_CLIPBOARD == None) 
-	{
-		os::Printer::log("Couldn't access X clipboard", ELL_WARNING);
-		return 0;
-	}
-
-	Window ownerWindow = XGetSelectionOwner(display, X_ATOM_CLIPBOARD);
-	if (ownerWindow == window)
-	{
-		return Clipboard.c_str();
-	}
-
-	Clipboard = "";
-
-	if (ownerWindow == None)
-		return 0;
-
-	Atom selection = XInternAtom(display, "IRR_SELECTION", False);
-	XConvertSelection(display, X_ATOM_CLIPBOARD, X_ATOM_UTF8_STRING, selection, window, CurrentTime);
-
-	const int SELECTION_RETRIES = 500;
-	int i = 0;
-	for (i = 0; i < SELECTION_RETRIES; i++)
-	{
-		XEvent xevent;
-		bool res = XCheckTypedWindowEvent(display, window, SelectionNotify, &xevent);
-		
-		if (res && xevent.xselection.selection == X_ATOM_CLIPBOARD) 
-			break;
-
-		usleep(1000);
-	}
-
-	if (i == SELECTION_RETRIES)
-	{
-		os::Printer::log("Timed out waiting for SelectionNotify event", ELL_WARNING);
-		return 0;
-	}
-
-	Atom type;
-	int format;
-	unsigned long numItems, dummy;
-	unsigned char *data;
-
-	int result = XGetWindowProperty(display, window, selection, 0, INT_MAX/4, 
-									False, AnyPropertyType, &type, &format, 
-									&numItems, &dummy, &data);
-
-	if (result == Success)
-	{
-		Clipboard = (irr::c8*)data;
-		XFree(data);
-	}
-
-	return Clipboard.c_str();
-#else
-	return 0;
-#endif
-}
-
-//! copies text to the clipboard
-void CIrrDeviceLinux::copyToClipboard(const c8* text) const
-{
-#if defined(_IRR_COMPILE_WITH_X11_)
-	// Actually there is no clipboard on X but applications just say they own the clipboard and return text when asked.
-	// Which btw. also means that on X you lose clipboard content when closing applications.
-	Clipboard = text;
-	XSetSelectionOwner (display, X_ATOM_CLIPBOARD, window, CurrentTime);
-	XFlush (display);
-#endif
-}
-
 #ifdef _IRR_COMPILE_WITH_X11_
 // return true if the passed event has the type passed in parameter arg
 Bool PredicateIsEventType(Display *display, XEvent *event, XPointer arg)
@@ -2997,7 +2878,6 @@ void CIrrDeviceLinux::clearSystemMessages()
 void CIrrDeviceLinux::initXAtoms()
 {
 #ifdef _IRR_COMPILE_WITH_X11_
-	X_ATOM_CLIPBOARD = XInternAtom(display, "CLIPBOARD", False);
 	X_ATOM_TARGETS = XInternAtom(display, "TARGETS", False);
 	X_ATOM_UTF8_STRING = XInternAtom (display, "UTF8_STRING", False);
 #endif
