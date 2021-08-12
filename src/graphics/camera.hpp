@@ -95,12 +95,6 @@ private:
      *  get attached to another kart if a kart is elimiated). */
     AbstractKart   *m_original_kart;
 
-    /** The viewport for this camera (portion of the game window covered by this camera) */
-    core::recti     m_viewport;
-
-    /** The scaling necessary for each axis. */
-    core::vector2df m_scaling;
-
     /** Field of view for the camera. */
     float           m_fov;
 
@@ -207,14 +201,6 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the current ambient light. */
     const video::SColor &getAmbientLight() const {return m_ambient_light; }
-
-    // ------------------------------------------------------------------------
-    /** Returns the viewport of this camera. */
-    const core::recti& getViewport() const {return m_viewport; }
-
-    // ------------------------------------------------------------------------
-    /** Returns the scaling in x/y direction for this camera. */
-    const core::vector2df& getScaling() const {return m_scaling; }
 
     // ------------------------------------------------------------------------
     /** Returns the camera scene node. */

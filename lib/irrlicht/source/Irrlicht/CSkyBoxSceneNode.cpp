@@ -191,12 +191,11 @@ void CSkyBoxSceneNode::render()
 
 		if ( tex )
 		{
-			core::rect<s32> rctDest(core::position2d<s32>(-1,0),
-									core::dimension2di(driver->getCurrentRenderTargetSize()));
+		    printf("Philipp broke this CSkyBoxSceneNode::render\n");
 			core::rect<s32> rctSrc(core::position2d<s32>(0,0),
 									core::dimension2di(tex->getSize()));
 
-			driver->draw2DImage(tex, rctDest, rctSrc);
+			driver->draw2DImage(tex, rctSrc, rctSrc);
 		}
 	}
 }

@@ -134,12 +134,6 @@ IrrDriver::IrrDriver()
     m_render_nw_debug = false;
 
     struct irr::SIrrlichtCreationParameters p;
-    p.DriverType    = video::EDT_NULL;
-    p.WindowSize    = core::dimension2d<u32>(640,480);
-    p.Bits          = 16U;
-    p.Stencilbuffer = true;
-    p.Fullscreen    = false;
-    p.Vsync         = false;
     p.EventReceiver = NULL;
     p.FileSystem    = file_manager->getFileSystem();
 #ifdef ANDROID
@@ -189,7 +183,6 @@ IrrDriver::~IrrDriver()
     assert(m_device != NULL);
     m_device->drop();
     m_device = NULL;
-    m_modes.clear();
 }   // ~IrrDriver
 
 // ----------------------------------------------------------------------------
@@ -246,95 +239,16 @@ std::unique_ptr<RenderTarget> IrrDriver::createRenderTarget(const irr::core::dim
 void IrrDriver::updateConfigIfRelevant()
 {
 }   // updateConfigIfRelevant
-core::recti IrrDriver::getSplitscreenWindow(int WindowNum) 
-{
-    const int playernum = race_manager->getNumLocalPlayers();
-    const float playernum_sqrt = sqrtf((float)playernum);
-    
-    int rows = ceil(playernum_sqrt);
-    int cols = round(playernum_sqrt);
-    
-    if (rows == 0){rows = 1;}
-    if (cols == 0) {cols = 1;}
-    //This could add a bit of overhang
-    const int width_of_space =
-        int(ceil(   (float)irr_driver->getActualScreenSize().Width
-                  / (float)cols)                                  );
-    const int height_of_space =
-        int (ceil(  (float)irr_driver->getActualScreenSize().Height
-                  / (float)rows)                                   );
-
-    const int x_grid_Position = WindowNum % cols;
-    const int y_grid_Position = int(floor((WindowNum) / cols));
-
-//To prevent the viewport going over the right side, we use std::min to ensure the right corners are never larger than the total width
-    return core::recti(
-        x_grid_Position * width_of_space,
-        y_grid_Position * height_of_space,
-        (x_grid_Position * width_of_space) + width_of_space,
-        (y_grid_Position * height_of_space) + height_of_space);
-}
-// ----------------------------------------------------------------------------
-/** Gets a list of supported video modes from the irrlicht device. This data
- *  is stored in m_modes.
- */
-void IrrDriver::createListOfVideoModes()
-{
-    // Note that this is actually reported by valgrind as a leak, but it is
-    // a leak in irrlicht: this list is dynamically created the first time
-    // it is used, but then not cleaned on exit.
-    video::IVideoModeList* modes = m_device->getVideoModeList();
-    const int count = modes->getVideoModeCount();
-
-    for(int i=0; i<count; i++)
-    {
-        // only consider 32-bit resolutions for now
-        if (modes->getVideoModeDepth(i) >= 24)
-        {
-            const int w = modes->getVideoModeResolution(i).Width;
-            const int h = modes->getVideoModeResolution(i).Height;
-            VideoMode mode(w, h);
-            m_modes.push_back( mode );
-        }   // if depth >=24
-    }   // for i < video modes count
-}   // createListOfVideoModes
-
 // ----------------------------------------------------------------------------
 /** This creates the actualy OpenGL device. This is called
  */
 void IrrDriver::initDevice()
 {
+    // TODO: Move to init!!!
     SIrrlichtCreationParameters params;
 
     // If --no-graphics option was used, the null device can still be used.
     {
-        // This code is only executed once. No need to reload the video
-        // modes every time the resolution changes.
-        if(m_modes.size()==0)
-        {
-            createListOfVideoModes();
-            // The debug name is only set if irrlicht is compiled in debug
-            // mode. So we use this to print a warning to the user.
-            if(m_device->getDebugName())
-            {
-                Log::warn("irr_driver",
-                          "!!!!! Performance warning: Irrlicht compiled with "
-                          "debug mode.!!!!!\n");
-                Log::warn("irr_driver",
-                          "!!!!! This can have a significant performance "
-                          "impact         !!!!!\n");
-            }
-
-        } // end if firstTime
-
-        video::IVideoModeList* modes = m_device->getVideoModeList();
-        const core::dimension2d<u32> ssize = modes->getDesktopResolution();
-
-        if (ssize.Width < 1 || ssize.Height < 1)
-        {
-            Log::warn("irr_driver", "Unknown desktop resolution.");
-        }
-
         m_device->closeDevice();
         m_video_driver  = NULL;
         m_scene_manager = NULL;
@@ -350,53 +264,13 @@ void IrrDriver::initDevice()
         m_device->drop();
         m_device  = NULL;
 
-        params.ForceLegacyDevice = false;
-
         // Try 32 and, upon failure, 24 then 16 bit per pixels
         for (int bits=32; bits>15; bits -=8)
         {
-#if defined(USE_GLES2)
-            params.DriverType    = video::EDT_OGLES2;
-#else
-            params.DriverType    = video::EDT_OPENGL;
-#endif
-#if defined(ANDROID)
-            params.PrivateData = (void*)global_android_app;
-#endif
-            params.Stencilbuffer = true;
-            params.Bits          = bits;
             params.EventReceiver = this;
-            params.Fullscreen    = false;
-            params.Vsync         = false;
             params.FileSystem    = file_manager->getFileSystem();
-            params.WindowSize    =
-                core::dimension2du(UserConfigParams::m_width,
-                                   UserConfigParams::m_height);
-            params.HandleSRGB    = false;
             params.ShadersPath   = (file_manager->getShadersDir() +
                                                            "irrlicht/").c_str();
-
-            /*
-            switch ((int)UserConfigParams::m_antialiasing)
-            {
-            case 0:
-                break;
-            case 1:
-                params.AntiAlias = 2;
-                break;
-            case 2:
-                params.AntiAlias = 4;
-                break;
-            case 3:
-                params.AntiAlias = 8;
-                break;
-            default:
-                Log::error("irr_driver",
-                           "[IrrDriver] WARNING: Invalid value for "
-                           "anti-alias setting : %i\n",
-                           (int)UserConfigParams::m_antialiasing);
-            }
-            */
             m_device = createDeviceEx(params);
 
             if(m_device)
@@ -426,7 +300,6 @@ void IrrDriver::initDevice()
         Log::warn("irr_driver", "Driver doesn't support shader-based pipeline. "
                                 "Re-creating device to workaround the issue.");
 
-        params.ForceLegacyDevice = true;
         recreate_device = true;
     }
 #endif
@@ -461,8 +334,6 @@ void IrrDriver::initDevice()
     m_scene_manager->addExternalMeshLoader(spml);
     spml->drop();
 
-    m_actual_screen_size = m_video_driver->getCurrentRenderTargetSize();
-
 #ifndef SERVER_ONLY
     if (!CVS->isGLSL())
     {
@@ -482,9 +353,6 @@ void IrrDriver::initDevice()
             (int)UserConfigParams::m_shadows_resolution);
         UserConfigParams::m_shadows_resolution = 0;
     }
-
-    // This remaps the window, so it has to be done before the clear to avoid flicker
-    m_device->setResizable(false);
 
     // Immediate clear to black for a nicer user loading experience
     m_video_driver->beginScene(/*backBuffer clear*/true, /* Z */ false);
@@ -511,8 +379,6 @@ void IrrDriver::initDevice()
 
     // Only change video driver settings if we are showing graphics
     {
-        m_device->setWindowClass("SuperTuxKart");
-        m_device->setWindowCaption(L"SuperTuxKart");
         m_device->getVideoDriver()
             ->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, true);
         m_device->getVideoDriver()
@@ -541,18 +407,7 @@ void IrrDriver::initDevice()
     material2D.AntiAliasing=video::EAAM_FULL_BASIC;
     //m_video_driver->enableMaterial2D();
 
-#ifndef SERVER_ONLY
-    // set cursor visible by default (what's the default is not too clearly documented,
-    // so let's decide ourselves...)
-    m_device->getCursorControl()->setVisible(true);
-#endif
     m_pointer_shown = true;
-
-    m_device->registerGetMovedHeightFunction([]
-        (const IrrlichtDevice* device)->int
-        {
-            return 0;
-        });
 }   // initDevice
 
 // ----------------------------------------------------------------------------
@@ -626,56 +481,6 @@ void IrrDriver::getOpenGLData(std::string *vendor, std::string *renderer,
 #endif
 }   // getOpenGLData
 
-//-----------------------------------------------------------------------------
-void IrrDriver::showPointer()
-{
-#ifndef SERVER_ONLY
-    if (!m_pointer_shown)
-    {
-        m_pointer_shown = true;
-        this->getDevice()->getCursorControl()->setVisible(true);
-    }
-#endif
-}   // showPointer
-
-//-----------------------------------------------------------------------------
-void IrrDriver::hidePointer()
-{
-#ifndef SERVER_ONLY
-    // always visible in artist debug mode, to be able to use the context menu
-    if (m_pointer_shown)
-    {
-        m_pointer_shown = false;
-        this->getDevice()->getCursorControl()->setVisible(false);
-    }
-#endif
-}   // hidePointer
-
-//-----------------------------------------------------------------------------
-
-core::position2di IrrDriver::getMouseLocation()
-{
-    return this->getDevice()->getCursorControl()->getPosition();
-}
-
-//-----------------------------------------------------------------------------
-/** Moves the STK main window to coordinates (x,y)
- *  \return true on success, false on failure
- *          (always true on Linux at the moment)
- */
-bool IrrDriver::moveWindow(int x, int y)
-{
-#ifndef SERVER_ONLY
-    bool success = m_device->moveWindow(x, y);
-    
-    if (!success)
-    {
-        Log::warn("irr_driver", "Could not set window location\n");
-        return false;
-    }
-#endif
-    return true;
-}
 // ----------------------------------------------------------------------------
 /** Prints statistics about rendering, e.g. number of drawn and culled
  *  triangles etc. Note that printing this information will also slow
@@ -685,9 +490,8 @@ void IrrDriver::printRenderStats()
 {
     io::IAttributes * attr = m_scene_manager->getParameters();
     Log::verbose("irr_driver",
-           "[%ls], FPS:%3d Tri:%.03fm Cull %d/%d nodes (%d,%d,%d)\n",
+           "[%ls], Tri:%.03fm Cull %d/%d nodes (%d,%d,%d)\n",
            m_video_driver->getName(),
-           m_video_driver->getFPS (),
            (f32) m_video_driver->getPrimitiveCountDrawn( 0 ) * ( 1.f / 1000000.f ),
            attr->getAttributeAsInt ( "culled" ),
            attr->getAttributeAsInt ( "calls" ),

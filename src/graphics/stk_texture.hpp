@@ -82,15 +82,7 @@ public:
                                                         { return m_orig_size; }
     // ------------------------------------------------------------------------
     virtual const core::dimension2d<u32>& getSize() const    { return m_size; }
-    // ------------------------------------------------------------------------
-    virtual video::E_DRIVER_TYPE getDriverType() const
-    {
-#if defined(USE_GLES2)
-        return video::EDT_OGLES2;
-#else
-        return video::EDT_OPENGL;
-#endif
-    }
+
     // ------------------------------------------------------------------------
     virtual video::ECOLOR_FORMAT getColorFormat() const
                                                 { return video::ECF_A8R8G8B8; }

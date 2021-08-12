@@ -76,7 +76,6 @@ private:
                      float dt, bool hasShadows, bool forceRTT);
 
     void debugPhysics();
-    void renderPostProcessing(Camera * const camera, bool first_cam);
     void preloadShaderFiles();
     void renderShadows();
 

@@ -25,11 +25,6 @@ namespace scene
 		//! destructor
 		virtual ~CSceneCollisionManager();
 
-		//! Returns the scene node, which is currently visible at the given
-		//! screen coordinates, viewed from the currently active camera.
-		virtual ISceneNode* getSceneNodeFromScreenCoordinatesBB(const core::position2d<s32>& pos,
-				s32 idBitMask=0, bool bNoDebugObjects=false, ISceneNode* root=0);
-
 		//! Returns the nearest scene node which collides with a 3d ray and
 		//! whose id matches a bitmask.
 		virtual ISceneNode* getSceneNodeFromRayBB(const core::line3d<f32>& ray,
@@ -60,14 +55,6 @@ namespace scene
 			ISceneNode*& outNode,
 			f32 slidingSpeed,
 			const core::vector3df& gravityDirectionAndSpeed);
-
-		//! Returns a 3d ray which would go through the 2d screen coodinates.
-		virtual core::line3d<f32> getRayFromScreenCoordinates(
-			const core::position2d<s32> & pos, ICameraSceneNode* camera = 0);
-
-		//! Calculates 2d screen position from a 3d position.
-		virtual core::position2d<s32> getScreenCoordinatesFrom3DPosition(
-			const core::vector3df & pos, ICameraSceneNode* camera=0, bool useViewPort=false);
 
 		//! Gets the scene node and nearest collision point for a ray based on
 		//! the nodes' id bitmasks, bounding boxes and triangle selectors.

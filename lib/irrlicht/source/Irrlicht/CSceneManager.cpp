@@ -56,7 +56,6 @@
 #include "CSceneNodeAnimatorDelete.h"
 #include "CSceneNodeAnimatorFollowSpline.h"
 #include "CSceneNodeAnimatorCameraFPS.h"
-#include "CSceneNodeAnimatorCameraMaya.h"
 #include "CDefaultSceneNodeAnimatorFactory.h"
 
 #include "CGeometryCreator.h"
@@ -71,9 +70,9 @@ namespace scene
 
 //! constructor
 CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
-		gui::ICursorControl* cursorControl, IMeshCache* cache)
+		IMeshCache* cache)
 : ISceneNode(0, 0), Driver(driver), FileSystem(fs),
-	CursorControl(cursorControl), CollisionManager(0),
+	CollisionManager(0),
 	ActiveCamera(0), ShadowColor(150,0,0,0), AmbientLight(0,0,0,0),
 	MeshCache(cache), CurrentRendertime(ESNRP_NONE), LightManager(0),
 	IRR_XML_FORMAT_SCENE(L"irr_scene"), IRR_XML_FORMAT_NODE(L"node"), IRR_XML_FORMAT_NODE_ATTR_TYPE(L"type")
@@ -96,9 +95,6 @@ CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
 	if (FileSystem)
 		FileSystem->grab();
 
-	if (CursorControl)
-		CursorControl->grab();
-
 	// create mesh cache if not there already
 	if (!MeshCache)
 		MeshCache = new CMeshCache();
@@ -116,7 +112,7 @@ CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
 	registerSceneNodeFactory(factory);
 	factory->drop();
 
-	ISceneNodeAnimatorFactory* animatorFactory = new CDefaultSceneNodeAnimatorFactory(this, CursorControl);
+	ISceneNodeAnimatorFactory* animatorFactory = new CDefaultSceneNodeAnimatorFactory(this);
 	registerSceneNodeAnimatorFactory(animatorFactory);
 	animatorFactory->drop();
 }
@@ -135,9 +131,6 @@ CSceneManager::~CSceneManager()
 
 	if (FileSystem)
 		FileSystem->drop();
-
-	if (CursorControl)
-		CursorControl->drop();
 
 	if (CollisionManager)
 		CollisionManager->drop();
@@ -422,28 +415,6 @@ ICameraSceneNode* CSceneManager::addCameraSceneNode(ISceneNode* parent,
 }
 
 
-//! Adds a camera scene node which is able to be controlled with the mouse similar
-//! to in the 3D Software Maya by Alias Wavefront.
-//! The returned pointer must not be dropped.
-ICameraSceneNode* CSceneManager::addCameraSceneNodeMaya(ISceneNode* parent,
-	f32 rotateSpeed, f32 zoomSpeed, f32 translationSpeed, s32 id, f32 distance,
-	bool makeActive)
-{
-	ICameraSceneNode* node = addCameraSceneNode(parent, core::vector3df(),
-			core::vector3df(0,0,100), id, makeActive);
-	if (node)
-	{
-		ISceneNodeAnimator* anm = new CSceneNodeAnimatorCameraMaya(CursorControl,
-			rotateSpeed, zoomSpeed, translationSpeed, distance);
-
-		node->addAnimator(anm);
-		anm->drop();
-	}
-
-	return node;
-}
-
-
 //! Adds a camera scene node which is able to be controlled with the mouse and keys
 //! like in most first person shooters (FPS):
 ICameraSceneNode* CSceneManager::addCameraSceneNodeFPS(ISceneNode* parent,
@@ -455,7 +426,7 @@ ICameraSceneNode* CSceneManager::addCameraSceneNodeFPS(ISceneNode* parent,
 			core::vector3df(0,0,100), id, makeActive);
 	if (node)
 	{
-		ISceneNodeAnimator* anm = new CSceneNodeAnimatorCameraFPS(CursorControl,
+		ISceneNodeAnimator* anm = new CSceneNodeAnimatorCameraFPS(
 				rotateSpeed, moveSpeed, jumpSpeed,
 				keyMapArray, keyMapSize, noVerticalMovement, invertMouseY);
 
@@ -882,7 +853,8 @@ bool CSceneManager::isCulled(const ISceneNode* node) const
 	// has occlusion query information
 	if (node->getAutomaticCulling() & scene::EAC_OCC_QUERY)
 	{
-		result = (Driver->getOcclusionQueryResult(const_cast<ISceneNode*>(node))==0);
+	    printf("Philipp removed too much CSceneManager::isCulled\n");
+//		result = (Driver->getOcclusionQueryResult(const_cast<ISceneNode*>(node))==0);
 	}
 
 	// can be seen by a bounding box ?
@@ -1761,7 +1733,7 @@ IMeshCache* CSceneManager::getMeshCache()
 //! Creates a new scene manager.
 ISceneManager* CSceneManager::createNewSceneManager(bool cloneContent)
 {
-	CSceneManager* manager = new CSceneManager(Driver, FileSystem, CursorControl, MeshCache);
+	CSceneManager* manager = new CSceneManager(Driver, FileSystem, MeshCache);
 
 	if (cloneContent)
 		manager->cloneMembers(this, manager);
@@ -2218,10 +2190,9 @@ IMeshWriter* CSceneManager::createMeshWriter(EMESH_WRITER_TYPE type)
 
 
 // creates a scenemanager
-ISceneManager* createSceneManager(video::IVideoDriver* driver,
-		io::IFileSystem* fs, gui::ICursorControl* cursorcontrol)
+ISceneManager* createSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs)
 {
-	return new CSceneManager(driver, fs, cursorcontrol, 0);
+	return new CSceneManager(driver, fs, 0);
 }
 
 

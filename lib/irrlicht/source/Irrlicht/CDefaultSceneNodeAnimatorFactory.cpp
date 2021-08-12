@@ -4,8 +4,6 @@
 
 #include "CDefaultSceneNodeAnimatorFactory.h"
 #include "CSceneNodeAnimatorCameraFPS.h"
-#include "CSceneNodeAnimatorCameraMaya.h"
-#include "ICursorControl.h"
 #include "ISceneNodeAnimatorCollisionResponse.h"
 #include "ISceneManager.h"
 
@@ -30,23 +28,17 @@ const c8* const SceneNodeAnimatorTypeNames[] =
 };
 
 
-CDefaultSceneNodeAnimatorFactory::CDefaultSceneNodeAnimatorFactory(ISceneManager* mgr, gui::ICursorControl* crs)
-: Manager(mgr), CursorControl(crs)
+CDefaultSceneNodeAnimatorFactory::CDefaultSceneNodeAnimatorFactory(ISceneManager* mgr)
+: Manager(mgr)
 {
 	#ifdef _DEBUG
 	setDebugName("CDefaultSceneNodeAnimatorFactory");
 	#endif
-
-	// don't grab the scene manager here to prevent cyclic references
-	if (CursorControl)
-		CursorControl->grab();
 }
 
 
 CDefaultSceneNodeAnimatorFactory::~CDefaultSceneNodeAnimatorFactory()
 {
-	if (CursorControl)
-		CursorControl->drop();
 }
 
 
@@ -84,13 +76,11 @@ ISceneNodeAnimator* CDefaultSceneNodeAnimatorFactory::createSceneNodeAnimator(ES
 		anim = Manager->createDeleteAnimator(5000);
 		break;
 	case ESNAT_COLLISION_RESPONSE:
+	    printf("PHILIPP REMOVED TOO MUCH! ESNAT_COLLISION_RESPONSE\n");
 		anim = Manager->createCollisionResponseAnimator(0, target);
 		break;
 	case ESNAT_CAMERA_FPS:
-		anim = new CSceneNodeAnimatorCameraFPS(CursorControl);
-		break;
-	case ESNAT_CAMERA_MAYA:
-		anim = new CSceneNodeAnimatorCameraMaya(CursorControl);
+		anim = new CSceneNodeAnimatorCameraFPS();
 		break;
 	default:
 		break;

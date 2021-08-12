@@ -81,8 +81,8 @@ IImageWriter* createImageWriterPNG();
 IImageWriter* createImageWriterPPM();
 
 //! constructor
-CNullDriver::CNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& screenSize)
-: FileSystem(io), MeshManipulator(0), ViewPort(0,0,0,0), ScreenSize(screenSize),
+CNullDriver::CNullDriver(io::IFileSystem* io)
+: FileSystem(io), MeshManipulator(0),
 	PrimitivesDrawn(0), MinVertexCountForVBO(500), TextureCreationFlags(0),
 	OverrideMaterial2DEnabled(false), AllowZWriteOnTransparent(false)
 {
@@ -111,8 +111,6 @@ CNullDriver::CNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& scre
 
 	setTextureCreationFlag(ETCF_ALWAYS_32_BIT, true);
 	setTextureCreationFlag(ETCF_CREATE_MIP_MAPS, true);
-
-	ViewPort = core::rect<s32>(core::position2d<s32>(0,0), core::dimension2di(screenSize));
 
 	// create manipulator
 	MeshManipulator = new scene::CMeshManipulator();
@@ -595,19 +593,6 @@ bool CNullDriver::setRenderTarget(const core::array<video::IRenderTarget>& textu
 }
 
 
-//! sets a viewport
-void CNullDriver::setViewPort(const core::rect<s32>& area)
-{
-}
-
-
-//! gets the area of the current viewport
-const core::rect<s32>& CNullDriver::getViewPort() const
-{
-	return ViewPort;
-}
-
-
 //! draws a vertex primitive list
 void CNullDriver::drawVertexPrimitiveList(const void* vertices, u32 vertexCount, const void* indexList, u32 primitiveCount, E_VERTEX_TYPE vType, scene::E_PRIMITIVE_TYPE pType, E_INDEX_TYPE iType)
 {
@@ -818,37 +803,6 @@ void CNullDriver::draw2DPolygon(core::position2d<s32> center,
 
 	draw2DLine(a, first, color);
 }
-
-
-//! returns color format
-ECOLOR_FORMAT CNullDriver::getColorFormat() const
-{
-	return ECF_R5G6B5;
-}
-
-
-//! returns screen size
-const core::dimension2d<u32>& CNullDriver::getScreenSize() const
-{
-	return ScreenSize;
-}
-
-
-//! returns the current render target size,
-//! or the screen size if render targets are not implemented
-const core::dimension2d<u32>& CNullDriver::getCurrentRenderTargetSize() const
-{
-	return ScreenSize;
-}
-
-
-// returns current frames per second value
-s32 CNullDriver::getFPS() const
-{
-	return FPSCounter.getFPS();
-}
-
-
 
 //! returns amount of primitives (mostly triangles) were drawn in the last frame.
 //! very useful method for statistics.
@@ -1743,20 +1697,6 @@ u32 CNullDriver::getOcclusionQueryResult(scene::ISceneNode* node) const
 	return ~0;
 }
 
-
-//! Only used by the internal engine. Used to notify the driver that
-//! the window was resized.
-void CNullDriver::OnResize(const core::dimension2d<u32>& size)
-{
-	if (ViewPort.getWidth() == (s32)ScreenSize.Width &&
-		ViewPort.getHeight() == (s32)ScreenSize.Height)
-		ViewPort = core::rect<s32>(core::position2d<s32>(0,0),
-									core::dimension2di(size));
-
-	ScreenSize = size;
-}
-
-
 // adds a material renderer and drops it afterwards. To be used for internal creation
 s32 CNullDriver::addAndDropMaterialRenderer(IMaterialRenderer* m)
 {
@@ -1978,14 +1918,6 @@ const SExposedVideoData& CNullDriver::getExposedVideoData()
 {
 	return ExposedData;
 }
-
-
-//! Returns type of video driver
-E_DRIVER_TYPE CNullDriver::getDriverType() const
-{
-	return EDT_NULL;
-}
-
 
 //! deletes all material renderers
 void CNullDriver::deleteMaterialRenders()
@@ -2329,13 +2261,6 @@ scene::IMeshManipulator* CNullDriver::getMeshManipulator()
 }
 
 
-//! Returns an image created from the last rendered frame.
-IImage* CNullDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RENDER_TARGET target)
-{
-	return 0;
-}
-
-
 // prints renderer version
 void CNullDriver::printVersion()
 {
@@ -2346,9 +2271,9 @@ void CNullDriver::printVersion()
 
 
 //! creates a video driver
-IVideoDriver* createNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& screenSize)
+IVideoDriver* createNullDriver(io::IFileSystem* io)
 {
-	CNullDriver* nullDriver = new CNullDriver(io, screenSize);
+	CNullDriver* nullDriver = new CNullDriver(io);
 
 	// create empty material renderers
 	for(u32 i=0; sBuiltInMaterialTypeNames[i]; ++i)

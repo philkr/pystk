@@ -164,12 +164,7 @@ void Camera::setKart(AbstractKart *new_kart)
  */
 void Camera::setupCamera()
 {
-    m_viewport = irr_driver->getSplitscreenWindow(m_index);
-    m_aspect = (float)((float)(m_viewport.getWidth()) / (float)(m_viewport.getHeight()));
-	
-    m_scaling = core::vector2df(
-        float(irr_driver->getActualScreenSize().Width) / m_viewport.getWidth() , 
-        float(irr_driver->getActualScreenSize().Height) / m_viewport.getHeight());
+    m_aspect = 1.f;
 
     m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov;
 
@@ -265,7 +260,6 @@ void Camera::activate(bool alsoActivateInIrrlicht)
     {
         irr::scene::ISceneManager *sm = irr_driver->getSceneManager();
         sm->setActiveCamera(m_camera);
-        irr_driver->getVideoDriver()->setViewPort(m_viewport);
     }
 }   // activate
 

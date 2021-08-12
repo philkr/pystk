@@ -110,7 +110,7 @@ void ShaderBasedRenderer::uploadLightingData() const
 void ShaderBasedRenderer::computeMatrixesAndCameras(scene::ICameraSceneNode *const camnode,
                                                     unsigned int width, unsigned int height)
 {
-    m_current_screen_size = core::vector2df((float)width, (float)height);
+    m_current_screen_size = core::dimension2du(width, height);
     m_shadow_matrices.computeMatrixesAndCameras(camnode, width, height);
 }   // computeMatrixesAndCameras
 
@@ -730,58 +730,6 @@ void ShaderBasedRenderer::debugPhysics()
 } //debugPhysics
 
 // ----------------------------------------------------------------------------
-void ShaderBasedRenderer::renderPostProcessing(Camera * const camera,
-                                               bool first_cam)
-{
-    scene::ICameraSceneNode * const camnode = camera->getCameraSceneNode();
-    const core::recti &viewport = camera->getViewport();
-
-    bool isRace = true;
-    FrameBuffer *fbo = m_post_processing->render(camnode, isRace, m_rtts);
-
-    // The viewport has been changed using glViewport function directly
-    // during scene rendering, but irrlicht thinks that nothing changed
-    // when single camera is used. In this case we set the viewport
-    // to whole screen manually.
-    glViewport(0, 0, irr_driver->getActualScreenSize().Width, 
-        irr_driver->getActualScreenSize().Height);
-
-    if (SP::sp_debug_view)
-    {
-        m_rtts->getFBO(FBO_NORMAL_AND_DEPTHS).blitToDefault(
-            viewport.UpperLeftCorner.X, 
-            irr_driver->getActualScreenSize().Height - viewport.LowerRightCorner.Y, 
-            viewport.LowerRightCorner.X, 
-            irr_driver->getActualScreenSize().Height - viewport.UpperLeftCorner.Y);
-    }
-    else if (irr_driver->getSSAOViz())
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, irr_driver->getDefaultFramebuffer());
-        if (first_cam)
-        {
-             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        }
-        camera->activate();
-        m_post_processing->renderPassThrough(m_rtts->getFBO(FBO_HALF1_R).getRTT()[0], viewport.LowerRightCorner.X - viewport.UpperLeftCorner.X, viewport.LowerRightCorner.Y - viewport.UpperLeftCorner.Y);
-    }
-    else if (irr_driver->getShadowViz() && m_rtts->getShadowFrameBuffer())
-    {
-        m_shadow_matrices.renderShadowsDebug(m_rtts->getShadowFrameBuffer(), m_post_processing);
-    }
-    else
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, irr_driver->getDefaultFramebuffer());
-        if (first_cam)
-        {
-             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        }
-        camera->activate();
-        m_post_processing->renderPassThrough(fbo->getRTT()[0], viewport.LowerRightCorner.X - viewport.UpperLeftCorner.X, viewport.LowerRightCorner.Y - viewport.UpperLeftCorner.Y);
-    }
-    glBindVertexArray(0);
-} //renderPostProcessing
-
-// ----------------------------------------------------------------------------
 ShaderBasedRenderer::ShaderBasedRenderer()
 {
     m_rtts                  = NULL;
@@ -810,10 +758,7 @@ ShaderBasedRenderer::~ShaderBasedRenderer()
 // ----------------------------------------------------------------------------
 void ShaderBasedRenderer::onLoadWorld()
 {
-    const core::recti &viewport = Camera::getCamera(0)->getViewport();
-    unsigned int width = viewport.LowerRightCorner.X - viewport.UpperLeftCorner.X;
-    unsigned int height = viewport.LowerRightCorner.Y - viewport.UpperLeftCorner.Y;
-    RTT* rtts = new RTT(width, height, CVS->isDeferredEnabled() ?
+    RTT* rtts = new RTT(UserConfigParams::m_width, UserConfigParams::m_height, CVS->isDeferredEnabled() ?
                         UserConfigParams::m_scale_rtts_factor : 1.0f,
                         !CVS->isDeferredEnabled());
     setRTT(rtts);

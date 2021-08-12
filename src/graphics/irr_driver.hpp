@@ -96,8 +96,6 @@ private:
     /** Wind. */
     Wind                 *m_wind;
 
-    core::dimension2du m_actual_screen_size;
-
     /** The main MRT setup. */
     core::array<video::IRenderTarget> m_mrt;
 
@@ -105,18 +103,6 @@ private:
     core::matrix4 m_ViewMatrix, m_InvViewMatrix, m_ProjMatrix, m_InvProjMatrix, m_ProjViewMatrix, m_InvProjViewMatrix;
 
 public:
-    /** A simple class to store video resolutions. */
-    class VideoMode
-    {
-    private:
-        int m_width;
-        int m_height;
-    public:
-        VideoMode(int w, int h) {m_width=w; m_height=h; }
-        int getWidth() const  {return m_width;  }
-        int getHeight() const {return m_height; }
-    };   // VideoMode
-
     struct BloomData {
         scene::ISceneNode * node;
         float power;
@@ -127,8 +113,6 @@ public:
 
 
 private:
-    std::vector<VideoMode> m_modes;
-
     void                  setupViewports();
 
     /** Whether the mouse cursor is currently shown */
@@ -139,7 +123,6 @@ private:
 
     /** Internal method that applies the resolution in user settings. */
     void                 applyResolutionSettings();
-    void                 createListOfVideoModes();
 
     bool                 m_request_screenshot;
 
@@ -192,7 +175,6 @@ public:
     void increaseObjectCount();
     core::array<video::IRenderTarget> &getMainSetup();
     void updateConfigIfRelevant();
-    core::recti getSplitscreenWindow(int WindowNum);
     void setAllMaterialFlags(scene::IMesh *mesh) const;
     scene::IAnimatedMesh *getAnimatedMesh(const std::string &name);
     scene::IMesh         *getMesh(const std::string &name);
@@ -282,13 +264,6 @@ public:
         m_clear_color = color;
     }   // setClearbackBufferColor
 
-
-    /** Returns a list of all video modes supports by the graphics card. */
-    const std::vector<VideoMode>& getVideoModes() const { return m_modes; }
-    // ------------------------------------------------------------------------
-    /** Returns the frame size. */
-    const core::dimension2d<u32>& getFrameSize() const
-                       { return m_video_driver->getCurrentRenderTargetSize(); }
     // ------------------------------------------------------------------------
     /** Returns the irrlicht device. */
     IrrlichtDevice       *getDevice()       const { return m_device;        }
@@ -301,7 +276,7 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the current real time, which might not be 0 at start of the
      *  application. Value in msec. */
-    unsigned int getRealTime() {return m_device->getTimer()->getRealTime(); }
+    unsigned int getRealTime() { return m_device->getTimer()->getRealTime(); }
     // ------------------------------------------------------------------------
     /** Use motion blur for a short time */
     void giveBoost(unsigned int cam_index) { m_renderer->giveBoost(cam_index);}
@@ -438,14 +413,14 @@ public:
         return m_InvProjViewMatrix;
     }
     // ------------------------------------------------------------------------
-    const core::vector2df &getCurrentScreenSize() const
+    const core::dimension2du &getCurrentScreenSize() const
     {
         return m_renderer->getCurrentScreenSize();
     }
     // ------------------------------------------------------------------------
     const core::dimension2du getActualScreenSize() const
-    { 
-        return m_actual_screen_size;
+    {
+        return getCurrentScreenSize();
     }
     // ------------------------------------------------------------------------
     float getSSAORadius() const

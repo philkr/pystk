@@ -44,7 +44,7 @@ struct SHCoefficients;
 class AbstractRenderer
 {
 protected:
-    irr::core::vector2df m_current_screen_size;
+    irr::core::dimension2du m_current_screen_size;
 
 #ifdef DEBUG
     void drawDebugMeshes() const;
@@ -85,8 +85,8 @@ public:
     
     virtual void clearGlowingNodes() {}
 
-     // ------------------------------------------------------------------------
-    const irr::core::vector2df &getCurrentScreenSize() const
+    // ------------------------------------------------------------------------
+    const irr::core::dimension2du &getCurrentScreenSize() const
     {
         return m_current_screen_size;
     }

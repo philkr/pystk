@@ -95,8 +95,6 @@ ISceneNode* CDefaultSceneNodeFactory::addSceneNode(ESCENE_NODE_TYPE type, IScene
 		return Manager->addDummyTransformationSceneNode(parent);
 	case ESNT_CAMERA:
 		return Manager->addCameraSceneNode(parent);
-	case ESNT_CAMERA_MAYA:
-		return Manager->addCameraSceneNodeMaya(parent);
 	case ESNT_CAMERA_FPS:
 		return Manager->addCameraSceneNodeFPS(parent);
 	case ESNT_BILLBOARD:

@@ -55,12 +55,6 @@
 #define EGL_PLATFORM_DEVICE 0x313F
 #endif
 
-enum ContextEGLOpenGLAPI
-{
-    CEGL_API_OPENGL,
-    CEGL_API_OPENGL_ES
-};
-
 enum ContextEGLSurfaceType
 {
     CEGL_SURFACE_WINDOW,
@@ -79,7 +73,6 @@ enum ContextEGLPlatform
 
 struct ContextEGLParams
 {
-    ContextEGLOpenGLAPI opengl_api = CEGL_API_OPENGL;
     ContextEGLSurfaceType surface_type = CEGL_SURFACE_WINDOW;
     ContextEGLPlatform platform = CEGL_PLATFORM_DEFAULT;
     EGLNativeWindowType window = 0;

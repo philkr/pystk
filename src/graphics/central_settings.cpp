@@ -67,12 +67,8 @@ void CentralVideoSettings::init()
         Log::info("IrrDriver", "OpenGL renderer: %s", glGetString(GL_RENDERER));
         Log::info("IrrDriver", "OpenGL version string: %s", glGetString(GL_VERSION));
     }
-#if !defined(USE_GLES2)
     m_glsl = (m_gl_major_version > 3 || (m_gl_major_version == 3 && m_gl_minor_version >= 1))
            && m_supports_sp;
-#else
-    m_glsl = m_gl_major_version >= 3 && !UserConfigParams::m_force_legacy_device;
-#endif
     initGL();
 
     {
@@ -80,11 +76,6 @@ void CentralVideoSettings::init()
         std::string card((char*)(glGetString(GL_RENDERER)));
         std::string vendor((char*)(glGetString(GL_VENDOR)));
         GraphicsRestrictions::init(driver, card, vendor);
-
-        if (GraphicsRestrictions::isDisabled(GraphicsRestrictions::GR_FORCE_LEGACY_DEVICE))
-        {
-            m_glsl = false;
-        }
 
 #if !defined(USE_GLES2)
         if (!GraphicsRestrictions::isDisabled(GraphicsRestrictions::GR_BUFFER_STORAGE) &&
@@ -190,7 +181,11 @@ void CentralVideoSettings::init()
         m_supports_sp = isARBInstancedArraysUsable() &&
             isARBVertexType2101010RevUsable() && isARBSamplerObjectsUsable() &&
             isARBExplicitAttribLocationUsable();
-            
+
+        if (!m_supports_sp) {
+            Log::fatal("IrrDriver", "Shader-based rendering not supported!");
+        }
+
         hasTextureCompressionSRGB = true;
         hasBGRA = true;
         hasColorBufferFloat = true;

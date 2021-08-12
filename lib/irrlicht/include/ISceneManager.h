@@ -577,28 +577,6 @@ namespace scene
 			const core::vector3df& lookat = core::vector3df(0,0,100),
 			s32 id=-1, bool makeActive=true) = 0;
 
-		//! Adds a maya style user controlled camera scene node to the scene graph.
-		/** This is a standard camera with an animator that provides mouse control similar
-		to camera in the 3D Software Maya by Alias Wavefront.
-		The camera does not react on setPosition anymore after applying this animator. Instead
-		use setTarget, to fix the target the camera the camera hovers around. And setDistance
-		to set the current distance from that target, i.e. the radius of the orbit the camera
-		hovers on.
-		\param parent: Parent scene node of the camera. Can be null.
-		\param rotateSpeed: Rotation speed of the camera.
-		\param zoomSpeed: Zoom speed of the camera.
-		\param translationSpeed: TranslationSpeed of the camera.
-		\param id: id of the camera. This id can be used to identify the camera.
-		\param distance Initial distance of the camera from the object
-		\param makeActive Flag whether this camera should become the active one.
-		Make sure you always have one active camera.
-		\return Returns a pointer to the interface of the camera if successful, otherwise 0.
-		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-		virtual ICameraSceneNode* addCameraSceneNodeMaya(ISceneNode* parent=0,
-			f32 rotateSpeed=-1500.f, f32 zoomSpeed=200.f,
-			f32 translationSpeed=1500.f, s32 id=-1, f32 distance=70.f,
-			bool makeActive=true) =0;
-
 		//! Adds a camera scene node with an animator which provides mouse and keyboard control appropriate for first person shooters (FPS).
 		/** This FPS camera is intended to provide a demonstration of a
 		camera that behaves like a typical First Person Shooter. It is

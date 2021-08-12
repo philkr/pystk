@@ -123,13 +123,9 @@ source/Irrlicht/CImageLoaderPNG.cpp
 source/Irrlicht/CImageWriterBMP.cpp
 source/Irrlicht/CImageWriterJPG.cpp
 source/Irrlicht/CImageWriterPNG.cpp
-source/Irrlicht/CIrrDeviceAndroid.cpp
-source/Irrlicht/CIrrDeviceLinux.cpp
-source/Irrlicht/CIrrDeviceOffScreen.cpp
-source/Irrlicht/CIrrDeviceSDL.cpp
-source/Irrlicht/CIrrDeviceStub.cpp
-source/Irrlicht/CIrrDeviceWayland.cpp
-source/Irrlicht/CIrrDeviceWin32.cpp
+        source/Irrlicht/CIrrDeviceOffScreen.cpp
+        source/Irrlicht/CIrrDeviceStub.cpp
+        source/Irrlicht/CIrrDeviceWin32.cpp
 source/Irrlicht/CLightSceneNode.cpp
 source/Irrlicht/CLimitReadFile.cpp
 source/Irrlicht/CLogger.cpp
@@ -142,15 +138,7 @@ source/Irrlicht/CMountPointReader.cpp
 source/Irrlicht/CNullDriver.cpp
 source/Irrlicht/COctreeSceneNode.cpp
 source/Irrlicht/COctreeTriangleSelector.cpp
-source/Irrlicht/COGLES2Driver.cpp
-source/Irrlicht/COGLES2ExtensionHandler.cpp
-source/Irrlicht/COGLES2FixedPipelineRenderer.cpp
-source/Irrlicht/COGLES2MaterialRenderer.cpp
-source/Irrlicht/COGLES2NormalMapRenderer.cpp
-source/Irrlicht/COGLES2ParallaxMapRenderer.cpp
-source/Irrlicht/COGLES2Renderer2D.cpp
-source/Irrlicht/COGLES2Texture.cpp
-source/Irrlicht/COpenGLDriver.cpp
+        source/Irrlicht/COpenGLDriver.cpp
 source/Irrlicht/COpenGLExtensionHandler.cpp
 source/Irrlicht/COpenGLParallaxMapRenderer.cpp
 source/Irrlicht/COpenGLShaderMaterialRenderer.cpp
@@ -174,8 +162,7 @@ source/Irrlicht/CReadFile.cpp
 source/Irrlicht/CSceneCollisionManager.cpp
 source/Irrlicht/CSceneManager.cpp
 source/Irrlicht/CSceneNodeAnimatorCameraFPS.cpp
-source/Irrlicht/CSceneNodeAnimatorCameraMaya.cpp
-source/Irrlicht/CSceneNodeAnimatorCollisionResponse.cpp
+        source/Irrlicht/CSceneNodeAnimatorCollisionResponse.cpp
 source/Irrlicht/CSceneNodeAnimatorDelete.cpp
 source/Irrlicht/CSceneNodeAnimatorFlyCircle.cpp
 source/Irrlicht/CSceneNodeAnimatorFlyStraight.cpp
@@ -227,13 +214,9 @@ source/Irrlicht/CImageLoaderPNG.h
 source/Irrlicht/CImageWriterBMP.h
 source/Irrlicht/CImageWriterJPG.h
 source/Irrlicht/CImageWriterPNG.h
-source/Irrlicht/CIrrDeviceAndroid.h
-source/Irrlicht/CIrrDeviceLinux.h
-source/Irrlicht/CIrrDeviceOffScreen.h
-source/Irrlicht/CIrrDeviceSDL.h
-source/Irrlicht/CIrrDeviceStub.h
-source/Irrlicht/CIrrDeviceWayland.h
-source/Irrlicht/CIrrDeviceWin32.h
+        source/Irrlicht/CIrrDeviceOffScreen.h
+        source/Irrlicht/CIrrDeviceStub.h
+        source/Irrlicht/CIrrDeviceWin32.h
 source/Irrlicht/CLightSceneNode.h
 source/Irrlicht/CLimitReadFile.h
 source/Irrlicht/CLogger.h
@@ -246,15 +229,7 @@ source/Irrlicht/CMountPointReader.h
 source/Irrlicht/CNullDriver.h
 source/Irrlicht/COctreeSceneNode.h
 source/Irrlicht/COctreeTriangleSelector.h
-source/Irrlicht/COGLES2Driver.h
-source/Irrlicht/COGLES2ExtensionHandler.h
-source/Irrlicht/COGLES2FixedPipelineRenderer.h
-source/Irrlicht/COGLES2MaterialRenderer.h
-source/Irrlicht/COGLES2NormalMapRenderer.h
-source/Irrlicht/COGLES2ParallaxMapRenderer.h
-source/Irrlicht/COGLES2Renderer2D.h
-source/Irrlicht/COGLES2Texture.h
-source/Irrlicht/COpenGLDriver.h
+        source/Irrlicht/COpenGLDriver.h
 source/Irrlicht/COpenGLExtensionHandler.h
 source/Irrlicht/COpenGLMaterialRenderer.h
 source/Irrlicht/COpenGLParallaxMapRenderer.h
@@ -279,8 +254,7 @@ source/Irrlicht/CReadFile.h
 source/Irrlicht/CSceneCollisionManager.h
 source/Irrlicht/CSceneManager.h
 source/Irrlicht/CSceneNodeAnimatorCameraFPS.h
-source/Irrlicht/CSceneNodeAnimatorCameraMaya.h
-source/Irrlicht/CSceneNodeAnimatorCollisionResponse.h
+        source/Irrlicht/CSceneNodeAnimatorCollisionResponse.h
 source/Irrlicht/CSceneNodeAnimatorDelete.h
 source/Irrlicht/CSceneNodeAnimatorFlyCircle.h
 source/Irrlicht/CSceneNodeAnimatorFlyStraight.h
@@ -310,13 +284,11 @@ source/Irrlicht/gles2-ext.h
 source/Irrlicht/glext.h
 source/Irrlicht/glxext.h
 source/Irrlicht/IAttribute.h
-source/Irrlicht/IImagePresenter.h
-source/Irrlicht/ISceneNodeAnimatorFinishing.h
+        source/Irrlicht/ISceneNodeAnimatorFinishing.h
 source/Irrlicht/ITriangleRenderer.h
 source/Irrlicht/IZBuffer.h
 source/Irrlicht/MacOSX/AppDelegate.h
-source/Irrlicht/MacOSX/CIrrDeviceMacOSX.h
-source/Irrlicht/Octree.h
+        source/Irrlicht/Octree.h
 source/Irrlicht/os.h
 source/Irrlicht/resource.h
 source/Irrlicht/S2DVertex.h
@@ -333,8 +305,7 @@ include/CMeshBuffer.h
 include/coreutil.h
 include/CVertexBuffer.h
 include/dimension2d.h
-include/driverChoice.h
-include/EAttributes.h
+        include/EAttributes.h
 include/ECullingTypes.h
 include/EDebugSceneTypes.h
 include/EDeviceTypes.h
@@ -363,7 +334,6 @@ include/IBillboardSceneNode.h
 include/IBillboardTextSceneNode.h
 include/IBoneSceneNode.h
 include/ICameraSceneNode.h
-include/ICursorControl.h
 include/IDummyTransformationSceneNode.h
 include/IDynamicMeshBuffer.h
 include/IEventReceiver.h
@@ -476,23 +446,12 @@ include/vector2d.h
 include/vector3d.h
 )
 
-if(NOT SERVER_ONLY AND ENABLE_WAYLAND_DEVICE)
-    set(IRRLICHT_SOURCES 
-        ${IRRLICHT_SOURCES}
-        source/Irrlicht/xdg_decoration_unstable_v1_protocol.c
-        source/Irrlicht/xdg_shell_protocol.c)
-endif()
-
-
 if(APPLE)
     set(IRRLICHT_SOURCES
         ${IRRLICHT_SOURCES}
         source/Irrlicht/MacOSX/AppDelegate.mm
         source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm
         source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp)
-
-    #list(APPEND CMAKE_C_SOURCE_FILE_EXTENSIONS mm)
-    #set(CMAKE_CXX_SOURCE_FILE_EXTENSIONS cpp)
 
     set_source_files_properties(source/Irrlicht/MacOSX/AppDelegate.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
     set_source_files_properties(source/Irrlicht/MacOSX/AppDelegate.mm PROPERTIES LANGUAGE C)
@@ -519,12 +478,5 @@ if(NOT SERVER_ONLY)
     if(EGL_FOUND)
         target_link_libraries(stkirrlicht ${EGL_LIBRARY})
     endif()
-    
-    if(ENABLE_WAYLAND_DEVICE)
-        target_link_libraries(stkirrlicht ${WAYLAND_LIBRARIES})
-    endif()
 endif()
 
-if(WIN32)
-    target_link_libraries(stkirrlicht imm32 xinput9_1_0)
-endif()

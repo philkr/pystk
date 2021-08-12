@@ -174,16 +174,6 @@ void AbstractRenderer::drawJoint(bool drawline, bool drawname,
             color = video::SColor(255,0,255,255);
             break;
     }
-
-    if (drawname)
-    {
-        irr_driver->getVideoDriver()->setTransform(video::ETS_WORLD,
-                                                   core::IdentityMatrix);
-
-        core::vector2di textpos =
-            irr_driver->getSceneManager()->getSceneCollisionManager()
-            ->getScreenCoordinatesFrom3DPosition(jointpos);
-    }
 } //drawJoint
 
 #endif //DEBUG
