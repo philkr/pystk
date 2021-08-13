@@ -138,6 +138,7 @@ IrrDriver::IrrDriver()
     params.FileSystem    = file_manager->getFileSystem();
     params.ShadersPath   = (file_manager->getShadersDir() + "irrlicht/").c_str();
     params.DisplayAdapter= UserConfigParams::m_display_adapter;
+    params.LoggingLevel  = ELL_WARNING;
     m_device = createDeviceEx(params);
 
     if(!m_device)
