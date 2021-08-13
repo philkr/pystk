@@ -98,9 +98,6 @@ private:
     /** Field of view for the camera. */
     float           m_fov;
 
-    /** Aspect ratio for camera. */
-    float           m_aspect;
-
 
     /** List of all cameras. */
     static std::vector<Camera*> m_all_cameras;

@@ -72,9 +72,7 @@ public:
     
     //FIXME: these three methods should not appear in the public Renderer interface
     virtual const SHCoefficients* getSHCoefficients()    const { return NULL; }
-    virtual GLuint getRenderTargetTexture(TypeRTT which) const { return 0;}
-    virtual GLuint getDepthStencilTexture(             ) const { return 0;}
-    
+
     virtual void setAmbientLight(const irr::video::SColorf &light,
                                   bool force_SH_computation = true) {}
 

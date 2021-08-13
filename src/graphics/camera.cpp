@@ -164,12 +164,10 @@ void Camera::setKart(AbstractKart *new_kart)
  */
 void Camera::setupCamera()
 {
-    m_aspect = 1.f;
-
     m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov;
 
     m_camera->setFOV(m_fov);
-    m_camera->setAspectRatio(m_aspect);
+    m_camera->setAspectRatio(1.f);
     m_camera->setFarValue(Track::getCurrentTrack()->getCameraFar());
 }   // setupCamera
 

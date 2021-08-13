@@ -301,9 +301,6 @@ public:
         m_suncolor = col;
     }
     // ------------------------------------------------------------------------
-    GLuint getRenderTargetTexture(TypeRTT which);
-    GLuint getDepthStencilTexture();
-    // ------------------------------------------------------------------------
     void resetDebugModes();
     // ------------------------------------------------------------------------
     void toggleSSAOViz()          { m_ssaoviz = !m_ssaoviz;         }

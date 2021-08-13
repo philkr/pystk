@@ -1320,7 +1320,7 @@ FrameBuffer *PostProcessing::render(scene::ICameraSceneNode * const camnode,
         {
             in_fbo = &rtts->getFBO(FBO_RGBA_1);
             out_fbo = &rtts->getFBO(FBO_RGBA_2);
-            renderMotionBlur(*in_fbo, *out_fbo, irr_driver->getDepthStencilTexture());
+            renderMotionBlur(*in_fbo, *out_fbo, rtts->getDepthStencilTexture());
         }
         PROFILER_POP_CPU_MARKER();
     }

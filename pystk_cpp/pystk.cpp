@@ -100,7 +100,7 @@
 #endif
 
 const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
-    static PySTKGraphicsConfig config = {600,400,
+    static PySTKGraphicsConfig config = {600,400, 0,
         true, true, true, true, true, 
         2,     // particle_effects
         true,  // animated_characters
@@ -114,7 +114,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
     return config;
 }
 const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
-    static PySTKGraphicsConfig config = {600,400,
+    static PySTKGraphicsConfig config = {600,400, 0,
         false, false, false, false, false,
         2,     // particle_effects
         true,  // animated_characters
@@ -128,7 +128,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
     return config;
 }
 const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
-    static PySTKGraphicsConfig config = {600,400,
+    static PySTKGraphicsConfig config = {600,400, 0,
         false, false, false, false, false,
         0,     // particle_effects
         false, // animated_characters
@@ -516,6 +516,7 @@ void PySTKRace::setupConfig(const PySTKRaceConfig & config) {
 void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
     UserConfigParams::m_width  = config.screen_width;
     UserConfigParams::m_height = config.screen_height;
+    UserConfigParams::m_display_adapter = config.display_adapter;
     UserConfigParams::m_glow = config.glow;
     UserConfigParams::m_bloom = config.bloom;
     UserConfigParams::m_light_shaft = config.light_shaft;

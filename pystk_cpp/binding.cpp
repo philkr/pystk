@@ -85,9 +85,10 @@ PYBIND11_MODULE(pystk, m) {
     {
         py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
         
-        cls.def(py::init<int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1)
+        cls.def(py::init<int, int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("display_adapter") = 0, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1)
         .def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface")
         .def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height, "Height of the rendering surface")
+        .def_readwrite("display_adapter", &PySTKGraphicsConfig::display_adapter, "GPU to use (Linux only)")
         .def_readwrite("glow", &PySTKGraphicsConfig::glow, "Enable glow around pickup objects")
         .def_readwrite("bloom", &PySTKGraphicsConfig::bloom, "Enable the bloom effect")
         .def_readwrite("light_shaft", &PySTKGraphicsConfig::light_shaft, "Enable light shafts")

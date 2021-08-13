@@ -387,6 +387,7 @@ struct UserConfigParams
     // ---- Video
     static int m_width;
     static int m_height;
+    static int m_display_adapter;
 
     static bool m_texture_compression;
     static int m_high_definition_textures;

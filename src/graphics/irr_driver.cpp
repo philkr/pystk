@@ -133,14 +133,17 @@ IrrDriver::IrrDriver()
 {
     m_render_nw_debug = false;
 
-    struct irr::SIrrlichtCreationParameters p;
-    p.EventReceiver = NULL;
-    p.FileSystem    = file_manager->getFileSystem();
-#ifdef ANDROID
-    p.PrivateData   = (void*)global_android_app;
-#endif
+    SIrrlichtCreationParameters params;
+    params.EventReceiver = this;
+    params.FileSystem    = file_manager->getFileSystem();
+    params.ShadersPath   = (file_manager->getShadersDir() + "irrlicht/").c_str();
+    params.DisplayAdapter= UserConfigParams::m_display_adapter;
+    m_device = createDeviceEx(params);
 
-    m_device = createDeviceEx(p);
+    if(!m_device)
+    {
+        Log::fatal("irr_driver", "Couldn't initialise irrlicht device. Quitting.\n");
+    }
 
     m_request_screenshot = false;
     m_renderer            = NULL;
@@ -244,83 +247,11 @@ void IrrDriver::updateConfigIfRelevant()
  */
 void IrrDriver::initDevice()
 {
-    // TODO: Move to init!!!
-    SIrrlichtCreationParameters params;
-
-    // If --no-graphics option was used, the null device can still be used.
-    {
-        m_device->closeDevice();
-        m_video_driver  = NULL;
-        m_scene_manager = NULL;
-        // In some circumstances it would happen that a WM_QUIT message
-        // (apparently sent for this NULL device) is later received by
-        // the actual window, causing it to immediately quit.
-        // Following advise on the irrlicht forums I added the following
-        // two calles - the first one didn't make a difference (but
-        // certainly can't hurt), but the second one apparenlty solved
-        // the problem for now.
-        m_device->clearSystemMessages();
-        m_device->run();
-        m_device->drop();
-        m_device  = NULL;
-
-        // Try 32 and, upon failure, 24 then 16 bit per pixels
-        for (int bits=32; bits>15; bits -=8)
-        {
-            params.EventReceiver = this;
-            params.FileSystem    = file_manager->getFileSystem();
-            params.ShadersPath   = (file_manager->getShadersDir() +
-                                                           "irrlicht/").c_str();
-            m_device = createDeviceEx(params);
-
-            if(m_device)
-                break;
-        }   // for bits=32, 24, 16
-    }
-
-    if(!m_device)
-    {
-        Log::fatal("irr_driver", "Couldn't initialise irrlicht device. Quitting.\n");
-    }
 #ifndef SERVER_ONLY 
 
     // Assume sp is supported
     CentralVideoSettings::m_supports_sp = true;
     CVS->init();
-
-    bool recreate_device = false;
-
-    // Some drivers are able to create OpenGL 3.1 context, but shader-based
-    // pipeline doesn't work for them. For example some radeon drivers
-    // support only GLSL 1.3 and it causes STK to crash. We should force to use
-    // fixed pipeline in this case.
-    if ((GraphicsRestrictions::isDisabled(GraphicsRestrictions::GR_FORCE_LEGACY_DEVICE) ||
-        (CVS->isGLSL() && !CentralVideoSettings::m_supports_sp)))
-    {
-        Log::warn("irr_driver", "Driver doesn't support shader-based pipeline. "
-                                "Re-creating device to workaround the issue.");
-
-        recreate_device = true;
-    }
-#endif
-
-#ifndef SERVER_ONLY
-    if (recreate_device)
-    {
-        m_device->closeDevice();
-        m_device->clearSystemMessages();
-        m_device->run();
-        m_device->drop();
-
-        m_device = createDeviceEx(params);
-
-        if(!m_device)
-        {
-            Log::fatal("irr_driver", "Couldn't initialise irrlicht device. Quitting.\n");
-        }
-
-        CVS->init();
-    }
 #endif
 
     m_scene_manager = m_device->getSceneManager();
@@ -1326,18 +1257,6 @@ void IrrDriver::clearLights()
 
     m_lights.clear();
 }   // clearLights
-
-// ----------------------------------------------------------------------------
-GLuint IrrDriver::getRenderTargetTexture(TypeRTT which)
-{
-    return m_renderer->getRenderTargetTexture(which);
-}   // getRenderTargetTexture
-
-// ----------------------------------------------------------------------------
-GLuint IrrDriver::getDepthStencilTexture()
-{
-    return m_renderer->getDepthStencilTexture();
-}   // getDepthStencilTexture
 
 // ----------------------------------------------------------------------------
 void IrrDriver::resetDebugModes()

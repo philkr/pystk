@@ -16,6 +16,7 @@ void unpickle(std::istream & s, std::string * o) {
 void pickle(std::ostream & s, const PySTKGraphicsConfig & o) {
     pickle(s, o.screen_width);
     pickle(s, o.screen_height);
+    pickle(s, o.display_adapter);
     pickle(s, o.glow);
     pickle(s, o.bloom);
     pickle(s, o.light_shaft);
@@ -33,6 +34,7 @@ void pickle(std::ostream & s, const PySTKGraphicsConfig & o) {
 void unpickle(std::istream & s, PySTKGraphicsConfig * o) {
     unpickle(s, &o->screen_width);
     unpickle(s, &o->screen_height);
+    unpickle(s, &o->display_adapter);
     unpickle(s, &o->glow);
     unpickle(s, &o->bloom);
     unpickle(s, &o->light_shaft);

@@ -5,7 +5,7 @@
 #include "buffer.hpp"
 
 struct PySTKGraphicsConfig {
-	int screen_width=600, screen_height=400;
+    int screen_width=600, screen_height=400, display_adapter=0;
 	bool glow = false, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
 	int particles_effects = 2;
     bool animated_characters = true;

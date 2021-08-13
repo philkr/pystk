@@ -30,7 +30,6 @@
 
 class AbstractGeometryPasses;
 class Camera;
-class GL3RenderTarget;
 class RenderTarget;
 class RTT;
 class Skybox;
@@ -64,20 +63,20 @@ private:
     
     void prepareDrawCalls(scene::ICameraSceneNode *camnode);
 
-    void renderSSAO() const;
+    void renderSSAO(RTT *rtts) const;
 
-    void renderGlow() const;
+    void renderGlow(RTT *rtts) const;
 
     void renderTrackLabel(GLuint tex) const;
 
-    void renderScene(irr::scene::ICameraSceneNode * const camnode,
+    void renderScene(RTT *rtts, irr::scene::ICameraSceneNode * const camnode,
                      float dt, bool hasShadows, bool forceRTT);
-    void renderSceneDeferred(irr::scene::ICameraSceneNode * const camnode,
+    void renderSceneDeferred(RTT *rtts, irr::scene::ICameraSceneNode * const camnode,
                      float dt, bool hasShadows, bool forceRTT);
 
     void debugPhysics();
     void preloadShaderFiles();
-    void renderShadows();
+    void renderShadows(RTT *rtts);
 
 public:
     ShaderBasedRenderer();
@@ -93,9 +92,7 @@ public:
                    const std::vector<irr::video::ITexture*> &spherical_harmonics_textures) OVERRIDE;
     void removeSkyBox() OVERRIDE;
     const SHCoefficients* getSHCoefficients() const OVERRIDE;
-    GLuint getRenderTargetTexture(TypeRTT which) const OVERRIDE;
-    GLuint getDepthStencilTexture() const OVERRIDE;
-    
+
     void                  setAmbientLight(const irr::video::SColorf &light,
                                           bool force_SH_computation = true) OVERRIDE;
 
@@ -106,11 +103,9 @@ public:
     std::unique_ptr<RenderTarget> createRenderTarget(const irr::core::dimension2du &dimension,
                                                      const std::string &name) OVERRIDE;
     
-    void renderToTexture(GL3RenderTarget *render_target,
+    void renderToTexture(RenderTarget *render_target,
                          irr::scene::ICameraSceneNode* camera,
                          float dt);
-
-    void setRTT(RTT* rtts);
 
     RTT* getRTTs() { return m_rtts; }
     ShadowMatrices* getShadowMatrices() { return &m_shadow_matrices; }
