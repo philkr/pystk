@@ -12,7 +12,6 @@
 #include "ICursorControl.h"
 #include "IVideoModeList.h"
 #include "ITimer.h"
-#include "IOSOperator.h"
 
 namespace irr
 {

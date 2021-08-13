@@ -130,12 +130,8 @@ else ()
   endif ()
 endif ()
 
+project(freetype)
 
-project(freetype C)
-
-set(VERSION_MAJOR "2")
-set(VERSION_MINOR "10")
-set(VERSION_PATCH "0")
 
 # SOVERSION scheme: CURRENT.AGE.REVISION
 #   If there was an incompatible interface change:

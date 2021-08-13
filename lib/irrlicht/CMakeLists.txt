@@ -144,7 +144,6 @@ source/Irrlicht/COpenGLParallaxMapRenderer.cpp
 source/Irrlicht/COpenGLShaderMaterialRenderer.cpp
 source/Irrlicht/COpenGLSLMaterialRenderer.cpp
 source/Irrlicht/COpenGLTexture.cpp
-source/Irrlicht/COSOperator.cpp
 source/Irrlicht/CParticleAnimatedMeshSceneNodeEmitter.cpp
 source/Irrlicht/CParticleAttractionAffector.cpp
 source/Irrlicht/CParticleBoxEmitter.cpp
@@ -236,7 +235,6 @@ source/Irrlicht/COpenGLParallaxMapRenderer.h
 source/Irrlicht/COpenGLShaderMaterialRenderer.h
 source/Irrlicht/COpenGLSLMaterialRenderer.h
 source/Irrlicht/COpenGLTexture.h
-source/Irrlicht/COSOperator.h
 source/Irrlicht/CParticleAnimatedMeshSceneNodeEmitter.h
 source/Irrlicht/CParticleAttractionAffector.h
 source/Irrlicht/CParticleBoxEmitter.h
@@ -357,7 +355,6 @@ include/IMeshManipulator.h
 include/IMeshSceneNode.h
 include/IMeshWriter.h
 include/IMetaTriangleSelector.h
-include/IOSOperator.h
 include/IParticleAffector.h
 include/IParticleAnimatedMeshSceneNodeEmitter.h
 include/IParticleAttractionAffector.h

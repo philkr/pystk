@@ -139,9 +139,6 @@ CNullDriver::CNullDriver(io::IFileSystem* io)
 	SurfaceWriter.push_back(video::createImageWriterBMP());
 #endif
 
-
-	// set ExposedData to 0
-	memset(&ExposedData, 0, sizeof(ExposedData));
 	for (u32 i=0; i<video::EVDF_COUNT; ++i)
 		FeatureEnabled[i]=true;
 
@@ -1910,13 +1907,6 @@ void CNullDriver::fillMaterialStructureFromAttributes(video::SMaterial& outMater
 	prefix="LODBias";
 	for (i=0; i<MATERIAL_MAX_TEXTURES; ++i)
 		outMaterial.TextureLayer[i].LODBias = attr->getAttributeAsInt((prefix+core::stringc(i+1)).c_str());
-}
-
-
-//! Returns driver and operating system specific data about the IVideoDriver.
-const SExposedVideoData& CNullDriver::getExposedVideoData()
-{
-	return ExposedData;
 }
 
 //! deletes all material renderers

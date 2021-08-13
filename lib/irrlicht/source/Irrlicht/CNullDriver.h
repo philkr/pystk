@@ -461,9 +461,6 @@ namespace video
 		virtual s32 addMaterialRenderer(IMaterialRenderer* renderer,
 				const char* name = 0);
 
-		//! Returns driver and operating system specific data about the IVideoDriver.
-		virtual const SExposedVideoData& getExposedVideoData();
-
 		//! Returns the transformation set by setTransform
 		virtual const core::matrix4& getTransform(E_TRANSFORMATION_STATE state) const;
 
@@ -809,7 +806,6 @@ namespace video
 		f32 FogEnd;
 		f32 FogDensity;
 		SColor FogColor;
-		SExposedVideoData ExposedData;
 
 		io::IAttributes* DriverAttributes;
 

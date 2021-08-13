@@ -1272,12 +1272,6 @@ namespace video
 		\param attributes The attributes to read from. */
 		virtual void fillMaterialStructureFromAttributes(video::SMaterial& outMaterial, io::IAttributes* attributes) =0;
 
-		//! Returns driver and operating system specific data about the IVideoDriver.
-		/** This method should only be used if the engine should be
-		extended without having to modify the source of the engine.
-		\return Collection of device dependent pointers. */
-		virtual const SExposedVideoData& getExposedVideoData() =0;
-
 		//! Gets the IGPUProgrammingServices interface.
 		/** \return Pointer to the IGPUProgrammingServices. Returns 0
 		if the video driver does not support this. For example the

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.4.4)
+cmake_minimum_required(VERSION 3.0)
 
 if(APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")

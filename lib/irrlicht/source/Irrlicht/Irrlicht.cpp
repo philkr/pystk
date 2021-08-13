@@ -54,9 +54,8 @@ namespace irr
 		dev = new CIrrDeviceOffScreenMacOSX(creation_params);
 #endif
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-		dev = new CIrrDeviceWin32(creation_params, true);
+		dev = new CIrrDeviceWin32(creation_params);
 #endif
-
 
 		if (dev && !dev->getVideoDriver())
 		{

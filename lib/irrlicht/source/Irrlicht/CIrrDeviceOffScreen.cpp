@@ -23,7 +23,6 @@ extern bool GLContextDebugBit;
 #include "irrString.h"
 #include "Keycodes.h"
 #include "CContextEGL.h"
-#include "COSOperator.h"
 #include "CColorConverter.h"
 #include "SIrrCreationParameters.h"
 
@@ -35,8 +34,6 @@ namespace irr
         extern bool useCoreContext;
         IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
                 io::IFileSystem* io, CIrrDeviceOffScreen* device);
-        IVideoDriver* createOGLES2Driver(const SIrrlichtCreationParameters& params,
-            video::SExposedVideoData& data, io::IFileSystem* io);
     }
 } // end namespace irr
 

@@ -167,7 +167,10 @@ endif()
 
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-    add_definitions(-DDEBUG -fno-default-inline)
+    add_definitions(-DDEBUG)
+    if(NOT WIN32)
+        add_definitions( -fno-default-inline)
+    endif()
 else()
     add_definitions(-DNDEBUG)
 endif()

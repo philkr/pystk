@@ -12,11 +12,7 @@
 namespace irr
 {
 	class CIrrDeviceWin32;
-	class CIrrDeviceLinux;
-	class CIrrDeviceWayland;
 	class CIrrDeviceOffScreen;
-	class CIrrDeviceSDL;
-	class CIrrDeviceMacOSX;
 	class CIrrDeviceOffScreenMacOSX;
 }
 
@@ -556,26 +552,8 @@ namespace video
 		};
 		core::array<RequestedLight> RequestedLights;
 
-		#ifdef _IRR_WINDOWS_API_
-			HDC HDc; // Private GDI Device Context
-			HWND Window;
 		#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 			CIrrDeviceWin32 *Win32Device;
-		#endif
-		#endif
-		#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-			GLXDrawable Drawable;
-			Display* X11Display;
-			CIrrDeviceLinux *X11Device;
-		#endif
-		#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-			CIrrDeviceWayland *wl_device;
-		#endif
-		#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-			CIrrDeviceMacOSX *OSXDevice;
-		#endif
-		#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-			CIrrDeviceSDL *SDLDevice;
 		#endif
 		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
 			CIrrDeviceOffScreen* OSDevice;
