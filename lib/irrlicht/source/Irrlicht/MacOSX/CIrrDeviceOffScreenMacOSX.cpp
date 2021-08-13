@@ -46,47 +46,6 @@ namespace irr
 namespace irr
 {
 
-//! Implementation of the linux cursor control
-class DummyCursorControlMac : public gui::ICursorControl
-{
-public:
-
-	DummyCursorControlMac(): IsVisible(true) {
-	}
-	virtual void setVisible(bool visible) {
-		IsVisible = visible;
-	}
-	virtual bool isVisible() const {
-		return IsVisible;
-	}
-	virtual void setPosition(const core::position2d<f32> &pos) {
-		setPosition(pos.X, pos.Y);
-	}
-	virtual void setPosition(f32 x, f32 y) {
-		setPosition((s32)(x), (s32)(y));
-	}
-	virtual void setPosition(const core::position2d<s32> &pos) {
-		setPosition(pos.X, pos.Y);
-	}
-	virtual void setPosition(s32 x, s32 y) {
-		CursorPos.X = x;
-		CursorPos.Y = y;
-	}
-	virtual const core::position2d<s32>& getPosition() {
-		return CursorPos;
-	}
-	virtual core::position2d<f32> getRelativePosition()
-	{
-		return core::position2d<f32>(0, 0);
-	}
-
-	virtual void setReferenceRect(core::rect<s32>* rect=0) { }
-
-private:
-	core::position2d<s32> CursorPos;
-	bool IsVisible;
-};
-
 class ContextManagerCGL {
 protected:
 	CGLContextObj context_ = 0;
@@ -96,13 +55,13 @@ public:
 	~ContextManagerCGL() {
 		close();
 	}
-	bool init(int width, int height, bool srgb, bool alpha) {
+	bool init() {
 		CGLPixelFormatAttribute attributes[] = {
     	  kCGLPFAAccelerated,
 		  kCGLPFAOpenGLProfile, (CGLPixelFormatAttribute) kCGLOGLPVersion_3_2_Core,
 		  kCGLPFAColorSize, (CGLPixelFormatAttribute)24,
     	  kCGLPFADepthSize, (CGLPixelFormatAttribute)16,
-    	  kCGLPFAAlphaSize, alpha ? (CGLPixelFormatAttribute)8 : (CGLPixelFormatAttribute)1,
+    	  kCGLPFAAlphaSize, (CGLPixelFormatAttribute)8,
     	  (CGLPixelFormatAttribute)0
 		};
 		
@@ -146,9 +105,6 @@ public:
 CIrrDeviceOffScreenMacOSX::CIrrDeviceOffScreenMacOSX(const SIrrlichtCreationParameters& params)
  : CIrrDeviceStub(params), m_cgl_context(0)
 {
-	// create cursor control
-	CursorControl = new DummyCursorControlMac();
-
 	bool success = initCGL();
 	if (!success)
 		return;
@@ -175,7 +131,7 @@ bool CIrrDeviceOffScreenMacOSX::initCGL()
 {
     m_cgl_context = new ContextManagerCGL();
 
-    bool success = m_cgl_context->init(CreationParams.WindowSize.Width, CreationParams.WindowSize.Height, CreationParams.HandleSRGB, CreationParams.WithAlphaChannel);
+    bool success = m_cgl_context->init();
 
     if (!success)
         return false;
@@ -185,19 +141,11 @@ bool CIrrDeviceOffScreenMacOSX::initCGL()
 //! create the driver
 void CIrrDeviceOffScreenMacOSX::createDriver()
 {
-	switch(CreationParams.DriverType)
-	{
-    case video::EDT_OPENGL:
-        #ifdef _IRR_COMPILE_WITH_OPENGL_
-        VideoDriver = video::createOpenGLDriver(CreationParams, FileSystem, this);
-        #else
-        os::Printer::log("No OpenGL support compiled in.", ELL_ERROR);
-        #endif
-        break;
-	default:
-		VideoDriver = video::createNullDriver(FileSystem, CreationParams.WindowSize);
-		break;
-	}
+    #ifdef _IRR_COMPILE_WITH_OPENGL_
+    VideoDriver = video::createOpenGLDriver(CreationParams, FileSystem, this);
+    #else
+    os::Printer::log("No OpenGL support compiled in.", ELL_ERROR);
+    #endif
 }
 
 
@@ -212,105 +160,11 @@ bool CIrrDeviceOffScreenMacOSX::run()
 	return !Close;
 }
 
-
-//! Pause the current process for the minimum time allowed only to allow other processes to execute
-void CIrrDeviceOffScreenMacOSX::yield()
-{
-	struct timespec ts = {0,0};
-	nanosleep(&ts, NULL);
-}
-
-
-//! Pause execution and let other processes to run for a specified amount of time.
-void CIrrDeviceOffScreenMacOSX::sleep(u32 timeMs, bool pauseTimer=false)
-{
-	bool wasStopped = Timer ? Timer->isStopped() : true;
-
-	struct timespec ts;
-	ts.tv_sec = (time_t) (timeMs / 1000);
-	ts.tv_nsec = (long) (timeMs % 1000) * 1000000;
-
-	if (pauseTimer && !wasStopped)
-		Timer->stop();
-
-	nanosleep(&ts, NULL);
-
-	if (pauseTimer && !wasStopped)
-		Timer->start();
-}
-
-
-//! presents a surface in the client area
-bool CIrrDeviceOffScreenMacOSX::present(video::IImage* image, void* windowId, core::rect<s32>* src )
-{
-	return true;
-}
-
-
 //! notifies the device that it should close itself
 void CIrrDeviceOffScreenMacOSX::closeDevice()
 {
 	Close = true;
 }
-
-
-//! returns if window is active. if not, nothing need to be drawn
-bool CIrrDeviceOffScreenMacOSX::isWindowActive() const
-{
-	return true;
-}
-
-
-//! returns if window has focus
-bool CIrrDeviceOffScreenMacOSX::isWindowFocused() const
-{
-	return true;
-}
-
-
-//! returns if window is minimized
-bool CIrrDeviceOffScreenMacOSX::isWindowMinimized() const
-{
-	return false;
-}
-
-
-//! sets the caption of the window
-void CIrrDeviceOffScreenMacOSX::setWindowCaption(const wchar_t* text)
-{
-}
-
-
-//! Sets if the window should be resizeable in windowed mode.
-void CIrrDeviceOffScreenMacOSX::setResizable(bool resize)
-{
-}
-
-
-//! Minimizes window
-void CIrrDeviceOffScreenMacOSX::minimizeWindow()
-{
-}
-
-
-//! Maximizes window
-void CIrrDeviceOffScreenMacOSX::maximizeWindow()
-{
-}
-
-
-//! Restores original window size
-void CIrrDeviceOffScreenMacOSX::restoreWindow()
-{
-}
-
-
-//! Returns the type of this device
-E_DEVICE_TYPE CIrrDeviceOffScreenMacOSX::getType() const
-{
-	return EIDT_OFFSCREEN;
-}
-
 
 } // end namespace
 

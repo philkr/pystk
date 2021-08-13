@@ -30,10 +30,6 @@
         #endif
 
 #elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-        #include "MacOSX/CIrrDeviceMacOSX.h"
-        #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-                #define GL_GLEXT_LEGACY 1
-        #endif
         #include <OpenGL/gl.h>
         #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
                 #include "glext.h"

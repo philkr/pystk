@@ -287,7 +287,6 @@ source/Irrlicht/IAttribute.h
         source/Irrlicht/ISceneNodeAnimatorFinishing.h
 source/Irrlicht/ITriangleRenderer.h
 source/Irrlicht/IZBuffer.h
-source/Irrlicht/MacOSX/AppDelegate.h
         source/Irrlicht/Octree.h
 source/Irrlicht/os.h
 source/Irrlicht/resource.h
@@ -449,15 +448,7 @@ include/vector3d.h
 if(APPLE)
     set(IRRLICHT_SOURCES
         ${IRRLICHT_SOURCES}
-        source/Irrlicht/MacOSX/AppDelegate.mm
-        source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm
         source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp)
-
-    set_source_files_properties(source/Irrlicht/MacOSX/AppDelegate.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
-    set_source_files_properties(source/Irrlicht/MacOSX/AppDelegate.mm PROPERTIES LANGUAGE C)
-
-    set_source_files_properties(source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
-    set_source_files_properties(source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm PROPERTIES LANGUAGE C)
 endif()
 
 

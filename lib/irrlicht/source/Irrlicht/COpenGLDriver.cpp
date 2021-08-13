@@ -611,12 +611,12 @@ bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData,
 //! Windows constructor and init code
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
 		io::IFileSystem* io, CIrrDeviceOffScreenMacOSX *device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+: CNullDriver(io), COpenGLExtensionHandler(),
 	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
-	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+    RenderTargetTexture(0),
 	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
 	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	OSDeviceMacOSX(device), DeviceType(EIDT_OFFSCREEN)
+	OSDeviceMacOSX(device)
 {
 	#ifdef _DEBUG
 	setDebugName("COpenGLDriver");
@@ -859,11 +859,7 @@ bool COpenGLDriver::endScene()
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-	if (DeviceType == EIDT_OSX)
-	{
-		OSXDevice->flush();
-		return true;
-	}
+    return true;
 #endif
 
 #ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
