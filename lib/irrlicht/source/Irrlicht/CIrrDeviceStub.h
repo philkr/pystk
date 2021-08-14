@@ -28,7 +28,7 @@ namespace irr
 
 	namespace video
 	{
-		IVideoDriver* createNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& screenSize);
+		IVideoDriver* createNullDriver(io::IFileSystem* io);
 	}
 
 

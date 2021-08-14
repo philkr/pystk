@@ -130,7 +130,7 @@ else ()
   endif ()
 endif ()
 
-project(freetype)
+project(freetype C)
 
 
 # SOVERSION scheme: CURRENT.AGE.REVISION

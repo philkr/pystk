@@ -14,6 +14,8 @@
 #endif
 
 #include "irrlicht.h"
+#include "CIrrDeviceNull.h"
+
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 #include "CIrrDeviceWin32.h"
 #endif
@@ -56,6 +58,8 @@ namespace irr
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 		dev = new CIrrDeviceWin32(creation_params);
 #endif
+		if (!dev)
+		    dev = new CIrrDeviceNull(creation_params);
 
 		if (dev && !dev->getVideoDriver())
 		{
