@@ -25,6 +25,7 @@
 #include "utils/mini_glm.hpp"
 
 #include "LinearMath/btQuaternion.h"
+#include <ISceneManager.h>
 
 // ============================================================================
 // Position offset to attach in kart model

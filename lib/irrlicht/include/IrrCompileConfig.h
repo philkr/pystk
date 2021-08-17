@@ -16,39 +16,15 @@
 
 #include <stdio.h> // TODO: Although included elsewhere this is required at least for mingw
 
-//! The defines for different operating system are:
-//! _IRR_XBOX_PLATFORM_ for XBox
-//! _IRR_WINDOWS_ for all irrlicht supported Windows versions
-//! _IRR_WINDOWS_CE_PLATFORM_ for Windows CE
-//! _IRR_WINDOWS_API_ for Windows or XBox
-//! _IRR_LINUX_PLATFORM_ for Linux (it is defined here if no other os is defined)
-//! _IRR_SOLARIS_PLATFORM_ for Solaris
-//! _IRR_OSX_PLATFORM_ for Apple systems running OSX
-//! _IRR_IOS_PLATFORM_ for Apple devices running iOS
-//! _IRR_ANDROID_PLATFORM_ for devices running Android
-//! _IRR_POSIX_API_ for Posix compatible systems
-//! Note: PLATFORM defines the OS specific layer, API can group several platforms
-
-//! DEVICE is the windowing system used, several PLATFORMs support more than one DEVICE
-//! Irrlicht can be compiled with more than one device
-//! _IRR_COMPILE_WITH_WINDOWS_DEVICE_ for Windows API based device
-//! _IRR_COMPILE_WITH_OSX_DEVICE_ for Cocoa native windowing on OSX
-//! _IRR_COMPILE_WITH_X11_DEVICE_ for Linux X11 based device
-//! _IRR_COMPILE_WITH_SDL_DEVICE_ for platform independent SDL framework
-
-//! Passing defines to the compiler which have NO in front of the _IRR definename is an alternative
-//! way which can be used to disable defines (instead of outcommenting them in this header).
-//! So defines can be controlled from Makefiles or Projectfiles which allows building
-//! different library versions without having to change the sources.
-//! Example: NO_IRR_COMPILE_WITH_X11_ would disable X11
-
 //! WIN32 for Windows32
 //! WIN64 for Windows64
-// The windows platform and API support SDL and WINDOW device
+// The windows platform
 #if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
 #define _IRR_WINDOWS_
 #define _IRR_WINDOWS_API_
-#define _IRR_COMPILE_WITH_WINDOWS_DEVICE_
+#endif
+
+#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 #define _IRR_COMPILE_WITH_OPENGL_
 #endif
 
@@ -57,23 +33,27 @@
 #  error "Only Microsoft Visual Studio 7.0 and later are supported."
 #endif
 
+
+// The MacOS X platform
 #if defined(__APPLE__) || defined(MACOSX)
 #if !defined(MACOSX)
 #define MACOSX // legacy support
 #endif
-#define _IRR_OSX_PLATFORM_ // we only support OSX on these systems
-#define _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
-#define _IRR_COMPILE_WITH_OPENGL_
-#define GL_SILENCE_DEPRECATION
-
+#define _IRR_OSX_PLATFORM_
 #endif
 
-#if !defined(_IRR_WINDOWS_API_) && !defined(_IRR_OSX_PLATFORM_) && !defined(_IRR_ANDROID_PLATFORM_)
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
+#define _IRR_COMPILE_WITH_OPENGL_
+#define GL_SILENCE_DEPRECATION
+#endif
+
+
+// The Linux platform
+#if !defined(_IRR_WINDOWS_API_) && !defined(_IRR_OSX_PLATFORM_)
 #define _IRR_POSIX_API_
 #endif
 
-#ifndef NO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
-#define _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
+#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
 #define _IRR_COMPILE_WITH_EGL_
 #define _IRR_COMPILE_WITH_OPENGL_
 #endif

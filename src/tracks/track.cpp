@@ -385,7 +385,6 @@ void Track::cleanup()
     }
 
 #ifndef SERVER_ONLY
-    irr_driver->clearGlowingNodes();
     irr_driver->clearLights();
     irr_driver->clearForcedBloom();
     irr_driver->clearBackgroundNodes();

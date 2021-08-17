@@ -395,13 +395,13 @@ void FontWithFace::dumpGlyphPage()
  */
 void FontWithFace::setDPI()
 {
+#ifndef SERVER_ONLY
     float scale = std::min(irr_driver->getActualScreenSize().Height,
-                             irr_driver->getActualScreenSize().Width)  / 720.0f;
+                           irr_driver->getActualScreenSize().Width)  / 720.0f;
     int factorTwo = getScalingFactorTwo();
-    
+
     factorTwo += 20 - 10;
     m_face_dpi = int(factorTwo * getScalingFactorOne() * scale);
-#ifndef SERVER_ONLY
     if (!disableTextShaping())
     {
         m_inverse_shaping = (1.0f / (float)font_manager->getShapingDPI()) *

@@ -1,28 +1,22 @@
-# CMakeLists.txt for Irrlicht in STK
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
-                    "${JPEG_INCLUDE_DIR}"
-                    "${PNG_INCLUDE_DIR}"
-                    "${ZLIB_INCLUDE_DIR}"
-                    "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
-
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
-
-find_package(EGL)
-set(EGL_FOUND 0)
-if(EGL_FOUND)
-    include_directories(${EGL_INCLUDE_DIR})
-else()
-    add_definitions(-DNO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
+if(NOT IRR_NO_GRAPHICS)
+    find_package(OpenGL)
+    if(NOT OPENGL_FOUND)
+        set(IRR_NO_GRAPHICS False)
+    endif()
+    if(UNIX AND NOT APPLE)
+        find_package(EGL)
+        if(NOT EGL_FOUND)
+            set(IRR_NO_GRAPHICS False)
+        endif()
+    endif()
 endif()
 
-if(0)
+if(IRR_NO_GRAPHICS)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/../../src"
-                        "${CMAKE_CURRENT_BINARY_DIR}/../zlib/")
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../src"
+            "${CMAKE_CURRENT_BINARY_DIR}/../zlib/")
     include_directories("${ZLIB_INCLUDE_DIR}")
+    add_definitions(-DSERVER_ONLY)
     add_definitions(-DNO_IRR_COMPILE_WITH_LIBPNG_)
     add_definitions(-DNO_IRR_COMPILE_WITH_LIBJPEG_)
     add_definitions(-DNO_IRR_COMPILE_WITH_BMP_LOADER_)
@@ -31,21 +25,39 @@ if(0)
     add_definitions(-DNO_IRR_COMPILE_WITH_BMP_WRITER_)
     add_definitions(-DNO_IRR_COMPILE_WITH_PNG_WRITER_)
     add_definitions(-DNO_IRR_COMPILE_WITH_JPG_WRITER_)
-    add_definitions(-DNO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
-endif()
-
-if(APPLE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -F/Library/Frameworks")
-endif()
-
-add_definitions(-DNDEBUG=1 -DIRRLICHT_EXPORTS=1 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES)
-
-
-if(WIN32)
-    add_definitions(-D_IRR_STATIC_LIB_)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS) # Shut up about unsafe stuff
 else()
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
+            "${JPEG_INCLUDE_DIR}"
+            "${PNG_INCLUDE_DIR}"
+            "${ZLIB_INCLUDE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
+
+    find_package(OpenGL REQUIRED)
+    include_directories(${OPENGL_INCLUDE_DIR})
+
+    if(APPLE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -F/Library/Frameworks")
+        add_definitions(-D_IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_)
+    elseif(UNIX)
+        find_package(EGL REQUIRED)
+        if(NOT EGL_FOUND)
+            message(FATAL_ERROR "EGL required on Linux, try compiling without graphics (set NO_GRAPHICS)")
+        endif()
+        include_directories(${EGL_INCLUDE_DIR})
+        add_definitions(-D_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
+    elseif(WIN32)
+        add_definitions(-D_IRR_STATIC_LIB_)
+        add_definitions(-D_CRT_SECURE_NO_WARNINGS)  # Suppress unsafe warnings
+        add_definitions(-D_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
+    else()
+        message(FATAL_ERROR "Platform not supported")
+    endif()
+endif()
+
+if(NOT WIN32)
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -pipe -O3 -fstrict-aliasing")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pipe -O3 -fstrict-aliasing")
     if(CMAKE_COMPILER_IS_GNUCC)
@@ -55,6 +67,9 @@ else()
         set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS} -fexpensive-optimizations")
     endif()
 endif()
+
+
+add_definitions(-DNDEBUG=1 -DIRRLICHT_EXPORTS=1 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES)
 
 set(IRRLICHT_SOURCES
 source/Irrlicht/CAnimatedMeshSceneNode.cpp
@@ -404,18 +419,12 @@ include/vector3d.h
 
 add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 
-target_link_libraries(stkirrlicht ${ZLIB_LIBRARY} ${OPENGL_LIBRARIES})
+target_link_libraries(stkirrlicht ${ZLIB_LIBRARY} ${OPENGL_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY})
 
-if(APPLE)
-    target_link_libraries(stkirrlicht "-framework CoreFoundation")
-endif()
-
-target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY})
-if(UNIX AND NOT APPLE)
-    target_link_libraries(stkirrlicht ${X11_X11_LIB})
-endif()
 
 if(EGL_FOUND)
     target_link_libraries(stkirrlicht ${EGL_LIBRARY})
 endif()
-
+if(APPLE)
+    target_link_libraries(stkirrlicht "-framework CoreFoundation")
+endif()

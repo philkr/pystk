@@ -2,6 +2,7 @@
 #include <pybind11/numpy.h>
 namespace py = pybind11;
 
+#ifndef SERVER_ONLY
 class BasicPBO {
 protected:
     unsigned int buffer_id_;
@@ -24,3 +25,5 @@ public:
     virtual void read(unsigned int texture);
     virtual py::array get();
 };
+
+#endif  // SERVER_ONLY

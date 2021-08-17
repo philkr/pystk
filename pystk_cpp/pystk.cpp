@@ -142,6 +142,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
     return config;
 }
 
+#ifndef SERVER_ONLY
 class PySTKRenderTarget {
     friend class PySTKRace;
 
@@ -188,7 +189,7 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
     }
     
 }
-
+#endif  // SERVER_ONLY
 
 void PySTKAction::set(KartControl * control) const {
     control->setAccel(acceleration);
@@ -271,9 +272,10 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
     resetObjectId();
     
     setupConfig(config);
+#ifndef SERVER_ONLY
     for(int i=0; i<config.players.size(); i++)
         render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
-    
+#endif  // SERVER_ONLY
 }
 std::vector<std::string> PySTKRace::listTracks() {
     if (track_manager)
@@ -360,14 +362,9 @@ void PySTKRace::start() {
     powerup_manager->setRandomSeed(config_.seed);
 }
 void PySTKRace::stop() {
+#ifndef SERVER_ONLY
     render_targets_.clear();
-    if (CVS->isGLSL())
-    {
-        // Reset screen in case the minimap was drawn
-        glViewport(0, 0, irr_driver->getActualScreenSize().Width,
-            irr_driver->getActualScreenSize().Height);
-    }
-
+#endif  // SERVER_ONLY
     if (World::getWorld())
     {
         race_manager->exitRace();
@@ -375,7 +372,7 @@ void PySTKRace::stop() {
 }
 void PySTKRace::render(float dt) {
     World *world = World::getWorld();
-
+#ifndef SERVER_ONLY
     if (world)
     {
         // Render all views
@@ -389,6 +386,7 @@ void PySTKRace::render(float dt) {
             render_targets_[i]->fetch(render_data_[i]);
         }
     }
+#endif  // SERVER_ONLY
 }
 
 bool PySTKRace::step(const std::vector<PySTKAction> & a) {

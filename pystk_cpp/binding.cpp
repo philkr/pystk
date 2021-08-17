@@ -153,6 +153,7 @@ PYBIND11_MODULE(pystk, m) {
         add_pickle(cls);
     }
 
+#ifndef SERVER_ONLY
     {
         py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
         cls
@@ -162,6 +163,7 @@ PYBIND11_MODULE(pystk, m) {
 ;
 //        add_pickle(cls);
     }
+#endif  // SERVER_ONLY
 
     {
         py::class_<PySTKAction, std::shared_ptr<PySTKAction> > cls(m, "Action", "SuperTuxKart action");
@@ -189,7 +191,11 @@ PYBIND11_MODULE(pystk, m) {
         .def("step", (bool (PySTKRace::*)(const PySTKAction &)) &PySTKRace::step, py::arg("action"), "Take a step with an action for agent 0")
         .def("step", (bool (PySTKRace::*)()) &PySTKRace::step, "Take a step without changing the action")
         .def("stop", &PySTKRace::stop,"Stop the race")
+#ifdef SERVER_ONLY
+        .def_property_readonly("render_data", [](const PySTKRace &) -> py::none {throw py::value_error("Cannot return 'render_data' while compiled without graphics");}, "rendering data from the last step")
+#else
         .def_property_readonly("render_data", &PySTKRace::render_data, "rendering data from the last step")
+#endif  // SERVER_ONLY
         .def_property_readonly("last_action", &PySTKRace::last_action, "the last action the agent took")
         .def_property_readonly("config", &PySTKRace::config,"The current race configuration");
     }

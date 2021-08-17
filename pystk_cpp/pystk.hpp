@@ -54,9 +54,11 @@ struct PySTKRaceConfig {
 
 class PySTKRenderTarget;
 
+#ifndef SERVER_ONLY
 struct PySTKRenderData {
     std::shared_ptr<NumpyPBO> color_buf_, depth_buf_, instance_buf_;
 };
+#endif  // SERVER_ONLY
 
 class KartControl;
 class Controller;
@@ -93,8 +95,10 @@ protected:
 	void setupConfig(const PySTKRaceConfig & config);
 	void setupRaceStart();
 	void render(float dt);
+#ifndef SERVER_ONLY
 	std::vector<std::unique_ptr<PySTKRenderTarget> > render_targets_;
 	std::vector<std::shared_ptr<PySTKRenderData> > render_data_;
+#endif  // SERVER_ONLY
 	PySTKRaceConfig config_;
 	float time_leftover_ = 0;
 	std::vector<PySTKAction> last_action_;
@@ -110,7 +114,9 @@ public:
 	bool step(const PySTKAction &);
 	bool step();
 	void stop();
+#ifndef SERVER_ONLY
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
+#endif  // SERVER_ONLY
 	const std::vector<PySTKAction> & last_action() const { return last_action_; }
 	const PySTKRaceConfig & config() const { return config_; }
 };

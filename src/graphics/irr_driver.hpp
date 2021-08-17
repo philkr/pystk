@@ -130,7 +130,6 @@ private:
     bool                 m_shadowviz;
     bool                 m_lightviz;
     bool                 m_boundingboxesviz;
-    bool                 m_recording;
     bool                 m_render_nw_debug;
 
     /** Background colour to reset a buffer. Can be changed by each track. */
@@ -279,13 +278,14 @@ public:
     unsigned int getRealTime() { return m_device->getTimer()->getRealTime(); }
     // ------------------------------------------------------------------------
     /** Use motion blur for a short time */
-    void giveBoost(unsigned int cam_index) { m_renderer->giveBoost(cam_index);}
+    void giveBoost(unsigned int cam_index) {
+#ifndef SERVER_ONLY
+        m_renderer->giveBoost(cam_index);
+#endif
+    }
     // ------------------------------------------------------------------------
     inline core::vector3df getWind()  {return m_wind->getWind();}
 
-    // -----------------------------------------------------------------------
-    /** Returns a pointer to the spherical harmonics coefficients. */
-    inline const SHCoefficients* getSHCoefficients()  {return m_renderer->getSHCoefficients();}
     // -----------------------------------------------------------------------
     const core::vector3df& getSunDirection() const { return m_sun_direction; };
     // -----------------------------------------------------------------------
@@ -328,19 +328,7 @@ public:
         if (complexity > 1) m_scene_complexity += (complexity - 1);
     }
     // ------------------------------------------------------------------------
-    bool isRecording() const { return m_recording; }
-    // ------------------------------------------------------------------------
-    void setRecording(bool val);
-    // ------------------------------------------------------------------------
     std::vector<LightNode *> getLights() { return m_lights; }
-    // ------------------------------------------------------------------------
-    void addGlowingNode(scene::ISceneNode *n, float r = 1.0f, float g = 1.0f,
-                        float b = 1.0f)
-    {
-        m_renderer->addGlowingNode(n, r, g, b);
-    }
-    // ------------------------------------------------------------------------
-    void clearGlowingNodes() { m_renderer->clearGlowingNodes(); }
     // ------------------------------------------------------------------------
     void addForcedBloomNode(scene::ISceneNode *n, float power = 1)
     {
@@ -409,6 +397,8 @@ public:
     {
         return m_InvProjViewMatrix;
     }
+
+#ifndef SERVER_ONLY
     // ------------------------------------------------------------------------
     const core::dimension2du &getCurrentScreenSize() const
     {
@@ -419,6 +409,7 @@ public:
     {
         return getCurrentScreenSize();
     }
+#endif  // SERVER_ONLY
     // ------------------------------------------------------------------------
     float getSSAORadius() const
     {

@@ -63,25 +63,6 @@
 
 #include <irrlicht.h>
 
-#ifdef ENABLE_RECORDER
-#include <chrono>
-#include <openglrecorder.h>
-#endif
-
-/* Build-time check that the Irrlicht we're building against works for us.
- * Should help prevent distros building against an incompatible library.
- */
-
-#if (  IRRLICHT_VERSION_MAJOR < 1                   || \
-       IRRLICHT_VERSION_MINOR < 7                   || \
-      _IRR_MATERIAL_MAX_TEXTURES_ < 8               || \
-      ( !defined(_IRR_COMPILE_WITH_OPENGL_) &&         \
-        !defined(SERVER_ONLY)               &&         \
-        !defined(_IRR_COMPILE_WITH_OGLES2_)       ) || \
-      !defined(_IRR_COMPILE_WITH_B3D_LOADER_)             )
-#error "Building against an incompatible Irrlicht. Distros, please use the included version."
-#endif
-
 using namespace irr;
 
 /** singleton */
@@ -155,7 +136,6 @@ IrrDriver::IrrDriver()
     m_last_light_bucket_distance = 0;
     m_clear_color                = video::SColor(255, 100, 101, 140);
     m_skinning_joint             = 0;
-    m_recording = false;
     m_sun_interposer = NULL;
     m_scene_complexity           = 0;
 
@@ -172,9 +152,6 @@ IrrDriver::IrrDriver()
  */
 IrrDriver::~IrrDriver()
 {
-#ifdef ENABLE_RECORDER
-    ogrDestroy();
-#endif
     STKTexManager::getInstance()->kill();
     delete m_wind;
     delete m_renderer;
@@ -1127,47 +1104,6 @@ void IrrDriver::minimalUpdate(float dt) {
 void IrrDriver::renderNetworkDebug()
 {
 }   // renderNetworkDebug
-
-// ----------------------------------------------------------------------------
-void IrrDriver::setRecording(bool val)
-{
-#ifdef ENABLE_RECORDER
-    if (!CVS->isARBPixelBufferObjectUsable())
-    {
-        Log::warn("irr_driver", "PBO extension missing, can't record video.");
-        return;
-    }
-    if (val == (ogrCapturing() == 1))
-        return;
-    m_recording = val;
-    if (val == true)
-    {
-        std::string track_name = World::getWorld() != NULL ?
-            race_manager->getTrackName() : "menu";
-        time_t rawtime;
-        time(&rawtime);
-        tm* timeInfo = localtime(&rawtime);
-        char time_buffer[256];
-        sprintf(time_buffer, "%i.%02i.%02i_%02i.%02i.%02i",
-            timeInfo->tm_year + 1900, timeInfo->tm_mon + 1,
-            timeInfo->tm_mday, timeInfo->tm_hour,
-            timeInfo->tm_min, timeInfo->tm_sec);
-        ogrSetSavedName((file_manager->getScreenshotDir() +
-            track_name + "_" + time_buffer).c_str());
-        ogrPrepareCapture();
-    }
-    else
-    {
-        ogrStopCapture();
-    }
-#else
-    Log::error("Recorder", "Recording unavailable, STK was compiled without "
-               "recording support.  Please re-compile STK with libopenglrecorder "
-               "to enable recording.  If you got SuperTuxKart from your distribution's "
-               "repositories, please use the official binaries, or contact your "
-               "distributions's package mantainers.");
-#endif
-}   // setRecording
 
 // ----------------------------------------------------------------------------
 
