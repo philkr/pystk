@@ -101,7 +101,6 @@ protected:
 #endif  // SERVER_ONLY
 	PySTKRaceConfig config_;
 	float time_leftover_ = 0;
-	std::vector<PySTKAction> last_action_;
 
 public:
 	PySTKRace(const PySTKRace &) = delete;
@@ -117,6 +116,5 @@ public:
 #ifndef SERVER_ONLY
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
 #endif  // SERVER_ONLY
-	const std::vector<PySTKAction> & last_action() const { return last_action_; }
 	const PySTKRaceConfig & config() const { return config_; }
 };

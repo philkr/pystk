@@ -417,9 +417,6 @@ bool PySTKRace::step() {
         World::getWorld()->updateWorld(1);
         World::getWorld()->updateTime(1);
     }
-    last_action_.resize(config_.players.size());
-    for(int i=0; i<last_action_.size(); i++)
-        last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
     
     PropertyAnimator::get()->update(dt);
     

@@ -196,7 +196,6 @@ PYBIND11_MODULE(pystk, m) {
 #else
         .def_property_readonly("render_data", &PySTKRace::render_data, "rendering data from the last step")
 #endif  // SERVER_ONLY
-        .def_property_readonly("last_action", &PySTKRace::last_action, "the last action the agent took")
         .def_property_readonly("config", &PySTKRace::config,"The current race configuration");
     }
     
