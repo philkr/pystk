@@ -6,6 +6,9 @@ endif()
 if(POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
+if(NOT PYSTK_VERSION)
+    set(PYSTK_VERSION "0.0.0")
+endif()
 
 # root CMakeLists for the SuperTuxKart project
 project(SuperTuxKart VERSION "${PYSTK_VERSION}")

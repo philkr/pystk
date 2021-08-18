@@ -33,7 +33,7 @@ void path_and_init(const PySTKGraphicsConfig & config) {
 }
 PYBIND11_MODULE(pystk, m) {
     m.doc() = "Python SuperTuxKart interface";
-    m.attr("__version__") = STK_VERSION;
+    m.attr("__version__") = std::string(STK_VERSION);
 
     // Make offscreen rendering default
     if (!getenv("IRR_DEVICE_TYPE"))
