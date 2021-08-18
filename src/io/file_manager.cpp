@@ -172,7 +172,7 @@ FileManager::FileManager()
     // This is esp. useful for Visual Studio, since it's not necessary
     // to define the working directory when debugging, it works automatically.
     std::string root_dir;
-    const std::string version = std::string("supertuxkart.") + STK_VERSION;
+    const std::string version = std::string("supertuxkart.git");
     if (fileExists(CommandLine::getExecName()))
     {
         exe_path = StringUtils::getPath(CommandLine::getExecName());
