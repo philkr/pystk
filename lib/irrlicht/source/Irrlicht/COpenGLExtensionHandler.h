@@ -29,7 +29,7 @@
                 #pragma comment(lib, "OpenGL32.lib")
         #endif
 
-#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
+#elif defined(_IRR_OSX_PLATFORM_)
         #include <OpenGL/gl.h>
         #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
                 #include "glext.h"

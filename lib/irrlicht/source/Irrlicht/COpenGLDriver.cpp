@@ -30,7 +30,7 @@ extern bool GLContextDebugBit;
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
-#include "MacOSX/CIrrDeviceOffScreenMacOSX.h"
+#include "CIrrDeviceOffScreenMacOSX.h"
 #endif
 
 namespace irr
