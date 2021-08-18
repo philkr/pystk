@@ -1,16 +1,10 @@
 if(NOT IRR_NO_GRAPHICS)
     find_package(OpenGL)
     if(NOT OPENGL_FOUND)
-        set(IRR_NO_GRAPHICS False)
-    endif()
-    if(UNIX AND NOT APPLE)
-        find_package(EGL)
-        if(NOT EGL_FOUND)
-            set(IRR_NO_GRAPHICS False)
-        endif()
+        set(IRR_NO_GRAPHICS TRUE)
     endif()
 endif()
-
+set(IRR_NO_GRAPHICS ${IRR_NO_GRAPHICS} PARENT_SCOPE)
 if(IRR_NO_GRAPHICS)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
             "${CMAKE_CURRENT_SOURCE_DIR}/../../src"
@@ -42,11 +36,6 @@ else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -F/Library/Frameworks")
         add_definitions(-D_IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_)
     elseif(UNIX)
-        find_package(EGL REQUIRED)
-        if(NOT EGL_FOUND)
-            message(FATAL_ERROR "EGL required on Linux, try compiling without graphics (set NO_GRAPHICS)")
-        endif()
-        include_directories(${EGL_INCLUDE_DIR})
         add_definitions(-D_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
     elseif(WIN32)
         add_definitions(-D_IRR_STATIC_LIB_)
@@ -77,6 +66,7 @@ source/Irrlicht/CAttributes.cpp
 source/Irrlicht/CBillboardSceneNode.cpp
 source/Irrlicht/CBoneSceneNode.cpp
 source/Irrlicht/CCameraSceneNode.cpp
+source/Irrlicht/CContext.cpp
 source/Irrlicht/CContextEGL.cpp
 source/Irrlicht/CColorConverter.cpp
 source/Irrlicht/CCubeSceneNode.cpp
@@ -169,6 +159,7 @@ source/Irrlicht/CBillboardSceneNode.h
 source/Irrlicht/CBlit.h
 source/Irrlicht/CBoneSceneNode.h
 source/Irrlicht/CCameraSceneNode.h
+source/Irrlicht/CContext.h
 source/Irrlicht/CContextEGL.h
 source/Irrlicht/CColorConverter.h
 source/Irrlicht/CCubeSceneNode.h
@@ -421,10 +412,6 @@ add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 
 target_link_libraries(stkirrlicht ${ZLIB_LIBRARY} ${OPENGL_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY})
 
-
-if(EGL_FOUND)
-    target_link_libraries(stkirrlicht ${EGL_LIBRARY})
-endif()
 if(APPLE)
     target_link_libraries(stkirrlicht "-framework CoreFoundation")
 endif()

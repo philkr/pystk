@@ -90,17 +90,15 @@ set(JPEG_LIBRARY jpeglib)
 
 # Build the irrlicht library
 if(NO_GRAPHICS)
-    set(IRR_NO_GRAPHICS True)
+    set(IRR_NO_GRAPHICS TRUE)
 endif()
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/irrlicht")
 include_directories("${PROJECT_SOURCE_DIR}/lib/irrlicht/include")
-if(IRR_NO_GRAPHICS)
-    set(SERVER_ONLY True)
-endif()
 
-if (SERVER_ONLY)
+if (IRR_NO_GRAPHICS)
     add_definitions(-DSERVER_ONLY)
 else()
+    add_definitions(-DGLEW_NO_GLU)
     add_subdirectory("${PROJECT_SOURCE_DIR}/lib/glew")
     include_directories("${PROJECT_SOURCE_DIR}/lib/glew/include")
     set(GLEW_LIBRARIES "glew")
@@ -189,7 +187,7 @@ target_link_libraries(stk
     ${Angelscript_LIBRARIES}
     )
 
-if(NOT SERVER_ONLY)
+if(NOT IRR_NO_GRAPHICS)
 	target_link_libraries(stk ${OPENGL_gl_LIBRARY} ${GLEW_LIBRARIES})
 
     target_link_libraries(stk

@@ -15,12 +15,27 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef CONTEXT_EGL_HPP
-#define CONTEXT_EGL_HPP
+#ifndef CONTEXT_HPP
+#define CONTEXT_HPP
 
 #include "IrrCompileConfig.h"
-#include "CContext.h"
 
-ContextManager * new_egl_context_manager(const ContextParams & params);
+struct ContextParams
+{
+    int device_id = 0;
+    bool with_alpha_channel = false;
+    int pbuffer_width = 0;
+    int pbuffer_height = 0;
+    bool debug = false;
+};
+
+
+class ContextManager
+{
+public:
+    ContextManager(const ContextParams& params);
+    virtual ~ContextManager();
+    virtual bool makeCurrent() = 0;
+};
 
 #endif

@@ -12,9 +12,8 @@
 #include "CIrrDeviceStub.h"
 #include "IrrlichtDevice.h"
 #include "os.h"
-#include <EGL/egl.h>
 
-class ContextManagerEGL;
+class ContextManager;
 namespace irr
 {
 	
@@ -32,16 +31,16 @@ namespace irr
 		//! notifies the device that it should close itself
 		virtual void closeDevice() _IRR_OVERRIDE_;
 		
-        ContextManagerEGL* getEGLContext() {return m_egl_context;}
+		ContextManager* getContext() {return m_context;}
 
 	private:
 
 		//! create the driver
 		void createDriver();
 		
-		bool initEGL();
+		bool initContext();
 		
-		ContextManagerEGL * m_egl_context;
+		ContextManager * m_context;
 	};
 
 

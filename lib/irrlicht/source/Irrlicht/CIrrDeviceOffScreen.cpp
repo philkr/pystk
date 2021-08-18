@@ -9,21 +9,11 @@ extern bool GLContextDebugBit;
 
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
 
-#include <string>
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/utsname.h>
-#include <time.h>
-#include <locale.h>
-#include "IEventReceiver.h"
 #include "ISceneManager.h"
 #include "os.h"
-#include "CTimer.h"
 #include "irrString.h"
-#include "Keycodes.h"
 #include "CContextEGL.h"
-#include "CColorConverter.h"
 #include "SIrrCreationParameters.h"
 
 
@@ -42,11 +32,13 @@ namespace irr
 
 //! constructor
 CIrrDeviceOffScreen::CIrrDeviceOffScreen(const SIrrlichtCreationParameters& params)
- : CIrrDeviceStub(params), m_egl_context(0)
+ : CIrrDeviceStub(params), m_context(0)
 {
-    bool success = initEGL();
-    if (!success)
+    bool success = initContext();
+    if (!success) {
+        os::Printer::log("CIrrDeviceOffScreen failed to create OpenGL context. Consider using a NO_GRAPHICS build.", ELL_ERROR);
         return;
+    }
     
     // create driver
     createDriver();
@@ -62,33 +54,27 @@ CIrrDeviceOffScreen::CIrrDeviceOffScreen(const SIrrlichtCreationParameters& para
 //! destructor
 CIrrDeviceOffScreen::~CIrrDeviceOffScreen()
 {
-    delete m_egl_context;
+    delete m_context;
 }
 
 
-bool CIrrDeviceOffScreen::initEGL()
+bool CIrrDeviceOffScreen::initContext()
 {
-    m_egl_context = new ContextManagerEGL();
+    ContextParams ctx_params;
 
-    ContextEGLParams egl_params;
-
-    egl_params.surface_type = CEGL_SURFACE_PBUFFER;
     // TODO: FIX ME
 //    egl_params.pbuffer_width = CreationParams.WindowSize.Width;
 //    egl_params.pbuffer_height = CreationParams.WindowSize.Height
-    egl_params.platform = CEGL_PLATFORM_DEVICE;
-    egl_params.device_id = CreationParams.DisplayAdapter;
+ctx_params.device_id = CreationParams.DisplayAdapter;
     if (getenv("EGL_DEVICE"))
-        egl_params.device_id = atoi(getenv("EGL_DEVICE"));
+        ctx_params.device_id = atoi(getenv("EGL_DEVICE"));
 #ifdef NDEBUG
-    egl_params.debug = true;
+    ctx_params.debug = true;
 #else
     egl_params.debug = true;
 #endif
-
-    bool success = m_egl_context->init(egl_params);
-
-    if (!success)
+    m_context = new_egl_context_manager(ctx_params);
+    if (!m_context)
         return false;
     return true;
 }

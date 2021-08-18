@@ -54,7 +54,6 @@
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
-#define _IRR_COMPILE_WITH_EGL_
 #define _IRR_COMPILE_WITH_OPENGL_
 #endif
 

@@ -24,7 +24,6 @@ extern bool GLContextDebugBit;
 #include "CTimer.h"
 #include "irrString.h"
 #include "Keycodes.h"
-#include "CContextEGL.h"
 #include "CColorConverter.h"
 #include "SIrrCreationParameters.h"
 

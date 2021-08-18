@@ -101,7 +101,7 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
 bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, 
 										CIrrDeviceOffScreen* device)
 {
-	if (!device->getEGLContext()->makeCurrent())
+	if (!device->getContext()->makeCurrent())
 	{
 		os::Printer::log("Render Context switch failed.");
 		return false;
@@ -341,7 +341,6 @@ bool COpenGLDriver::endScene()
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
-    OSDevice->getEGLContext()->swapBuffers();
     return true;
 #endif
 
