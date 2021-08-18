@@ -652,6 +652,7 @@ std::string UserConfigParams::m_default_kart = "tux";
 
 int UserConfigParams::m_width = 1024;
 int UserConfigParams::m_height = 768;
+int UserConfigParams::m_display_adapter = 0;
 
 bool UserConfigParams::m_texture_compression = true;
 int UserConfigParams::m_high_definition_textures = 1;

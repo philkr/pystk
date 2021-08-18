@@ -100,7 +100,7 @@
 #endif
 
 const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
-    static PySTKGraphicsConfig config = {600,400,
+    static PySTKGraphicsConfig config = {600,400, 0,
         true, true, true, true, true, 
         2,     // particle_effects
         true,  // animated_characters
@@ -114,7 +114,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::hd() {
     return config;
 }
 const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
-    static PySTKGraphicsConfig config = {600,400,
+    static PySTKGraphicsConfig config = {600,400, 0,
         false, false, false, false, false,
         2,     // particle_effects
         true,  // animated_characters
@@ -128,7 +128,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::sd() {
     return config;
 }
 const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
-    static PySTKGraphicsConfig config = {600,400,
+    static PySTKGraphicsConfig config = {600,400, 0,
         false, false, false, false, false,
         0,     // particle_effects
         false, // animated_characters
@@ -142,6 +142,7 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
     return config;
 }
 
+#ifndef SERVER_ONLY
 class PySTKRenderTarget {
     friend class PySTKRace;
 
@@ -188,7 +189,7 @@ void PySTKRenderTarget::fetch(std::shared_ptr<PySTKRenderData> data) {
     }
     
 }
-
+#endif  // SERVER_ONLY
 
 void PySTKAction::set(KartControl * control) const {
     control->setAccel(acceleration);
@@ -271,9 +272,10 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
     resetObjectId();
     
     setupConfig(config);
+#ifndef SERVER_ONLY
     for(int i=0; i<config.players.size(); i++)
         render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
-    
+#endif  // SERVER_ONLY
 }
 std::vector<std::string> PySTKRace::listTracks() {
     if (track_manager)
@@ -360,14 +362,9 @@ void PySTKRace::start() {
     powerup_manager->setRandomSeed(config_.seed);
 }
 void PySTKRace::stop() {
+#ifndef SERVER_ONLY
     render_targets_.clear();
-    if (CVS->isGLSL())
-    {
-        // Reset screen in case the minimap was drawn
-        glViewport(0, 0, irr_driver->getActualScreenSize().Width,
-            irr_driver->getActualScreenSize().Height);
-    }
-
+#endif  // SERVER_ONLY
     if (World::getWorld())
     {
         race_manager->exitRace();
@@ -375,7 +372,7 @@ void PySTKRace::stop() {
 }
 void PySTKRace::render(float dt) {
     World *world = World::getWorld();
-
+#ifndef SERVER_ONLY
     if (world)
     {
         // Render all views
@@ -389,6 +386,7 @@ void PySTKRace::render(float dt) {
             render_targets_[i]->fetch(render_data_[i]);
         }
     }
+#endif  // SERVER_ONLY
 }
 
 bool PySTKRace::step(const std::vector<PySTKAction> & a) {
@@ -419,9 +417,6 @@ bool PySTKRace::step() {
         World::getWorld()->updateWorld(1);
         World::getWorld()->updateTime(1);
     }
-    last_action_.resize(config_.players.size());
-    for(int i=0; i<last_action_.size(); i++)
-        last_action_[i].get(&World::getWorld()->getPlayerKart(i)->getControls());
     
     PropertyAnimator::get()->update(dt);
     
@@ -516,6 +511,7 @@ void PySTKRace::setupConfig(const PySTKRaceConfig & config) {
 void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
     UserConfigParams::m_width  = config.screen_width;
     UserConfigParams::m_height = config.screen_height;
+    UserConfigParams::m_display_adapter = config.display_adapter;
     UserConfigParams::m_glow = config.glow;
     UserConfigParams::m_bloom = config.bloom;
     UserConfigParams::m_light_shaft = config.light_shaft;
@@ -578,7 +574,9 @@ void PySTKRace::initRest()
 
     // The maximum texture size can not be set earlier, since
     // e.g. the background image needs to be loaded in high res.
+#ifndef SERVER_ONLY
     irr_driver->setMaxTextureSize();
+#endif
     KartPropertiesManager::addKartSearchDir(
                  file_manager->getAddonsFile("karts/"));
     track_manager->addTrackSearchDir(
@@ -610,7 +608,6 @@ void PySTKRace::cleanSuperTuxKart()
 {
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
-    irr_driver->updateConfigIfRelevant();
     if(race_manager)            delete race_manager;
     race_manager = nullptr;
     if(attachment_manager)      delete attachment_manager;

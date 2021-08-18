@@ -2,7 +2,7 @@ import matplotlib
 gui_env = ['MacOSX', 'Qt5Agg','TKAgg','GTKAgg','Qt4Agg','WXAgg']
 for gui in gui_env:
     try:
-        matplotlib.use(gui,warn=False, force=True)
+        matplotlib.use(gui, force=True)
         import matplotlib.pyplot as plt
         break
     except ImportError:

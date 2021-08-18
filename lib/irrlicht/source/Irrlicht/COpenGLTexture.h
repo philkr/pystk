@@ -68,9 +68,6 @@ public:
 	//! Returns size of the texture.
 	virtual const core::dimension2d<u32>& getSize() const;
 
-	//! returns driver type of texture (=the driver, that created it)
-	virtual E_DRIVER_TYPE getDriverType() const;
-
 	//! returns color format of texture
 	virtual ECOLOR_FORMAT getColorFormat() const;
 

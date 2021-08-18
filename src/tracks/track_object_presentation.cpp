@@ -513,7 +513,9 @@ void TrackObjectPresentationMesh::init(const XMLNode* xml_node,
     animated &= !displacing;
 
     m_mesh->grab();
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(m_mesh);
+#endif
 
     if (interaction == "physicsonly")
     {
@@ -546,7 +548,9 @@ void TrackObjectPresentationMesh::init(const XMLNode* xml_node,
         node->grab();
         node->setParent(NULL);
 
+#ifndef SERVER_ONLY
         irr_driver->addBackgroundNode(node);
+#endif
 
         m_node = node;
     }
@@ -605,7 +609,9 @@ TrackObjectPresentationMesh::~TrackObjectPresentationMesh()
 
     if(m_mesh)
     {
+#ifndef SERVER_ONLY
         irr_driver->dropAllTextures(m_mesh);
+#endif
         m_mesh->drop();
         if(m_mesh->getReferenceCount()==1)
             irr_driver->removeMeshFromCache(m_mesh);

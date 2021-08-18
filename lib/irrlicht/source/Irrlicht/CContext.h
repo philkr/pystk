@@ -1,5 +1,5 @@
 //  SuperTuxKart - a fun racing game with go-kart
-//  Copyright (C) 2015 SuperTuxKart-Team
+//  Copyright (C) 2016-2017 SuperTuxKart-Team
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -15,8 +15,27 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#include "graphics/abstract_renderer.hpp"
-#include "graphics/irr_driver.hpp"
+#ifndef CONTEXT_HPP
+#define CONTEXT_HPP
 
-using namespace irr;
+#include "IrrCompileConfig.h"
 
+struct ContextParams
+{
+    int device_id = 0;
+    bool with_alpha_channel = false;
+    int pbuffer_width = 0;
+    int pbuffer_height = 0;
+    bool debug = false;
+};
+
+
+class ContextManager
+{
+public:
+    ContextManager(const ContextParams& params);
+    virtual ~ContextManager();
+    virtual bool makeCurrent() = 0;
+};
+
+#endif

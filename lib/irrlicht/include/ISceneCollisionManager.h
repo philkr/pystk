@@ -78,53 +78,6 @@ namespace scene
 			const core::vector3df& gravityDirectionAndSpeed
 			= core::vector3df(0.0f, 0.0f, 0.0f)) = 0;
 
-		//! Returns a 3d ray which would go through the 2d screen coodinates.
-		/** \param pos: Screen coordinates in pixels.
-		\param camera: Camera from which the ray starts. If null, the
-		active camera is used.
-		\return Ray starting from the position of the camera and ending
-		at a length of the far value of the camera at a position which
-		would be behind the 2d screen coodinates. */
-		virtual core::line3d<f32> getRayFromScreenCoordinates(
-			const core::position2d<s32>& pos, ICameraSceneNode* camera = 0) = 0;
-
-		//! Calculates 2d screen position from a 3d position.
-		/** \param pos: 3D position in world space to be transformed
-		into 2d.
-		\param camera: Camera to be used. If null, the currently active
-		camera is used.
-		\param useViewPort: Calculate screen coordinates relative to
-		the current view port. Please note that unless the driver does
-		not take care of the view port, it is usually best to get the
-		result in absolute screen coordinates (flag=false).
-		\return 2d screen coordinates which a object in the 3d world
-		would have if it would be rendered to the screen. If the 3d
-		position is behind the camera, it is set to (-1000,-1000). In
-		most cases you can ignore this fact, because if you use this
-		method for drawing a decorator over a 3d object, it will be
-		clipped by the screen borders. */
-		virtual core::position2d<s32> getScreenCoordinatesFrom3DPosition(
-			const core::vector3df& pos, ICameraSceneNode* camera=0, bool useViewPort=false) = 0;
-
-		//! Gets the scene node, which is currently visible under the given screencoordinates, viewed from the currently active camera.
-		/** The collision tests are done using a bounding box for each
-		scene node. You can limit the recursive search so just all children of the specified root are tested.
-		\param pos: Position in pixel screen coordinates, under which
-		the returned scene node will be.
-		\param idBitMask: Only scene nodes with an id with bits set
-		like in this mask will be tested. If the BitMask is 0, this
-		feature is disabled.
-		Please note that the default node id of -1 will match with
-		every bitmask != 0
-		\param bNoDebugObjects: Doesn't take debug objects into account
-		when true. These are scene nodes with IsDebugObject() = true.
-		\param root If different from 0, the search is limited to the children of this node.
-		\return Visible scene node under screen coordinates with
-		matching bits in its id. If there is no scene node under this
-		position, 0 is returned. */
-		virtual ISceneNode* getSceneNodeFromScreenCoordinatesBB(const core::position2d<s32>& pos,
-				s32 idBitMask=0, bool bNoDebugObjects=false, ISceneNode* root=0) =0;
-
 		//! Returns the nearest scene node which collides with a 3d ray and whose id matches a bitmask.
 		/** The collision tests are done using a bounding box for each
 		scene node. The recursive search can be limited be specifying a scene node.

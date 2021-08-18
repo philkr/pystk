@@ -19,34 +19,18 @@ extern bool GLContextDebugBit;
 #include "os.h"
 #include "IrrlichtDevice.h"
 
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-#include <SDL/SDL.h>
-#endif
-
-#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-#include "MacOSX/CIrrDeviceMacOSX.h"
-#endif
-
-#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-#include "CIrrDeviceWayland.h"
-#include "CContextEGL.h"
-#endif
-
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 #include <tchar.h>
 #include "CIrrDeviceWin32.h"
 #endif
 
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-#include "CIrrDeviceLinux.h"
-#endif
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
 #include "CIrrDeviceOffScreen.h"
 #include "CContextEGL.h"
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
-#include "MacOSX/CIrrDeviceOffScreenMacOSX.h"
+#include "CIrrDeviceOffScreenMacOSX.h"
 #endif
 
 namespace irr
@@ -61,13 +45,11 @@ namespace video
 //! Windows constructor and init code
 COpenGLDriver::COpenGLDriver(const irr::SIrrlichtCreationParameters& params,
 		io::IFileSystem* io, CIrrDeviceWin32* device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+: CNullDriver(io), COpenGLExtensionHandler(),
 	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
-	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+	RenderTargetTexture(0),
 	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
-	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	HDc(0), Window(static_cast<HWND>(params.WindowId)), Win32Device(device),
-	DeviceType(EIDT_WIN32)
+	CurrentTarget(ERT_FRAME_BUFFER), Params(params), Win32Device(device)
 {
 	#ifdef _DEBUG
 	setDebugName("COpenGLDriver");
@@ -78,512 +60,19 @@ COpenGLDriver::COpenGLDriver(const irr::SIrrlichtCreationParameters& params,
 
 bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceWin32* device)
 {
-	if (videoData.OpenGLWin32.HWnd && videoData.OpenGLWin32.HDc && videoData.OpenGLWin32.HRc)
-	{
-		if (!wglMakeCurrent((HDC)videoData.OpenGLWin32.HDc, (HGLRC)videoData.OpenGLWin32.HRc))
-		{
-			os::Printer::log("Render Context switch failed.");
-			return false;
-		}
-		else
-		{
-			HDc = (HDC)videoData.OpenGLWin32.HDc;
-		}
-	}
-	// set back to main context
-	else if (HDc != ExposedData.OpenGLWin32.HDc)
-	{
-		if (!wglMakeCurrent((HDC)ExposedData.OpenGLWin32.HDc, (HGLRC)ExposedData.OpenGLWin32.HRc))
-		{
-			os::Printer::log("Render Context switch failed.");
-			return false;
-		}
-		else
-		{
-			HDc = (HDC)ExposedData.OpenGLWin32.HDc;
-		}
-	}
+    if (!device->makeCurrent())
+    {
+        os::Printer::log("Render Context switch failed.");
+        return false;
+    }
 	return true;
 }
 
-static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribs_ARB;
-
-static HGLRC getMeAGLContext(HDC HDc, bool force_legacy_context)
-{
-	if (!force_legacy_context)
-	{
-		useCoreContext = true;
-		HGLRC hrc = 0;
-		int ctx44debug[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		int ctx44[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		hrc = wglCreateContextAttribs_ARB(HDc, 0, GLContextDebugBit ? ctx44debug : ctx44);
-		if (hrc)
-			return hrc;
-
-		int ctx40debug[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 0,
-			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		int ctx40[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 0,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		hrc = wglCreateContextAttribs_ARB(HDc, 0, GLContextDebugBit ? ctx40debug : ctx40);
-		if (hrc)
-			return hrc;
-
-		int ctx33debug[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		int ctx33[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		hrc = wglCreateContextAttribs_ARB(HDc, 0, GLContextDebugBit ? ctx33debug : ctx33);
-		if (hrc)
-			return hrc;
-
-		int ctx31debug[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 1,
-			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		int ctx31[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 1,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
-
-		hrc = wglCreateContextAttribs_ARB(HDc, 0, GLContextDebugBit ? ctx31debug : ctx31);
-		if (hrc)
-			return hrc;
-	}   // if (!force_legacy_context)
-
-	useCoreContext = false;
-	int legacyctx[] =
-	{
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 2,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
-		0
-	};
-	HGLRC hrc = wglCreateContextAttribs_ARB(HDc, 0, legacyctx);
-	if (hrc)
-		return hrc;
-
-	return NULL;
-}
 
 //! inits the open gl driver
 bool COpenGLDriver::initDriver(CIrrDeviceWin32* device)
 {
-	// Create a window to test antialiasing support
-	const _TCHAR* ClassName = _T("GLCIrrDeviceWin32");
-	HINSTANCE lhInstance = GetModuleHandle(0);
-
-	// Register Class
-	WNDCLASSEX wcex;
-	wcex.cbSize        = sizeof(WNDCLASSEX);
-	wcex.style         = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc   = (WNDPROC)DefWindowProc;
-	wcex.cbClsExtra    = 0;
-	wcex.cbWndExtra    = 0;
-	wcex.hInstance     = lhInstance;
-	wcex.hIcon         = NULL;
-	wcex.hCursor       = LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName  = 0;
-	wcex.lpszClassName = ClassName;
-	wcex.hIconSm       = 0;
-	wcex.hIcon         = 0;
-	RegisterClassEx(&wcex);
-
-	RECT clientSize;
-	clientSize.top = 0;
-	clientSize.left = 0;
-	clientSize.right = Params.WindowSize.Width;
-	clientSize.bottom = Params.WindowSize.Height;
-
-	DWORD style = WS_POPUP;
-	if (!Params.Fullscreen)
-		style = WS_SYSMENU | WS_BORDER | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-
-	AdjustWindowRect(&clientSize, style, FALSE);
-
-	const s32 realWidth = clientSize.right - clientSize.left;
-	const s32 realHeight = clientSize.bottom - clientSize.top;
-
-	const s32 windowLeft = (GetSystemMetrics(SM_CXSCREEN) - realWidth) / 2;
-	const s32 windowTop = (GetSystemMetrics(SM_CYSCREEN) - realHeight) / 2;
-
-	HWND temporary_wnd=CreateWindow(ClassName, _T(""), style, windowLeft,
-			windowTop, realWidth, realHeight, NULL, NULL, lhInstance, NULL);
-
-	if (!temporary_wnd)
-	{
-		os::Printer::log("Cannot create a temporary window.", ELL_ERROR);
-		UnregisterClass(ClassName, lhInstance);
-		return false;
-	}
-
-	HDc = GetDC(temporary_wnd);
-
-	// Set up pixel format descriptor with desired parameters
-	PIXELFORMATDESCRIPTOR pfd = {
-		sizeof(PIXELFORMATDESCRIPTOR),             // Size Of This Pixel Format Descriptor
-		1,                                         // Version Number
-		(DWORD)(PFD_DRAW_TO_WINDOW |               // Format Must Support Window
-		PFD_SUPPORT_OPENGL |                       // Format Must Support OpenGL
-		(Params.Doublebuffer?PFD_DOUBLEBUFFER:0) | // Must Support Double Buffering
-		(Params.Stereobuffer?PFD_STEREO:0)),       // Must Support Stereo Buffer
-		PFD_TYPE_RGBA,                             // Request An RGBA Format
-		Params.Bits,                               // Select Our Color Depth
-		0, 0, 0, 0, 0, 0,                          // Color Bits Ignored
-		0,                                         // No Alpha Buffer
-		0,                                         // Shift Bit Ignored
-		0,                                         // No Accumulation Buffer
-		0, 0, 0, 0,	                               // Accumulation Bits Ignored
-		Params.ZBufferBits,                        // Z-Buffer (Depth Buffer)
-		BYTE(Params.Stencilbuffer ? 1 : 0),        // Stencil Buffer Depth
-		0,                                         // No Auxiliary Buffer
-		PFD_MAIN_PLANE,                            // Main Drawing Layer
-		0,                                         // Reserved
-		0, 0, 0                                    // Layer Masks Ignored
-	};
-
-	GLuint PixelFormat;
-
-	for (u32 i=0; i<6; ++i)
-	{
-		if (i == 1)
-		{
-			if (Params.Stencilbuffer)
-			{
-				os::Printer::log("Cannot create a GL device with stencil buffer, disabling stencil shadows.", ELL_WARNING);
-				Params.Stencilbuffer = false;
-				pfd.cStencilBits = 0;
-			}
-			else
-				continue;
-		}
-		else
-		if (i == 2)
-		{
-			pfd.cDepthBits = 24;
-		}
-		else
-		if (i == 3)
-		{
-			if (Params.Bits!=16)
-				pfd.cDepthBits = 16;
-			else
-				continue;
-		}
-		else
-		if (i == 4)
-		{
-			// try single buffer
-			if (Params.Doublebuffer)
-				pfd.dwFlags &= ~PFD_DOUBLEBUFFER;
-			else
-				continue;
-		}
-		else
-		if (i == 5)
-		{
-			os::Printer::log("Cannot create a GL device context", "No suitable format for temporary window.", ELL_ERROR);
-			ReleaseDC(temporary_wnd, HDc);
-			DestroyWindow(temporary_wnd);
-			UnregisterClass(ClassName, lhInstance);
-			return false;
-		}
-
-		// choose pixelformat
-		PixelFormat = ChoosePixelFormat(HDc, &pfd);
-		if (PixelFormat)
-			break;
-	}
-
-	SetPixelFormat(HDc, PixelFormat, &pfd);
-	HGLRC hrc=wglCreateContext(HDc);
-	if (!hrc)
-	{
-		os::Printer::log("Cannot create a temporary GL rendering context.", ELL_ERROR);
-		ReleaseDC(temporary_wnd, HDc);
-		DestroyWindow(temporary_wnd);
-		UnregisterClass(ClassName, lhInstance);
-		return false;
-	}
-
-	SExposedVideoData data;
-	data.OpenGLWin32.HDc = HDc;
-	data.OpenGLWin32.HRc = hrc;
-	data.OpenGLWin32.HWnd = temporary_wnd;
-
-
-	if (!changeRenderContext(data, device))
-	{
-		os::Printer::log("Cannot activate a temporary GL rendering context.", ELL_ERROR);
-		wglDeleteContext(hrc);
-		ReleaseDC(temporary_wnd, HDc);
-		DestroyWindow(temporary_wnd);
-		UnregisterClass(ClassName, lhInstance);
-		return false;
-	}
-
-	core::stringc wglExtensions;
-#ifdef WGL_ARB_extensions_string
-	PFNWGLGETEXTENSIONSSTRINGARBPROC irrGetExtensionsString = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-	if (irrGetExtensionsString)
-		wglExtensions = irrGetExtensionsString(HDc);
-#elif defined(WGL_EXT_extensions_string)
-	PFNWGLGETEXTENSIONSSTRINGEXTPROC irrGetExtensionsString = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
-	if (irrGetExtensionsString)
-		wglExtensions = irrGetExtensionsString(HDc);
-#endif
-	const bool pixel_format_supported = (wglExtensions.find("WGL_ARB_pixel_format") != -1);
-	const bool multi_sample_supported = ((wglExtensions.find("WGL_ARB_multisample") != -1) ||
-		(wglExtensions.find("WGL_EXT_multisample") != -1) || (wglExtensions.find("WGL_3DFX_multisample") != -1) );
-#ifdef _DEBUG
-	os::Printer::log("WGL_extensions", wglExtensions);
-#endif
-
-#ifdef WGL_ARB_pixel_format
-	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormat_ARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-	if (pixel_format_supported && wglChoosePixelFormat_ARB)
-	{
-		// This value determines the number of samples used for antialiasing
-		// My experience is that 8 does not show a big
-		// improvement over 4, but 4 shows a big improvement
-		// over 2.
-
-		if(AntiAlias > 32)
-			AntiAlias = 32;
-
-		f32 fAttributes[] = {0.0, 0.0};
-		s32 iAttributes[] =
-		{
-			WGL_DRAW_TO_WINDOW_ARB,1,
-			WGL_SUPPORT_OPENGL_ARB,1,
-			WGL_ACCELERATION_ARB,WGL_FULL_ACCELERATION_ARB,
-			WGL_COLOR_BITS_ARB,(Params.Bits==32) ? 24 : 15,
-			WGL_ALPHA_BITS_ARB,(Params.Bits==32) ? 8 : 1,
-			WGL_DEPTH_BITS_ARB,Params.ZBufferBits, // 10,11
-			WGL_STENCIL_BITS_ARB,Params.Stencilbuffer ? 1 : 0,
-			WGL_DOUBLE_BUFFER_ARB,Params.Doublebuffer ? 1 : 0,
-			WGL_STEREO_ARB,Params.Stereobuffer ? 1 : 0,
-			WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-#ifdef WGL_ARB_multisample
-			WGL_SAMPLES_ARB,AntiAlias, // 20,21
-			WGL_SAMPLE_BUFFERS_ARB, 1,
-#elif defined(WGL_EXT_multisample)
-			WGL_SAMPLES_EXT,AntiAlias, // 20,21
-			WGL_SAMPLE_BUFFERS_EXT, 1,
-#elif defined(WGL_3DFX_multisample)
-			WGL_SAMPLES_3DFX,AntiAlias, // 20,21
-			WGL_SAMPLE_BUFFERS_3DFX, 1,
-#endif
-#ifdef WGL_ARB_framebuffer_sRGB
-			WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, Params.HandleSRGB ? 1:0,
-#elif defined(WGL_EXT_framebuffer_sRGB)
-			WGL_FRAMEBUFFER_SRGB_CAPABLE_EXT, Params.HandleSRGB ? 1:0,
-#endif
-//			WGL_DEPTH_FLOAT_EXT, 1,
-			0,0,0,0
-		};
-		int iAttrSize = sizeof(iAttributes)/sizeof(int);
-		const bool framebuffer_srgb_supported = ((wglExtensions.find("WGL_ARB_framebuffer_sRGB") != -1) ||
-			(wglExtensions.find("WGL_EXT_framebuffer_sRGB") != -1));
-		if (!framebuffer_srgb_supported)
-		{
-			memmove(&iAttributes[24],&iAttributes[26],sizeof(int)*(iAttrSize-26));
-			iAttrSize -= 2;
-		}
-		if (!multi_sample_supported)
-		{
-			memmove(&iAttributes[20],&iAttributes[24],sizeof(int)*(iAttrSize-24));
-			iAttrSize -= 4;
-		}
-
-		s32 rv=0;
-		// Try to get an acceptable pixel format
-		do
-		{
-			int pixelFormat=0;
-			UINT numFormats=0;
-			const BOOL valid = wglChoosePixelFormat_ARB(HDc,iAttributes,fAttributes,1,&pixelFormat,&numFormats);
-
-			if (valid && numFormats)
-				rv = pixelFormat;
-			else
-				iAttributes[21] -= 1;
-		}
-		while(rv==0 && iAttributes[21]>1);
-		if (rv)
-		{
-			PixelFormat=rv;
-			AntiAlias=iAttributes[21];
-		}
-	}
-	else
-#endif
-		AntiAlias=0;
-#ifdef WGL_ARB_create_context
-	wglCreateContextAttribs_ARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-#endif
-	wglMakeCurrent(HDc, NULL);
-	wglDeleteContext(hrc);
-	ReleaseDC(temporary_wnd, HDc);
-	DestroyWindow(temporary_wnd);
-	UnregisterClass(ClassName, lhInstance);
-
-	// get hdc
-	HDc=GetDC(Window);
-	if (!HDc)
-	{
-		os::Printer::log("Cannot create a GL device context.", ELL_ERROR);
-		return false;
-	}
-
-	// search for pixel format the simple way
-	if (PixelFormat==0 || (!SetPixelFormat(HDc, PixelFormat, &pfd)))
-	{
-		for (u32 i=0; i<5; ++i)
-		{
-			if (i == 1)
-			{
-				if (Params.Stencilbuffer)
-				{
-					os::Printer::log("Cannot create a GL device with stencil buffer, disabling stencil shadows.", ELL_WARNING);
-					Params.Stencilbuffer = false;
-					pfd.cStencilBits = 0;
-				}
-				else
-					continue;
-			}
-			else
-			if (i == 2)
-			{
-				pfd.cDepthBits = 24;
-			}
-			if (i == 3)
-			{
-				if (Params.Bits!=16)
-					pfd.cDepthBits = 16;
-				else
-					continue;
-			}
-			else
-			if (i == 4)
-			{
-				os::Printer::log("Cannot create a GL device context", "No suitable format.", ELL_ERROR);
-				return false;
-			}
-
-			// choose pixelformat
-			PixelFormat = ChoosePixelFormat(HDc, &pfd);
-			if (PixelFormat)
-				break;
-		}
-	}
-
-	// set pixel format
-	if (!SetPixelFormat(HDc, PixelFormat, &pfd))
-	{
-		os::Printer::log("Cannot set the pixel format.", ELL_ERROR);
-		return false;
-	}
-	os::Printer::log("Pixel Format", core::stringc(PixelFormat).c_str(), ELL_DEBUG);
-
-	// create rendering context
-#ifdef WGL_ARB_create_context
-	if (wglCreateContextAttribs_ARB)
-	{
-		hrc = getMeAGLContext(HDc, Params.ForceLegacyDevice);
-	}
-	else
-#endif
-		hrc=wglCreateContext(HDc);
-
-	if (!hrc)
-	{
-		os::Printer::log("Cannot create a GL rendering context.", ELL_ERROR);
-		return false;
-	}
-
-	// set exposed data
-	ExposedData.OpenGLWin32.HDc = HDc;
-	ExposedData.OpenGLWin32.HRc = hrc;
-	ExposedData.OpenGLWin32.HWnd = Window;
-
-	// activate rendering context
-
-	if (!changeRenderContext(ExposedData, device))
-	{
-		os::Printer::log("Cannot activate GL rendering context", ELL_ERROR);
-		wglDeleteContext(hrc);
-		return false;
-	}
-
-	int pf = GetPixelFormat(HDc);
-	DescribePixelFormat(HDc, pf, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-	if (pfd.cAlphaBits != 0)
-	{
-		if (pfd.cRedBits == 8)
-			ColorFormat = ECF_A8R8G8B8;
-		else
-			ColorFormat = ECF_A1R5G5B5;
-	}
-	else
-	{
-		if (pfd.cRedBits == 8)
-			ColorFormat = ECF_R8G8B8;
-		else
-			ColorFormat = ECF_R5G6B5;
-	}
-
 	genericDriverInit();
-
-	extGlSwapInterval(Params.Vsync ? 1 : 0);
 	return true;
 }
 
@@ -596,12 +85,12 @@ bool COpenGLDriver::initDriver(CIrrDeviceWin32* device)
 //! Windows constructor and init code
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
 		io::IFileSystem* io, CIrrDeviceOffScreen *device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+: CNullDriver(io), COpenGLExtensionHandler(),
 	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
-	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+	RenderTargetTexture(0),
 	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
 	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	OSDevice(device), DeviceType(EIDT_OFFSCREEN)
+	OSDevice(device)
 {
 	#ifdef _DEBUG
 	setDebugName("COpenGLDriver");
@@ -612,7 +101,7 @@ COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
 bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, 
 										CIrrDeviceOffScreen* device)
 {
-	if (!device->getEGLContext()->makeCurrent())
+	if (!device->getContext()->makeCurrent())
 	{
 		os::Printer::log("Render Context switch failed.");
 		return false;
@@ -627,12 +116,12 @@ bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData,
 //! Windows constructor and init code
 COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
 		io::IFileSystem* io, CIrrDeviceOffScreenMacOSX *device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
+: CNullDriver(io), COpenGLExtensionHandler(),
 	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
-	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
+    RenderTargetTexture(0),
 	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
 	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	OSDeviceMacOSX(device), DeviceType(EIDT_OFFSCREEN)
+	OSDeviceMacOSX(device)
 {
 	#ifdef _DEBUG
 	setDebugName("COpenGLDriver");
@@ -655,191 +144,6 @@ bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData,
 #endif
 
 
-// -----------------------------------------------------------------------
-// MacOSX CONSTRUCTOR
-// -----------------------------------------------------------------------
-#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-//! Windows constructor and init code
-COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceMacOSX *device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
-	CurrentRenderMode(ERM_NONE), ResetRenderStates(true), Transformation3DChanged(true),
-	AntiAlias(params.AntiAlias), RenderTargetTexture(0),
-	CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
-	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	OSXDevice(device), DeviceType(EIDT_OSX)
-{
-	#ifdef _DEBUG
-	setDebugName("COpenGLDriver");
-	#endif
-
-	genericDriverInit();
-	m_device = device;
-}
-
-#endif
-
-// -----------------------------------------------------------------------
-// LINUX CONSTRUCTOR
-// -----------------------------------------------------------------------
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-//! Linux constructor and init code
-COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceLinux* device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
-	CurrentRenderMode(ERM_NONE), ResetRenderStates(true),
-	Transformation3DChanged(true), AntiAlias(params.AntiAlias),
-	RenderTargetTexture(0), CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
-	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	X11Device(device), DeviceType(EIDT_X11)
-{
-	#ifdef _DEBUG
-	setDebugName("COpenGLDriver");
-	#endif
-	m_device = device;
-}
-
-
-bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceLinux* device)
-{
-	if (videoData.OpenGLLinux.X11Window)
-	{
-		if (videoData.OpenGLLinux.X11Display && videoData.OpenGLLinux.X11Context)
-		{
-			if (!glXMakeCurrent((Display*)videoData.OpenGLLinux.X11Display, videoData.OpenGLLinux.X11Window, (GLXContext)videoData.OpenGLLinux.X11Context))
-			{
-				os::Printer::log("Render Context switch failed.");
-				return false;
-			}
-			else
-			{
-				Drawable = videoData.OpenGLLinux.X11Window;
-				X11Display = (Display*)videoData.OpenGLLinux.X11Display;
-			}
-		}
-		else
-		{
-			// in case we only got a window ID, try with the existing values for display and context
-			if (!glXMakeCurrent((Display*)ExposedData.OpenGLLinux.X11Display, videoData.OpenGLLinux.X11Window, (GLXContext)ExposedData.OpenGLLinux.X11Context))
-			{
-				os::Printer::log("Render Context switch failed.");
-				return false;
-			}
-			else
-			{
-				Drawable = videoData.OpenGLLinux.X11Window;
-				X11Display = (Display*)ExposedData.OpenGLLinux.X11Display;
-			}
-		}
-	}
-	// set back to main context
-	else if (X11Display != ExposedData.OpenGLLinux.X11Display)
-	{
-		if (!glXMakeCurrent((Display*)ExposedData.OpenGLLinux.X11Display, ExposedData.OpenGLLinux.X11Window, (GLXContext)ExposedData.OpenGLLinux.X11Context))
-		{
-			os::Printer::log("Render Context switch failed.");
-			return false;
-		}
-		else
-		{
-			Drawable = ExposedData.OpenGLLinux.X11Window;
-			X11Display = (Display*)ExposedData.OpenGLLinux.X11Display;
-		}
-	}
-	return true;
-}
-
-
-//! inits the open gl driver
-bool COpenGLDriver::initDriver(CIrrDeviceLinux* device)
-{
-	ExposedData.OpenGLLinux.X11Context = glXGetCurrentContext();
-	ExposedData.OpenGLLinux.X11Display = glXGetCurrentDisplay();
-	ExposedData.OpenGLLinux.X11Window = (unsigned long)Params.WindowId;
-	Drawable = glXGetCurrentDrawable();
-	X11Display = (Display*)ExposedData.OpenGLLinux.X11Display;
-
-	genericDriverInit();
-
-	// set vsync
-	extGlSwapInterval(Params.Vsync ? 1 : 0);
-	return true;
-}
-
-#endif // _IRR_COMPILE_WITH_X11_DEVICE_
-
-
-// -----------------------------------------------------------------------
-// Wayland CONSTRUCTOR
-// -----------------------------------------------------------------------
-#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-//! Linux constructor and init code
-COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceWayland* device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
-	CurrentRenderMode(ERM_NONE), ResetRenderStates(true),
-	Transformation3DChanged(true), AntiAlias(params.AntiAlias),
-	RenderTargetTexture(0), CurrentRendertargetSize(0, 0), ColorFormat(ECF_R8G8B8),
-	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	wl_device(device), DeviceType(EIDT_WAYLAND)
-{
-	#ifdef _DEBUG
-	setDebugName("COpenGLDriver");
-	#endif
-	m_device = device;
-}
-
-
-bool COpenGLDriver::changeRenderContext(const SExposedVideoData& videoData, 
-										CIrrDeviceWayland* device)
-{
-	if (!device->getEGLContext()->makeCurrent())
-	{
-		os::Printer::log("Render Context switch failed.");
-		return false;
-	}
-	
-	return true;
-}
-
-
-//! inits the open gl driver
-bool COpenGLDriver::initDriver(CIrrDeviceWayland* device)
-{
-	genericDriverInit();
-
-	return true;
-}
-
-#endif // _IRR_COMPILE_WITH_WAYLAND_DEVICE
-
-
-
-// -----------------------------------------------------------------------
-// SDL CONSTRUCTOR
-// -----------------------------------------------------------------------
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-//! SDL constructor and init code
-COpenGLDriver::COpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceSDL* device)
-: CNullDriver(io, params.WindowSize), COpenGLExtensionHandler(),
-	CurrentRenderMode(ERM_NONE), ResetRenderStates(true),
-	Transformation3DChanged(true), AntiAlias(params.AntiAlias),
-	RenderTargetTexture(0), CurrentRendertargetSize(0,0), ColorFormat(ECF_R8G8B8),
-	CurrentTarget(ERT_FRAME_BUFFER), Params(params),
-	SDLDevice(device), DeviceType(EIDT_SDL)
-{
-	#ifdef _DEBUG
-	setDebugName("COpenGLDriver");
-	#endif
-
-	genericDriverInit();
-	m_device = device;
-}
-
-#endif // _IRR_COMPILE_WITH_SDL_DEVICE_
-
-
 //! destructor
 COpenGLDriver::~COpenGLDriver()
 {
@@ -853,24 +157,6 @@ COpenGLDriver::~COpenGLDriver()
 	deleteAllTextures();
 	removeAllOcclusionQueries();
 	removeAllHardwareBuffers();
-
-#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-	if (DeviceType == EIDT_WIN32)
-	{
-
-		if (ExposedData.OpenGLWin32.HRc)
-		{
-			if (!wglMakeCurrent(HDc, 0))
-				os::Printer::log("Release of dc and rc failed.", ELL_WARNING);
-
-			if (!wglDeleteContext((HGLRC)ExposedData.OpenGLWin32.HRc))
-				os::Printer::log("Release of rendering context failed.", ELL_WARNING);
-		}
-
-		if (HDc)
-			ReleaseDC(Window, HDc);
-	}
-#endif
 }
 
 // -----------------------------------------------------------------------
@@ -898,7 +184,6 @@ bool COpenGLDriver::genericDriverInit()
 	u32 i;
 	CurrentTexture.clear();
 	// load extensions
-	initExtensions(Params.Stencilbuffer, useCoreContext);
 	if (queryFeature(EVDF_ARB_GLSL))
 	{
 		char buf[32];
@@ -921,13 +206,10 @@ bool COpenGLDriver::genericDriverInit()
 	DriverAttributes->setAttribute("MaxTextureLODBias", MaxTextureLODBias);
 	DriverAttributes->setAttribute("Version", Version);
 	DriverAttributes->setAttribute("ShaderLanguageVersion", ShaderLanguageVersion);
-	DriverAttributes->setAttribute("AntiAlias", AntiAlias);
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	// Reset The Current Viewport
-	glViewport(0, 0, Params.WindowSize.Width, Params.WindowSize.Height);
-
 	UserClipPlanes.reallocate(MaxUserClipPlanes);
 	for (i=0; i<MaxUserClipPlanes; ++i)
 		UserClipPlanes.push_back(SUserClipPlane());
@@ -943,9 +225,6 @@ bool COpenGLDriver::genericDriverInit()
 	if (!useCoreContext)
 		glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
 
-	Params.HandleSRGB &= ((FeatureAvailable[IRR_ARB_framebuffer_sRGB] || FeatureAvailable[IRR_EXT_framebuffer_sRGB]) &&
-		FeatureAvailable[IRR_EXT_texture_sRGB]);
-		
 	glDisable(GL_FRAMEBUFFER_SRGB);
 //#if defined(GL_ARB_framebuffer_sRGB)
 //	if (Params.HandleSRGB)
@@ -1058,48 +337,15 @@ bool COpenGLDriver::endScene()
 	glFlush();
 
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-	if (DeviceType == EIDT_WIN32)
-		return SwapBuffers(HDc) == TRUE;
-#endif
-
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-	if (DeviceType == EIDT_X11)
-	{
-		glXSwapBuffers(X11Display, Drawable);
-		return true;
-	}
-#endif
-
-#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-	if (DeviceType == EIDT_WAYLAND)
-	{
-		wl_device->getEGLContext()->swapBuffers();
-		return true;
-	}
+	return true;
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
-	if (DeviceType == EIDT_OFFSCREEN)
-	{
-		OSDevice->getEGLContext()->swapBuffers();
-		return true;
-	}
+    return true;
 #endif
 
 #ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-	if (DeviceType == EIDT_OSX)
-	{
-		OSXDevice->flush();
-		return true;
-	}
-#endif
-
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-	if (DeviceType == EIDT_SDL)
-	{
-		SDL_GL_SwapBuffers();
-		return true;
-	}
+    return true;
 #endif
 
 	// todo: console device present
@@ -1142,45 +388,14 @@ bool COpenGLDriver::beginScene(bool backBuffer, bool zBuffer, SColor color,
 {
 	CNullDriver::beginScene(backBuffer, zBuffer, color, videoData, sourceRect);
 
-	switch (DeviceType)
-	{
 #ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
-	case EIDT_WIN32:
-		changeRenderContext(videoData, Win32Device);
-		break;
-#endif
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-	case EIDT_X11:
-		changeRenderContext(videoData, X11Device);
-		break;
-#endif
-#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-	case EIDT_WAYLAND:
-		changeRenderContext(videoData, wl_device);
-		break;
+    changeRenderContext(videoData, Win32Device);
 #endif
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
-	case EIDT_OFFSCREEN:
-		changeRenderContext(videoData, OSDevice);
-		break;
+    changeRenderContext(videoData, OSDevice);
 #endif
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
-	case EIDT_OFFSCREEN:
-		changeRenderContext(videoData, OSDeviceMacOSX);
-		break;
-#endif
-	default:
-		changeRenderContext(videoData, (void*)0);
-		break;
-	}
-
-#if defined(_IRR_COMPILE_WITH_SDL_DEVICE_)
-	if (DeviceType == EIDT_SDL)
-	{
-		// todo: SDL sets glFrontFace(GL_CCW) after driver creation,
-		// it would be better if this was fixed elsewhere.
-		glFrontFace(GL_CW);
-	}
+    changeRenderContext(videoData, OSDeviceMacOSX);
 #endif
 
 	clearBuffers(backBuffer, zBuffer, false, color);
@@ -2494,9 +1709,10 @@ void COpenGLDriver::draw2DImage(const video::ITexture* texture, const core::rect
 
 		glEnable(GL_SCISSOR_TEST);
 		const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
-		glScissor(clipRect->UpperLeftCorner.X,
-			(s32)renderTargetSize.Height-clipRect->LowerRightCorner.Y+m_device->getMovedHeight(),
-			clipRect->getWidth(), clipRect->getHeight());
+		// TODO: DELETE OR FIX ME
+//		glScissor(clipRect->UpperLeftCorner.X,
+//			(s32)renderTargetSize.Height-clipRect->LowerRightCorner.Y+m_device->getMovedHeight(),
+//			clipRect->getWidth(), clipRect->getHeight());
 	}
 
 	glBegin(GL_QUADS);
@@ -2552,9 +1768,10 @@ void COpenGLDriver::draw2DImage(const video::ITexture* texture,
 
 		glEnable(GL_SCISSOR_TEST);
 		const core::dimension2d<u32>& renderTargetSize = getCurrentRenderTargetSize();
-		glScissor(clipRect->UpperLeftCorner.X,
-			(s32)renderTargetSize.Height-clipRect->LowerRightCorner.Y+m_device->getMovedHeight(),
-			clipRect->getWidth(), clipRect->getHeight());
+		// TODO: DELETE OR FIX ME
+//		glScissor(clipRect->UpperLeftCorner.X,
+//			(s32)renderTargetSize.Height-clipRect->LowerRightCorner.Y+m_device->getMovedHeight(),
+//			clipRect->getWidth(), clipRect->getHeight());
 	}
 
 	const core::dimension2d<u32>& ss = texture->getSize();
@@ -2728,15 +1945,6 @@ bool COpenGLDriver::setActiveTexture(u32 stage, const video::ITexture* texture)
 	}
 	else
 	{
-		if (texture->getDriverType() != EDT_OPENGL)
-		{
-			if (!useCoreContext)
-				glDisable(GL_TEXTURE_2D);
-			CurrentTexture.set(stage, 0);
-			os::Printer::log("Fatal Error: Tried to set a texture not owned by this driver.", ELL_ERROR);
-			return false;
-		}
-
 		if (!useCoreContext)
 			glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, texture->getOpenGLTextureName());
@@ -3426,18 +2634,8 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
 	// thickness
 	if (resetAllRenderStates || lastmaterial.Thickness != material.Thickness)
 	{
-		if (AntiAlias)
-		{
-//			glPointSize(core::clamp(static_cast<GLfloat>(material.Thickness), DimSmoothedPoint[0], DimSmoothedPoint[1]));
-			// we don't use point smoothing
-			glPointSize(core::clamp(static_cast<GLfloat>(material.Thickness), DimAliasedPoint[0], DimAliasedPoint[1]));
-			glLineWidth(core::clamp(static_cast<GLfloat>(material.Thickness), DimSmoothedLine[0], DimSmoothedLine[1]));
-		}
-		else
-		{
-			glPointSize(core::clamp(static_cast<GLfloat>(material.Thickness), DimAliasedPoint[0], DimAliasedPoint[1]));
-			glLineWidth(core::clamp(static_cast<GLfloat>(material.Thickness), DimAliasedLine[0], DimAliasedLine[1]));
-		}
+        glPointSize(core::clamp(static_cast<GLfloat>(material.Thickness), DimAliasedPoint[0], DimAliasedPoint[1]));
+        glLineWidth(core::clamp(static_cast<GLfloat>(material.Thickness), DimAliasedLine[0], DimAliasedLine[1]));
 	}
 
 	// Anti aliasing
@@ -3450,21 +2648,7 @@ void COpenGLDriver::setBasicRenderStates(const SMaterial& material, const SMater
 			else if (lastmaterial.AntiAliasing & EAAM_ALPHA_TO_COVERAGE)
 				glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE_ARB);
 
-			if ((AntiAlias >= 2) && (material.AntiAliasing & (EAAM_SIMPLE|EAAM_QUALITY)))
-			{
-				glEnable(GL_MULTISAMPLE_ARB);
-#ifdef GL_NV_multisample_filter_hint
-				if (FeatureAvailable[IRR_NV_multisample_filter_hint])
-				{
-					if ((material.AntiAliasing & EAAM_QUALITY) == EAAM_QUALITY)
-						glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-					else
-						glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-				}
-#endif
-			}
-			else
-				glDisable(GL_MULTISAMPLE_ARB);
+            glDisable(GL_MULTISAMPLE_ARB);
 		}
 		if ((material.AntiAliasing & EAAM_LINE_SMOOTH) != (lastmaterial.AntiAliasing & EAAM_LINE_SMOOTH))
 		{
@@ -3847,27 +3031,6 @@ void COpenGLDriver::setAmbientLight(const SColorf& color)
 }
 
 
-// this code was sent in by Oliver Klems, thank you! (I modified the glViewport
-// method just a bit.
-void COpenGLDriver::setViewPort(const core::rect<s32>& area)
-{
-	if (area == ViewPort)
-		return;
-	core::rect<s32> vp = area;
-	core::rect<s32> rendert(0,0, getCurrentRenderTargetSize().Width, getCurrentRenderTargetSize().Height);
-	vp.clipAgainst(rendert);
-
-	if (vp.getHeight()>0 && vp.getWidth()>0)
-	{
-		glViewport(vp.UpperLeftCorner.X,
-				getCurrentRenderTargetSize().Height - vp.UpperLeftCorner.Y - vp.getHeight(),
-				vp.getWidth(), vp.getHeight());
-
-		ViewPort = vp;
-	}
-}
-
-
 //! Draws a shadow volume into the stencil buffer. To draw a stencil shadow, do
 //! this: First, draw all geometry. Then use this method, to draw the shadow
 //! volume. Next use IVideoDriver::drawStencilShadow() to visualize the shadow.
@@ -4139,31 +3302,6 @@ void COpenGLDriver::removeTexture(ITexture* texture)
 	CurrentTexture.remove(texture);
 }
 
-
-//! Only used by the internal engine. Used to notify the driver that
-//! the window was resized.
-void COpenGLDriver::OnResize(const core::dimension2d<u32>& size)
-{
-	CNullDriver::OnResize(size);
-	glViewport(0, 0, size.Width, size.Height);
-	Transformation3DChanged = true;
-}
-
-
-//! Returns type of video driver
-E_DRIVER_TYPE COpenGLDriver::getDriverType() const
-{
-	return EDT_OPENGL;
-}
-
-
-//! returns color format
-ECOLOR_FORMAT COpenGLDriver::getColorFormat() const
-{
-	return ColorFormat;
-}
-
-
 //! Sets a vertex shader constant.
 void COpenGLDriver::setVertexShaderConstant(const f32* data, s32 startRegister, s32 constantAmount)
 {
@@ -4326,7 +3464,7 @@ ITexture* COpenGLDriver::addRenderTargetTexture(const core::dimension2d<u32>& si
 	{
 		// the simple texture is only possible for size <= screensize
 		// we try to find an optimal size with the original constraints
-		core::dimension2du destSize(core::min_(size.Width,ScreenSize.Width), core::min_(size.Height,ScreenSize.Height));
+		core::dimension2du destSize = size;
 		destSize = destSize.getOptimalSize((size==size.getOptimalSize()), false, false);
 		rtt = addTexture(destSize, name, ECF_A8R8G8B8);
 		if (rtt)
@@ -4369,30 +3507,13 @@ bool COpenGLDriver::setRenderTarget(video::E_RENDER_TARGET target, bool clearTar
 		return false;
 	}
 
-	if (Params.Stereobuffer && (ERT_STEREO_RIGHT_BUFFER == target))
-	{
-		if (Params.Doublebuffer)
-			glDrawBuffer(GL_BACK_RIGHT);
-		else
-			glDrawBuffer(GL_FRONT_RIGHT);
-	}
-	else if (Params.Stereobuffer && ERT_STEREO_BOTH_BUFFERS == target)
-	{
-		if (Params.Doublebuffer)
-			glDrawBuffer(GL_BACK);
-		else
-			glDrawBuffer(GL_FRONT);
-	}
-	else if ((target >= ERT_AUX_BUFFER0) && (target-ERT_AUX_BUFFER0 < MaxAuxBuffers))
+	if ((target >= ERT_AUX_BUFFER0) && (target-ERT_AUX_BUFFER0 < MaxAuxBuffers))
 	{
 			glDrawBuffer(GL_AUX0+target-ERT_AUX_BUFFER0);
 	}
 	else
 	{
-		if (Params.Doublebuffer)
-			glDrawBuffer(GL_BACK_LEFT);
-		else
-			glDrawBuffer(GL_FRONT_LEFT);
+        glDrawBuffer(GL_BACK_LEFT);
 		// exit with false, but also with working color buffer
 		if (target != ERT_FRAME_BUFFER)
 			return false;
@@ -4408,12 +3529,6 @@ bool COpenGLDriver::setRenderTarget(video::ITexture* texture, bool clearBackBuff
 					bool clearZBuffer, SColor color)
 {
 	// check for right driver type
-
-	if (texture && texture->getDriverType() != EDT_OPENGL)
-	{
-		os::Printer::log("Fatal Error: Tried to set a texture not owned by this driver.", ELL_ERROR);
-		return false;
-	}
 
 #if defined(GL_EXT_framebuffer_object)
 	if (CurrentTarget==ERT_MULTI_RENDER_TEXTURES)
@@ -4454,11 +3569,12 @@ bool COpenGLDriver::setRenderTarget(video::ITexture* texture, bool clearBackBuff
 		}
 		else
 		{
-			glViewport(0,0,ScreenSize.Width,ScreenSize.Height);
+		    printf("Philipp removed this COpenGLDriver::setRenderTarget!\n");
+			glViewport(0,0,1,1);
 			RenderTargetTexture = 0;
 			CurrentRendertargetSize = core::dimension2d<u32>(0,0);
 			CurrentTarget=ERT_FRAME_BUFFER;
-			glDrawBuffer(Params.Doublebuffer?GL_BACK_LEFT:GL_FRONT_LEFT);
+			glDrawBuffer(GL_BACK_LEFT);
 		}
 		// we need to update the matrices due to the rendersize change.
 		Transformation3DChanged=true;
@@ -4513,12 +3629,6 @@ bool COpenGLDriver::setRenderTarget(const core::array<video::IRenderTarget>& tar
 			{
 				maxMultipleRTTs=i;
 				os::Printer::log("Missing render texture for MRT.", ELL_WARNING);
-				break;
-			}
-			if (targets[i].RenderTexture->getDriverType() != EDT_OPENGL)
-			{
-				maxMultipleRTTs=i;
-				os::Printer::log("Tried to set a texture not owned by this driver.", ELL_WARNING);
 				break;
 			}
 
@@ -4667,10 +3777,7 @@ bool COpenGLDriver::setRenderTarget(const core::array<video::IRenderTarget>& tar
 // returns the current size of the screen or rendertarget
 const core::dimension2d<u32>& COpenGLDriver::getCurrentRenderTargetSize() const
 {
-	if (CurrentRendertargetSize.Width == 0)
-		return ScreenSize;
-	else
-		return CurrentRendertargetSize;
+	return CurrentRendertargetSize;
 }
 
 
@@ -4681,193 +3788,10 @@ void COpenGLDriver::clearZBuffer()
 }
 
 
-//! Returns an image created from the last rendered frame.
-IImage* COpenGLDriver::createScreenShot(video::ECOLOR_FORMAT format, video::E_RENDER_TARGET target)
-{
-	if (target==video::ERT_MULTI_RENDER_TEXTURES || target==video::ERT_RENDER_TEXTURE || target==video::ERT_STEREO_BOTH_BUFFERS)
-		return 0;
-
-	if (format==video::ECF_UNKNOWN)
-		format=getColorFormat();
-	GLenum fmt;
-	GLenum type;
-	switch (format)
-	{
-	case ECF_A1R5G5B5:
-		fmt = GL_BGRA;
-		type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-		break;
-	case ECF_R5G6B5:
-		fmt = GL_RGB;
-		type = GL_UNSIGNED_SHORT_5_6_5;
-		break;
-	case ECF_R8G8B8:
-		fmt = GL_RGB;
-		type = GL_UNSIGNED_BYTE;
-		break;
-	case ECF_A8R8G8B8:
-		fmt = GL_BGRA;
-		if (Version > 101)
-			type = GL_UNSIGNED_INT_8_8_8_8_REV;
-		else
-			type = GL_UNSIGNED_BYTE;
-		break;
-	case ECF_R8G8:
-		// GL_ARB_texture_rg is considered always available in headers. No ifdefs.
-		fmt = GL_RG;
-		type = GL_UNSIGNED_BYTE;
-		break;
-	case ECF_R16G16:
-		fmt = GL_RG;
-		type = GL_UNSIGNED_SHORT;
-		break;
-	case ECF_R8:
-		fmt = GL_RED;
-		type = GL_UNSIGNED_BYTE;
-		break;
-	case ECF_R16:
-		fmt = GL_RED;
-		type = GL_UNSIGNED_SHORT;
-		break;
-	case ECF_R16F:
-		if (FeatureAvailable[IRR_ARB_texture_rg])
-			fmt = GL_RED;
-		else
-			fmt = GL_LUMINANCE;
-#ifdef GL_ARB_half_float_pixel
-		if (FeatureAvailable[IRR_ARB_half_float_pixel])
-			type = GL_HALF_FLOAT_ARB;
-		else
-#endif
-		{
-			type = GL_FLOAT;
-			format = ECF_R32F;
-		}
-		break;
-	case ECF_G16R16F:
-#ifdef GL_ARB_texture_rg
-		if (FeatureAvailable[IRR_ARB_texture_rg])
-			fmt = GL_RG;
-		else
-#endif
-			fmt = GL_LUMINANCE_ALPHA;
-#ifdef GL_ARB_half_float_pixel
-		if (FeatureAvailable[IRR_ARB_half_float_pixel])
-			type = GL_HALF_FLOAT_ARB;
-		else
-#endif
-		{
-			type = GL_FLOAT;
-			format = ECF_G32R32F;
-		}
-		break;
-	case ECF_A16B16G16R16F:
-		fmt = GL_BGRA;
-#ifdef GL_ARB_half_float_pixel
-		if (FeatureAvailable[IRR_ARB_half_float_pixel])
-			type = GL_HALF_FLOAT_ARB;
-		else
-#endif
-		{
-			type = GL_FLOAT;
-			format = ECF_A32B32G32R32F;
-		}
-		break;
-	case ECF_R32F:
-		if (FeatureAvailable[IRR_ARB_texture_rg])
-			fmt = GL_RED;
-		else
-			fmt = GL_LUMINANCE;
-		type = GL_FLOAT;
-		break;
-	case ECF_G32R32F:
-#ifdef GL_ARB_texture_rg
-		if (FeatureAvailable[IRR_ARB_texture_rg])
-			fmt = GL_RG;
-		else
-#endif
-			fmt = GL_LUMINANCE_ALPHA;
-		type = GL_FLOAT;
-		break;
-	case ECF_A32B32G32R32F:
-		fmt = GL_BGRA;
-		type = GL_FLOAT;
-		break;
-	default:
-		fmt = GL_BGRA;
-		type = GL_UNSIGNED_BYTE;
-		break;
-	}
-	IImage* newImage = createImage(format, ScreenSize);
-
-	u8* pixels = 0;
-	if (newImage)
-		pixels = static_cast<u8*>(newImage->lock());
-	if (pixels)
-	{
-		GLenum tgt=GL_BACK;
-		switch (target)
-		{
-		case video::ERT_FRAME_BUFFER:
-			break;
-		case video::ERT_STEREO_LEFT_BUFFER:
-			tgt=GL_FRONT_LEFT;
-			break;
-		case video::ERT_STEREO_RIGHT_BUFFER:
-			tgt=GL_FRONT_RIGHT;
-			break;
-		default:
-			tgt=GL_AUX0+(target-video::ERT_AUX_BUFFER0);
-			break;
-		}
-		glReadBuffer(tgt);
-		glReadPixels(0, 0, ScreenSize.Width, ScreenSize.Height, fmt, type, pixels);
-		testGLError();
-		glReadBuffer(GL_BACK);
-	}
-
-	if (pixels)
-	{
-		// opengl images are horizontally flipped, so we have to fix that here.
-		const s32 pitch=newImage->getPitch();
-		u8* p2 = pixels + (ScreenSize.Height - 1) * pitch;
-		u8* tmpBuffer = new u8[pitch];
-		for (u32 i=0; i < ScreenSize.Height; i += 2)
-		{
-			memcpy(tmpBuffer, pixels, pitch);
-//			for (u32 j=0; j<pitch; ++j)
-//			{
-//				pixels[j]=(u8)(p2[j]*255.f);
-//			}
-			memcpy(pixels, p2, pitch);
-//			for (u32 j=0; j<pitch; ++j)
-//			{
-//				p2[j]=(u8)(tmpBuffer[j]*255.f);
-//			}
-			memcpy(p2, tmpBuffer, pitch);
-			pixels += pitch;
-			p2 -= pitch;
-		}
-		delete [] tmpBuffer;
-	}
-
-	if (newImage)
-	{
-		newImage->unlock();
-		if (testGLError() || !pixels)
-		{
-			newImage->drop();
-			return 0;
-		}
-	}
-	return newImage;
-}
-
-
 //! get depth texture for the given render target texture
 ITexture* COpenGLDriver::createDepthTexture(ITexture* texture, const bool useStencil, const bool shared)
 {
-	if ((texture->getDriverType() != EDT_OPENGL) || (!texture->isRenderTarget()))
+	if (!texture->isRenderTarget())
 		return 0;
 	COpenGLTexture* tex = static_cast<COpenGLTexture*>(texture);
 
@@ -5013,23 +3937,7 @@ GLenum COpenGLDriver::getGLBlend(E_BLEND_FACTOR factor) const
 
 GLenum COpenGLDriver::getZBufferBits() const
 {
-	GLenum bits = 0;
-	switch (Params.ZBufferBits)
-	{
-	case 16:
-		bits = GL_DEPTH_COMPONENT16;
-		break;
-	case 24:
-		bits = GL_DEPTH_COMPONENT24;
-		break;
-	case 32:
-		bits = GL_DEPTH_COMPONENT32;
-		break;
-	default:
-		bits = GL_DEPTH_COMPONENT;
-		break;
-	}
-	return bits;
+	return GL_DEPTH_COMPONENT16;
 }
 
 
@@ -5066,67 +3974,7 @@ IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
 #endif // _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 
 // -----------------------------------
-// MACOSX VERSION
-// -----------------------------------
-#if defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceMacOSX *device)
-{
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-	return new COpenGLDriver(params, io, device);
-#else
-	return 0;
-#endif //  _IRR_COMPILE_WITH_OPENGL_
-}
-#endif // _IRR_COMPILE_WITH_OSX_DEVICE_
-
-// -----------------------------------
-// X11 VERSION
-// -----------------------------------
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceLinux* device)
-{
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-	COpenGLDriver* ogl =  new COpenGLDriver(params, io, device);
-	if (!ogl->initDriver(device))
-	{
-		ogl->drop();
-		ogl = 0;
-	}
-	return ogl;
-#else
-	return 0;
-#endif //  _IRR_COMPILE_WITH_OPENGL_
-}
-#endif // _IRR_COMPILE_WITH_X11_DEVICE_
-
-
-// -----------------------------------
-// Wayland VERSION
-// -----------------------------------
-#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceWayland* device)
-{
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-	COpenGLDriver* ogl =  new COpenGLDriver(params, io, device);
-	if (!ogl->initDriver(device))
-	{
-		ogl->drop();
-		ogl = 0;
-	}
-	return ogl;
-#else
-	return 0;
-#endif //  _IRR_COMPILE_WITH_OPENGL_
-}
-#endif // _IRR_COMPILE_WITH_WAYLAND_DEVICE
-
-
-
-// -----------------------------------
-// Wayland VERSION
+// Linux Offscreen VERSION
 // -----------------------------------
 #ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
 IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
@@ -5151,21 +3999,6 @@ IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
 #endif //  _IRR_COMPILE_WITH_OPENGL_
 }
 #endif // _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
-
-// -----------------------------------
-// SDL VERSION
-// -----------------------------------
-#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-IVideoDriver* createOpenGLDriver(const SIrrlichtCreationParameters& params,
-		io::IFileSystem* io, CIrrDeviceSDL* device)
-{
-#ifdef _IRR_COMPILE_WITH_OPENGL_
-	return new COpenGLDriver(params, io, device);
-#else
-	return 0;
-#endif //  _IRR_COMPILE_WITH_OPENGL_
-}
-#endif // _IRR_COMPILE_WITH_SDL_DEVICE_
 
 } // end namespace
 } // end namespace

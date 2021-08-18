@@ -7,8 +7,8 @@
 namespace irr
 {
 
-	CLogger::CLogger(IEventReceiver* r)
-		: LogLevel(ELL_INFORMATION), Receiver(r)
+	CLogger::CLogger()
+		: LogLevel(ELL_INFORMATION)
 	{
 		#ifdef _DEBUG
 		setDebugName("CLogger");
@@ -32,16 +32,6 @@ namespace irr
 	{
 		if (ll < LogLevel)
 			return;
-
-		if (Receiver)
-		{
-			SEvent event;
-			event.EventType = EET_LOG_TEXT_EVENT;
-			event.LogEvent.Text = text;
-			event.LogEvent.Level = ll;
-			if (Receiver->OnEvent(event))
-				return;
-		}
 
 		os::Printer::print(text);
 	}
@@ -89,12 +79,6 @@ namespace irr
 
 		core::stringc s2 = hint;
 		log( text, s2.c_str(), ll);
-	}
-
-	//! Sets a new event receiver
-	void CLogger::setReceiver(IEventReceiver* r)
-	{
-		Receiver = r;
 	}
 
 

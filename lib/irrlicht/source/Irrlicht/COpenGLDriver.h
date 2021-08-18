@@ -12,11 +12,7 @@
 namespace irr
 {
 	class CIrrDeviceWin32;
-	class CIrrDeviceLinux;
-	class CIrrDeviceWayland;
 	class CIrrDeviceOffScreen;
-	class CIrrDeviceSDL;
-	class CIrrDeviceMacOSX;
 	class CIrrDeviceOffScreenMacOSX;
 }
 
@@ -45,28 +41,6 @@ namespace video
 		//! inits the windows specific parts of the open gl driver
 		bool initDriver(CIrrDeviceWin32* device);
 		bool changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceWin32* device);
-		#endif
-
-		#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceWayland* device);
-		//! inits the EGL specific parts of the open gl driver
-		bool initDriver(CIrrDeviceWayland* device);
-		bool changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceWayland* device);
-		#endif
-
-		#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceLinux* device);
-		//! inits the GLX specific parts of the open gl driver
-		bool initDriver(CIrrDeviceLinux* device);
-		bool changeRenderContext(const SExposedVideoData& videoData, CIrrDeviceLinux* device);
-		#endif
-
-		#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceSDL* device);
-		#endif
-
-		#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-		COpenGLDriver(const SIrrlichtCreationParameters& params, io::IFileSystem* io, CIrrDeviceMacOSX *device);
 		#endif
 
 		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
@@ -272,22 +246,9 @@ namespace video
 			video::SColor leftDownEdge = video::SColor(0,0,0,0),
 			video::SColor rightDownEdge = video::SColor(0,0,0,0));
 
-		//! sets a viewport
-		virtual void setViewPort(const core::rect<s32>& area);
-
 		//! Sets the fog mode.
 		virtual void setFog(SColor color, E_FOG_TYPE fogType, f32 start,
 			f32 end, f32 density, bool pixelFog, bool rangeFog);
-
-		//! Only used by the internal engine. Used to notify the driver that
-		//! the window was resized.
-		virtual void OnResize(const core::dimension2d<u32>& size);
-
-		//! Returns type of video driver
-		virtual E_DRIVER_TYPE getDriverType() const;
-
-		//! get color format of the current color buffer
-		virtual ECOLOR_FORMAT getColorFormat() const;
 
 		//! Returns the transformation set by setTransform
 		virtual const core::matrix4& getTransform(E_TRANSFORMATION_STATE state) const;
@@ -380,9 +341,6 @@ namespace video
 
 		//! Clears the ZBuffer.
 		virtual void clearZBuffer();
-
-		//! Returns an image created from the last rendered frame.
-		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER);
 
 		//! checks if an OpenGL error has happened and prints it
 		//! for performance reasons only available in debug mode
@@ -490,7 +448,6 @@ namespace video
 		//! bool to make all renderstates reset if set to true.
 		bool ResetRenderStates;
 		bool Transformation3DChanged;
-		u8 AntiAlias;
 
 		SMaterial Material, LastMaterial;
 		COpenGLTexture* RenderTargetTexture;
@@ -595,26 +552,8 @@ namespace video
 		};
 		core::array<RequestedLight> RequestedLights;
 
-		#ifdef _IRR_WINDOWS_API_
-			HDC HDc; // Private GDI Device Context
-			HWND Window;
 		#ifdef _IRR_COMPILE_WITH_WINDOWS_DEVICE_
 			CIrrDeviceWin32 *Win32Device;
-		#endif
-		#endif
-		#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-			GLXDrawable Drawable;
-			Display* X11Display;
-			CIrrDeviceLinux *X11Device;
-		#endif
-		#ifdef _IRR_COMPILE_WITH_WAYLAND_DEVICE_
-			CIrrDeviceWayland *wl_device;
-		#endif
-		#ifdef _IRR_COMPILE_WITH_OSX_DEVICE_
-			CIrrDeviceMacOSX *OSXDevice;
-		#endif
-		#ifdef _IRR_COMPILE_WITH_SDL_DEVICE_
-			CIrrDeviceSDL *SDLDevice;
 		#endif
 		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_
 			CIrrDeviceOffScreen* OSDevice;
@@ -622,8 +561,6 @@ namespace video
 		#ifdef _IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_
 			CIrrDeviceOffScreenMacOSX* OSDeviceMacOSX;
 		#endif
-
-		E_DEVICE_TYPE DeviceType;
 	};
 
 } // end namespace video

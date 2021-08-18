@@ -125,6 +125,9 @@ SPTexture::~SPTexture()
 std::shared_ptr<video::IImage> SPTexture::getImageFromPath
                                                 (const std::string& path) const
 {
+#ifdef SERVER_ONLY
+    return std::shared_ptr<video::IImage>();
+#else
     video::IImageLoader* img_loader =
         irr_driver->getVideoDriver()->getImageLoaderForFile(path.c_str());
     if (img_loader == NULL)
@@ -152,6 +155,7 @@ std::shared_ptr<video::IImage> SPTexture::getImageFromPath
     file->drop();
     assert(image->getReferenceCount() == 1);
     return std::shared_ptr<video::IImage>(image);
+#endif
 }   // getImagefromPath
 
 // ----------------------------------------------------------------------------

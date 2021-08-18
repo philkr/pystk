@@ -44,11 +44,9 @@ struct SHCoefficients;
 class AbstractRenderer
 {
 protected:
-    irr::core::vector2df m_current_screen_size;
+    irr::core::dimension2du m_current_screen_size;
 
 #ifdef DEBUG
-    void drawDebugMeshes() const;
-
     void drawJoint(bool drawline, bool drawname,
                    irr::scene::ISkinnedMesh::SJoint* joint,
                    irr::scene::ISkinnedMesh* mesh, int id) const;
@@ -72,9 +70,7 @@ public:
     
     //FIXME: these three methods should not appear in the public Renderer interface
     virtual const SHCoefficients* getSHCoefficients()    const { return NULL; }
-    virtual GLuint getRenderTargetTexture(TypeRTT which) const { return 0;}
-    virtual GLuint getDepthStencilTexture(             ) const { return 0;}
-    
+
     virtual void setAmbientLight(const irr::video::SColorf &light,
                                   bool force_SH_computation = true) {}
 
@@ -85,8 +81,8 @@ public:
     
     virtual void clearGlowingNodes() {}
 
-     // ------------------------------------------------------------------------
-    const irr::core::vector2df &getCurrentScreenSize() const
+    // ------------------------------------------------------------------------
+    const irr::core::dimension2du &getCurrentScreenSize() const
     {
         return m_current_screen_size;
     }

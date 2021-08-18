@@ -3,6 +3,7 @@
 #include "utils/log.hpp"
 #include "util.hpp"
 
+#ifndef SERVER_ONLY
 int n_channel(int format) {
     switch(format) {
     case GL_DEPTH_COMPONENT: return 1;
@@ -100,3 +101,4 @@ py::array NumpyPBO::get()
     return data_;
 }
 
+#endif  // SERVER_ONLY

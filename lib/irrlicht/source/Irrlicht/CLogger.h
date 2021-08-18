@@ -18,7 +18,7 @@ class CLogger : public ILogger
 {
 public:
 
-	CLogger(IEventReceiver* r);
+	CLogger();
 
 	//! Returns the current set log level.
 	virtual ELOG_LEVEL getLogLevel() const;
@@ -41,13 +41,9 @@ public:
 	//! Prints out a text into the log
 	virtual void log(const wchar_t* text, const wchar_t* hint, ELOG_LEVEL ll=ELL_INFORMATION);
 
-	//! Sets a new event receiver
-	void setReceiver(IEventReceiver* r);
-
 private:
 
 	ELOG_LEVEL LogLevel;
-	IEventReceiver* Receiver;
 };
 
 } // end namespace

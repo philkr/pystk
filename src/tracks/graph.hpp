@@ -87,9 +87,6 @@ private:
     /** Scaling for mini map. */
     float m_scaling;
 
-    /** The render target used for drawing the minimap. */
-    std::unique_ptr<RenderTarget> m_render_target;
-
     // ------------------------------------------------------------------------
     void createMesh(bool show_invisible=true,
                     bool enable_transparency=false,

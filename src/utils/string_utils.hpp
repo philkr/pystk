@@ -26,7 +26,6 @@
 #include <vector>
 #include <sstream>
 #include <irrString.h>
-#include <IGUIFont.h>
 #include <irrTypes.h>
 
 namespace StringUtils

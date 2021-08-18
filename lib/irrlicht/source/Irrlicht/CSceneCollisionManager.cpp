@@ -36,21 +36,6 @@ CSceneCollisionManager::~CSceneCollisionManager()
 		Driver->drop();
 }
 
-
-//! Returns the scene node, which is currently visible at the given
-//! screen coordinates, viewed from the currently active camera.
-ISceneNode* CSceneCollisionManager::getSceneNodeFromScreenCoordinatesBB(
-		const core::position2d<s32>& pos, s32 idBitMask, bool noDebugObjects, scene::ISceneNode* root)
-{
-	const core::line3d<f32> ln = getRayFromScreenCoordinates(pos, 0);
-
-	if ( ln.start == ln.end )
-		return 0;
-
-	return getSceneNodeFromRayBB(ln, idBitMask, noDebugObjects, root);
-}
-
-
 //! Returns the nearest scene node which collides with a 3d ray and
 //! which id matches a bitmask.
 ISceneNode* CSceneCollisionManager::getSceneNodeFromRayBB(
@@ -835,86 +820,6 @@ core::vector3df CSceneCollisionManager::collideWithWorld(s32 recursionDepth,
 	return collideWithWorld(recursionDepth+1, colData,
 		newBasePoint, newVelocityVector);
 }
-
-
-//! Returns a 3d ray which would go through the 2d screen coodinates.
-core::line3d<f32> CSceneCollisionManager::getRayFromScreenCoordinates(
-	const core::position2d<s32> & pos, ICameraSceneNode* camera)
-{
-	core::line3d<f32> ln(0,0,0,0,0,0);
-
-	if (!SceneManager)
-		return ln;
-
-	if (!camera)
-		camera = SceneManager->getActiveCamera();
-
-	if (!camera)
-		return ln;
-
-	const scene::SViewFrustum* f = camera->getViewFrustum();
-
-	core::vector3df farLeftUp = f->getFarLeftUp();
-	core::vector3df lefttoright = f->getFarRightUp() - farLeftUp;
-	core::vector3df uptodown = f->getFarLeftDown() - farLeftUp;
-
-	const core::rect<s32>& viewPort = Driver->getViewPort();
-	core::dimension2d<u32> screenSize(viewPort.getWidth(), viewPort.getHeight());
-
-	f32 dx = pos.X / (f32)screenSize.Width;
-	f32 dy = pos.Y / (f32)screenSize.Height;
-
-	if (camera->isOrthogonal())
-		ln.start = f->cameraPosition + (lefttoright * (dx-0.5f)) + (uptodown * (dy-0.5f));
-	else
-		ln.start = f->cameraPosition;
-
-	ln.end = farLeftUp + (lefttoright * dx) + (uptodown * dy);
-
-	return ln;
-}
-
-
-//! Calculates 2d screen position from a 3d position.
-core::position2d<s32> CSceneCollisionManager::getScreenCoordinatesFrom3DPosition(
-	const core::vector3df & pos3d, ICameraSceneNode* camera, bool useViewPort)
-{
-	if (!SceneManager || !Driver)
-		return core::position2d<s32>(-1000,-1000);
-
-	if (!camera)
-		camera = SceneManager->getActiveCamera();
-
-	if (!camera)
-		return core::position2d<s32>(-1000,-1000);
-
-	core::dimension2d<u32> dim;
-	if (useViewPort)
-		dim.set(Driver->getViewPort().getWidth(), Driver->getViewPort().getHeight());
-	else
-		dim=(Driver->getCurrentRenderTargetSize());
-
-	dim.Width /= 2;
-	dim.Height /= 2;
-
-	core::matrix4 trans = camera->getProjectionMatrix();
-	trans *= camera->getViewMatrix();
-
-	f32 transformedPos[4] = { pos3d.X, pos3d.Y, pos3d.Z, 1.0f };
-
-	trans.multiplyWith1x4Matrix(transformedPos);
-
-	if (transformedPos[3] < 0)
-		return core::position2d<s32>(-10000,-10000);
-
-	const f32 zDiv = transformedPos[3] == 0.0f ? 1.0f :
-		core::reciprocal(transformedPos[3]);
-
-	return core::position2d<s32>(
-			dim.Width + core::round32(dim.Width * (transformedPos[0] * zDiv)),
-			dim.Height - core::round32(dim.Height * (transformedPos[1] * zDiv)));
-}
-
 
 inline bool CSceneCollisionManager::getLowestRoot(f32 a, f32 b, f32 c, f32 maxR, f32* root)
 {

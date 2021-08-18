@@ -129,7 +129,9 @@ LODNode* ModelDefinitionLoader::instanciateAsLOD(const XMLNode* node, scene::ISc
 
                 a_mesh->grab();
                 //cache.push_back(a_mesh);
+#ifndef SERVER_ONLY
                 irr_driver->grabAllTextures(a_mesh);
+#endif
                 m_track->addCachedMesh(a_mesh);
                 scene::ISceneNode* scene_node = irr_driver
                     ->addMesh(a_mesh, group[m].m_model_file, NULL, ri);

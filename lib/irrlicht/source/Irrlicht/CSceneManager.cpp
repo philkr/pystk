@@ -10,7 +10,6 @@
 #include "CMeshCache.h"
 #include "IXMLWriter.h"
 #include "ISceneUserDataSerializer.h"
-#include "IGUIEnvironment.h"
 #include "IMaterialRenderer.h"
 #include "IReadFile.h"
 #include "IWriteFile.h"
@@ -39,7 +38,6 @@
 #include "CWaterSurfaceSceneNode.h"
 #include "CTerrainSceneNode.h"
 #include "CEmptySceneNode.h"
-#include "CTextSceneNode.h"
 
 #include "CDefaultSceneNodeFactory.h"
 
@@ -58,7 +56,6 @@
 #include "CSceneNodeAnimatorDelete.h"
 #include "CSceneNodeAnimatorFollowSpline.h"
 #include "CSceneNodeAnimatorCameraFPS.h"
-#include "CSceneNodeAnimatorCameraMaya.h"
 #include "CDefaultSceneNodeAnimatorFactory.h"
 
 #include "CGeometryCreator.h"
@@ -73,10 +70,9 @@ namespace scene
 
 //! constructor
 CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
-		gui::ICursorControl* cursorControl, IMeshCache* cache,
-		gui::IGUIEnvironment* gui)
-: ISceneNode(0, 0), Driver(driver), FileSystem(fs), GUIEnvironment(gui),
-	CursorControl(cursorControl), CollisionManager(0),
+		IMeshCache* cache)
+: ISceneNode(0, 0), Driver(driver), FileSystem(fs),
+	CollisionManager(0),
 	ActiveCamera(0), ShadowColor(150,0,0,0), AmbientLight(0,0,0,0),
 	MeshCache(cache), CurrentRendertime(ESNRP_NONE), LightManager(0),
 	IRR_XML_FORMAT_SCENE(L"irr_scene"), IRR_XML_FORMAT_NODE(L"node"), IRR_XML_FORMAT_NODE_ATTR_TYPE(L"type")
@@ -99,12 +95,6 @@ CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
 	if (FileSystem)
 		FileSystem->grab();
 
-	if (CursorControl)
-		CursorControl->grab();
-
-	if (GUIEnvironment)
-		GUIEnvironment->grab();
-
 	// create mesh cache if not there already
 	if (!MeshCache)
 		MeshCache = new CMeshCache();
@@ -122,7 +112,7 @@ CSceneManager::CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
 	registerSceneNodeFactory(factory);
 	factory->drop();
 
-	ISceneNodeAnimatorFactory* animatorFactory = new CDefaultSceneNodeAnimatorFactory(this, CursorControl);
+	ISceneNodeAnimatorFactory* animatorFactory = new CDefaultSceneNodeAnimatorFactory(this);
 	registerSceneNodeAnimatorFactory(animatorFactory);
 	animatorFactory->drop();
 }
@@ -142,17 +132,11 @@ CSceneManager::~CSceneManager()
 	if (FileSystem)
 		FileSystem->drop();
 
-	if (CursorControl)
-		CursorControl->drop();
-
 	if (CollisionManager)
 		CollisionManager->drop();
 
 	if (GeometryCreator)
 		GeometryCreator->drop();
-
-	if (GUIEnvironment)
-		GUIEnvironment->drop();
 
 	u32 i;
 	for (i=0; i<MeshLoaderList.size(); ++i)
@@ -275,13 +259,6 @@ video::IVideoDriver* CSceneManager::getVideoDriver()
 	return Driver;
 }
 
-
-//! returns the GUI Environment
-gui::IGUIEnvironment* CSceneManager::getGUIEnvironment()
-{
-	return GUIEnvironment;
-}
-
 //! Get the active FileSystem
 /** \return Pointer to the FileSystem
 This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
@@ -289,51 +266,6 @@ io::IFileSystem* CSceneManager::getFileSystem()
 {
 	return FileSystem;
 }
-
-//! Adds a text scene node, which is able to display
-//! 2d text at a position in three dimensional space
-ITextSceneNode* CSceneManager::addTextSceneNode(gui::IGUIFont* font,
-		const wchar_t* text, video::SColor color, ISceneNode* parent,
-		const core::vector3df& position, s32 id)
-{
-	if (!font)
-		return 0;
-
-	if (!parent)
-		parent = this;
-
-	ITextSceneNode* t = new CTextSceneNode(parent, this, id, font,
-		getSceneCollisionManager(), position, text, color);
-	t->drop();
-
-	return t;
-}
-
-
-//! Adds a text scene node, which uses billboards
-IBillboardTextSceneNode* CSceneManager::addBillboardTextSceneNode(gui::IGUIFont* font,
-		const wchar_t* text, ISceneNode* parent,
-		const core::dimension2d<f32>& size,
-		const core::vector3df& position, s32 id,
-		video::SColor colorTop, video::SColor colorBottom)
-{
-	if (!font && GUIEnvironment)
-		font = GUIEnvironment->getBuiltInFont();
-
-	if (!font)
-		return 0;
-
-	if (!parent)
-		parent = this;
-
-	IBillboardTextSceneNode* node = new CBillboardTextSceneNode(parent, this, id, font, text, position, size,
-		colorTop, colorBottom);
-	node->drop();
-
-	return node;
-
-}
-
 
 //! adds a test scene node for test purposes to the scene. It is a simple cube of (1,1,1) size.
 //! the returned pointer must not be dropped.
@@ -483,28 +415,6 @@ ICameraSceneNode* CSceneManager::addCameraSceneNode(ISceneNode* parent,
 }
 
 
-//! Adds a camera scene node which is able to be controlled with the mouse similar
-//! to in the 3D Software Maya by Alias Wavefront.
-//! The returned pointer must not be dropped.
-ICameraSceneNode* CSceneManager::addCameraSceneNodeMaya(ISceneNode* parent,
-	f32 rotateSpeed, f32 zoomSpeed, f32 translationSpeed, s32 id, f32 distance,
-	bool makeActive)
-{
-	ICameraSceneNode* node = addCameraSceneNode(parent, core::vector3df(),
-			core::vector3df(0,0,100), id, makeActive);
-	if (node)
-	{
-		ISceneNodeAnimator* anm = new CSceneNodeAnimatorCameraMaya(CursorControl,
-			rotateSpeed, zoomSpeed, translationSpeed, distance);
-
-		node->addAnimator(anm);
-		anm->drop();
-	}
-
-	return node;
-}
-
-
 //! Adds a camera scene node which is able to be controlled with the mouse and keys
 //! like in most first person shooters (FPS):
 ICameraSceneNode* CSceneManager::addCameraSceneNodeFPS(ISceneNode* parent,
@@ -516,7 +426,7 @@ ICameraSceneNode* CSceneManager::addCameraSceneNodeFPS(ISceneNode* parent,
 			core::vector3df(0,0,100), id, makeActive);
 	if (node)
 	{
-		ISceneNodeAnimator* anm = new CSceneNodeAnimatorCameraFPS(CursorControl,
+		ISceneNodeAnimator* anm = new CSceneNodeAnimatorCameraFPS(
 				rotateSpeed, moveSpeed, jumpSpeed,
 				keyMapArray, keyMapSize, noVerticalMovement, invertMouseY);
 
@@ -943,7 +853,8 @@ bool CSceneManager::isCulled(const ISceneNode* node) const
 	// has occlusion query information
 	if (node->getAutomaticCulling() & scene::EAC_OCC_QUERY)
 	{
-		result = (Driver->getOcclusionQueryResult(const_cast<ISceneNode*>(node))==0);
+	    printf("Philipp removed too much CSceneManager::isCulled\n");
+//		result = (Driver->getOcclusionQueryResult(const_cast<ISceneNode*>(node))==0);
 	}
 
 	// can be seen by a bounding box ?
@@ -1822,7 +1733,7 @@ IMeshCache* CSceneManager::getMeshCache()
 //! Creates a new scene manager.
 ISceneManager* CSceneManager::createNewSceneManager(bool cloneContent)
 {
-	CSceneManager* manager = new CSceneManager(Driver, FileSystem, CursorControl, MeshCache, GUIEnvironment);
+	CSceneManager* manager = new CSceneManager(Driver, FileSystem, MeshCache);
 
 	if (cloneContent)
 		manager->cloneMembers(this, manager);
@@ -2279,11 +2190,9 @@ IMeshWriter* CSceneManager::createMeshWriter(EMESH_WRITER_TYPE type)
 
 
 // creates a scenemanager
-ISceneManager* createSceneManager(video::IVideoDriver* driver,
-		io::IFileSystem* fs, gui::ICursorControl* cursorcontrol,
-		gui::IGUIEnvironment *guiEnvironment)
+ISceneManager* createSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs)
 {
-	return new CSceneManager(driver, fs, cursorcontrol, 0, guiEnvironment );
+	return new CSceneManager(driver, fs, 0);
 }
 
 

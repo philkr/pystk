@@ -38,35 +38,6 @@
 #endif
 #endif
 
-#if defined(USE_GLES2)
-#ifndef __APPLE__
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#endif
-
-#ifdef ARB_DEBUG_OUTPUT
-#define GL_DEBUG_SEVERITY_HIGH_ARB            GL_DEBUG_SEVERITY_HIGH_KHR
-#define GL_DEBUG_SEVERITY_LOW_ARB             GL_DEBUG_SEVERITY_LOW_KHR
-#define GL_DEBUG_SEVERITY_MEDIUM_ARB          GL_DEBUG_SEVERITY_MEDIUM_KHR
-#define GL_DEBUG_SOURCE_API_ARB               GL_DEBUG_SOURCE_API_KHR
-#define GL_DEBUG_SOURCE_APPLICATION_ARB       GL_DEBUG_SOURCE_APPLICATION_KHR
-#define GL_DEBUG_SOURCE_OTHER_ARB             GL_DEBUG_SOURCE_OTHER_KHR
-#define GL_DEBUG_SOURCE_SHADER_COMPILER_ARB   GL_DEBUG_SOURCE_SHADER_COMPILER_KHR
-#define GL_DEBUG_SOURCE_THIRD_PARTY_ARB       GL_DEBUG_SOURCE_THIRD_PARTY_KHR
-#define GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB     GL_DEBUG_SOURCE_WINDOW_SYSTEM_KHR
-#define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_KHR
-#define GL_DEBUG_TYPE_ERROR_ARB               GL_DEBUG_TYPE_ERROR_KHR
-#define GL_DEBUG_TYPE_OTHER_ARB               GL_DEBUG_TYPE_OTHER_KHR
-#define GL_DEBUG_TYPE_PERFORMANCE_ARB         GL_DEBUG_TYPE_PERFORMANCE_KHR
-#define GL_DEBUG_TYPE_PORTABILITY_ARB         GL_DEBUG_TYPE_PORTABILITY_KHR
-#define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB  GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_KHR
-
-#define GLDEBUGPROCARB GLDEBUGPROCKHR
-PFNGLDEBUGMESSAGECALLBACKKHRPROC pglDebugMessageCallbackKHR;
-#define glDebugMessageCallbackARB pglDebugMessageCallbackKHR
-#endif
-#endif
-
 static bool is_gl_init = false;
 
 #if DEBUG
@@ -158,19 +129,6 @@ debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei le
 }
 #endif
 
-#ifdef USE_GLES2
-#ifndef IOS_STK
-GL_APICALL void(*GL_APIENTRY glDebugMessageControl)(GLenum source, GLenum type,
-    GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-GL_APICALL void(*GL_APIENTRY glDebugMessageInsert)(GLenum source, GLenum type,
-    GLuint id, GLenum severity, GLsizei length, const char *message);
-#endif
-
-#define GL_DEBUG_SOURCE_APPLICATION 0x824A
-#define GL_DEBUG_TYPE_MARKER 0x8268
-#define GL_DEBUG_SEVERITY_NOTIFICATION 0x826B
-#endif
-
 void initGL()
 {
     if (is_gl_init)
@@ -178,7 +136,6 @@ void initGL()
         
     is_gl_init = true;
     // For Mesa extension reporting
-#if !defined(USE_GLES2)
 #ifndef WIN32
     glewExperimental = GL_TRUE;
 #endif
@@ -192,36 +149,20 @@ void initGL()
     {
         Log::fatal("GLEW", "Glew initialization failed with error %s", glewGetErrorString(err));
     }
-#else
-#ifdef ARB_DEBUG_OUTPUT
-    glDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKKHRPROC)eglGetProcAddress("glDebugMessageCallbackKHR");
-#endif
-#endif
 
 #ifdef ARB_DEBUG_OUTPUT
     if (glDebugMessageCallbackARB)
         glDebugMessageCallbackARB((GLDEBUGPROCARB)debugCallback, NULL);
 #endif
 
-#ifndef ANDROID
     if (SP::sp_apitrace && hasGLExtension("GL_KHR_debug"))
     {
-#ifndef IOS_STK
-#ifdef USE_GLES2
-        glDebugMessageControl = (void(GL_APIENTRY*)(GLenum, GLenum, GLenum, GLsizei,
-            const GLuint*, GLboolean))eglGetProcAddress("glDebugMessageControlKHR");
-        glDebugMessageInsert = (void(GL_APIENTRY*)(GLenum, GLenum, GLuint, GLenum,
-            GLsizei, const char*))eglGetProcAddress("glDebugMessageInsertKHR");
-        assert(glDebugMessageControl && glDebugMessageInsert);
-#endif
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-#endif
     }
     else
     {
         SP::sp_apitrace = false;
     }
-#endif
 }
 
 ScopedGPUTimer::ScopedGPUTimer(GPUTimer &t) : timer(t)

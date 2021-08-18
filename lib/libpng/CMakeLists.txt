@@ -10,8 +10,7 @@
 # For conditions of distribution and use, see the disclaimer
 # and license in png.h
 
-cmake_minimum_required(VERSION 2.8.3)
-cmake_policy(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0)
 
 # Set MacOSX @rpath usage globally.
 if (POLICY CMP0020)
@@ -90,7 +89,7 @@ unset(PNG_LIB_TARGETS)
 # does not work without changing name
 set(PNG_LIB_NAME_STATIC png_static)
 add_library(png_static STATIC ${libpng_sources})
-add_dependencies(png_static genfiles)
+#add_dependencies(png_static genfiles)
 # MSVC doesn't use a different file extension for shared vs. static
 # libs.  We are able to change OUTPUT_NAME to remove the _static
 # for all other platforms.

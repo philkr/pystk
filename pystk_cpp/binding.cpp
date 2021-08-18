@@ -10,6 +10,7 @@
 #include "pystk.hpp"
 #include "state.hpp"
 #include "view.hpp"
+#include "utils/constants.hpp"
 #include "utils/objecttype.h"
 #include "utils/log.hpp"
 
@@ -32,6 +33,12 @@ void path_and_init(const PySTKGraphicsConfig & config) {
 }
 PYBIND11_MODULE(pystk, m) {
     m.doc() = "Python SuperTuxKart interface";
+    m.attr("__version__") = std::string(STK_VERSION);
+#ifdef SERVER_ONLY
+    m.attr("has_graphics") = false;
+#else
+    m.attr("has_graphics") = true;
+#endif  // SERVER_ONLY
 
     // Make offscreen rendering default
     if (!getenv("IRR_DEVICE_TYPE"))
@@ -85,9 +92,10 @@ PYBIND11_MODULE(pystk, m) {
     {
         py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
         
-        cls.def(py::init<int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1)
+        cls.def(py::init<int, int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("display_adapter") = 0, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1)
         .def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface")
         .def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height, "Height of the rendering surface")
+        .def_readwrite("display_adapter", &PySTKGraphicsConfig::display_adapter, "GPU to use (Linux only)")
         .def_readwrite("glow", &PySTKGraphicsConfig::glow, "Enable glow around pickup objects")
         .def_readwrite("bloom", &PySTKGraphicsConfig::bloom, "Enable the bloom effect")
         .def_readwrite("light_shaft", &PySTKGraphicsConfig::light_shaft, "Enable light shafts")
@@ -152,6 +160,7 @@ PYBIND11_MODULE(pystk, m) {
         add_pickle(cls);
     }
 
+#ifndef SERVER_ONLY
     {
         py::class_<PySTKRenderData, std::shared_ptr<PySTKRenderData> > cls(m, "RenderData", "SuperTuxKart rendering output");
         cls
@@ -161,6 +170,7 @@ PYBIND11_MODULE(pystk, m) {
 ;
 //        add_pickle(cls);
     }
+#endif  // SERVER_ONLY
 
     {
         py::class_<PySTKAction, std::shared_ptr<PySTKAction> > cls(m, "Action", "SuperTuxKart action");
@@ -188,8 +198,11 @@ PYBIND11_MODULE(pystk, m) {
         .def("step", (bool (PySTKRace::*)(const PySTKAction &)) &PySTKRace::step, py::arg("action"), "Take a step with an action for agent 0")
         .def("step", (bool (PySTKRace::*)()) &PySTKRace::step, "Take a step without changing the action")
         .def("stop", &PySTKRace::stop,"Stop the race")
+#ifdef SERVER_ONLY
+.def_property_readonly("render_data", [](const PySTKRace &) -> py::list {return py::list();}, "rendering data from the last step")
+#else
         .def_property_readonly("render_data", &PySTKRace::render_data, "rendering data from the last step")
-        .def_property_readonly("last_action", &PySTKRace::last_action, "the last action the agent took")
+#endif  // SERVER_ONLY
         .def_property_readonly("config", &PySTKRace::config,"The current race configuration");
     }
     

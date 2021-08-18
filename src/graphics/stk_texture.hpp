@@ -33,15 +33,15 @@ class STKTexture : public video::ITexture, NoCopy
 private:
     core::dimension2d<u32> m_size, m_orig_size;
 
-    bool m_single_channel;
+    bool m_single_channel = 0;
 
-    TexConfig* m_tex_config;
+    TexConfig* m_tex_config = 0;
 
-    GLuint m_texture_name;
+    GLuint m_texture_name = 0;
 
-    unsigned int m_texture_size;
+    unsigned int m_texture_size = 0;
 
-    video::IImage* m_texture_image;
+    video::IImage* m_texture_image = 0;
 
     // ------------------------------------------------------------------------
     video::IImage* resizeImage(video::IImage* orig_img,
@@ -82,15 +82,7 @@ public:
                                                         { return m_orig_size; }
     // ------------------------------------------------------------------------
     virtual const core::dimension2d<u32>& getSize() const    { return m_size; }
-    // ------------------------------------------------------------------------
-    virtual video::E_DRIVER_TYPE getDriverType() const
-    {
-#if defined(USE_GLES2)
-        return video::EDT_OGLES2;
-#else
-        return video::EDT_OPENGL;
-#endif
-    }
+
     // ------------------------------------------------------------------------
     virtual video::ECOLOR_FORMAT getColorFormat() const
                                                 { return video::ECF_A8R8G8B8; }

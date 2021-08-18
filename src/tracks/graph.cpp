@@ -43,7 +43,6 @@ Graph::Graph()
     m_node        = NULL;
     m_mesh        = NULL;
     m_mesh_buffer = NULL;
-    m_render_target = NULL;
     m_bb_min      = Vec3( 99999,  99999,  99999);
     m_bb_max      = Vec3(-99999, -99999, -99999);
     memset(m_bb_nodes, 0, 4 * sizeof(int));

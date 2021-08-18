@@ -7,7 +7,6 @@
 
 #include "IVideoDriver.h"
 #include "IFileSystem.h"
-#include "IImagePresenter.h"
 #include "IGPUProgrammingServices.h"
 #include "irrArray.h"
 #include "irrString.h"
@@ -44,7 +43,7 @@ namespace video
 	public:
 
 		//! constructor
-		CNullDriver(io::IFileSystem* io, const core::dimension2d<u32>& screenSize);
+		CNullDriver(io::IFileSystem* io);
 
 		//! destructor
 		virtual ~CNullDriver();
@@ -117,12 +116,6 @@ namespace video
 		//! Sets multiple render targets
 		virtual bool setRenderTarget(const core::array<video::IRenderTarget>& texture,
 					bool clearBackBuffer=true, bool clearZBuffer=true, SColor color=SColor(0,0,0,0));
-
-		//! sets a viewport
-		virtual void setViewPort(const core::rect<s32>& area);
-
-		//! gets the area of the current viewport
-		virtual const core::rect<s32>& getViewPort() const;
 
 		//! draws a vertex primitive list
 		virtual void drawVertexPrimitiveList(const void* vertices, u32 vertexCount,
@@ -239,18 +232,6 @@ namespace video
 		virtual void getFog(SColor& color, E_FOG_TYPE& fogType,
 				f32& start, f32& end, f32& density,
 				bool& pixelFog, bool& rangeFog);
-
-		//! get color format of the current color buffer
-		virtual ECOLOR_FORMAT getColorFormat() const;
-
-		//! get screen size
-		virtual const core::dimension2d<u32>& getScreenSize() const;
-
-		//! get render target size
-		virtual const core::dimension2d<u32>& getCurrentRenderTargetSize() const;
-
-		// get current frames per second value
-		virtual s32 getFPS() const;
 
 		//! returns amount of primitives (mostly triangles) were drawn in the last frame.
 		//! very useful method for statistics.
@@ -476,19 +457,9 @@ namespace video
 		actual value of pixels. */
 		virtual u32 getOcclusionQueryResult(scene::ISceneNode* node) const;
 
-		//! Only used by the engine internally.
-		/** Used to notify the driver that the window was resized. */
-		virtual void OnResize(const core::dimension2d<u32>& size);
-
 		//! Adds a new material renderer to the video device.
 		virtual s32 addMaterialRenderer(IMaterialRenderer* renderer,
 				const char* name = 0);
-
-		//! Returns driver and operating system specific data about the IVideoDriver.
-		virtual const SExposedVideoData& getExposedVideoData();
-
-		//! Returns type of video driver
-		virtual E_DRIVER_TYPE getDriverType() const;
 
 		//! Returns the transformation set by setTransform
 		virtual const core::matrix4& getTransform(E_TRANSFORMATION_STATE state) const;
@@ -591,9 +562,6 @@ namespace video
 
 		//! Clears the ZBuffer.
 		virtual void clearZBuffer();
-
-		//! Returns an image created from the last rendered frame.
-		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER);
 
 		//! Writes the provided image to disk file
 		virtual bool writeImageToFile(IImage* image, const io::path& filename, u32 param = 0);
@@ -746,7 +714,6 @@ namespace video
 			virtual void unlock(){}
 			virtual const core::dimension2d<u32>& getOriginalSize() const { return size; }
 			virtual const core::dimension2d<u32>& getSize() const { return size; }
-			virtual E_DRIVER_TYPE getDriverType() const { return video::EDT_NULL; }
 			virtual ECOLOR_FORMAT getColorFormat() const { return video::ECF_A1R5G5B5; };
 			virtual u32 getPitch() const { return 0; }
 			virtual u32 getOpenGLTextureName() const { return 0; }
@@ -826,8 +793,6 @@ namespace video
 		//! mesh manipulator
 		scene::IMeshManipulator* MeshManipulator;
 
-		core::rect<s32> ViewPort;
-		core::dimension2d<u32> ScreenSize;
 		core::matrix4 TransformationMatrix;
 
 		CFPSCounter FPSCounter;
@@ -841,7 +806,6 @@ namespace video
 		f32 FogEnd;
 		f32 FogDensity;
 		SColor FogColor;
-		SExposedVideoData ExposedData;
 
 		io::IAttributes* DriverAttributes;
 

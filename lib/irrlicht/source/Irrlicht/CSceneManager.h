@@ -7,7 +7,6 @@
 
 #include "ISceneManager.h"
 #include "ISceneNode.h"
-#include "ICursorControl.h"
 #include "irrString.h"
 #include "irrArray.h"
 #include "IMeshLoader.h"
@@ -34,9 +33,7 @@ namespace scene
 	public:
 
 		//! constructor
-		CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs,
-			gui::ICursorControl* cursorControl, IMeshCache* cache = 0,
-			gui::IGUIEnvironment *guiEnvironment = 0);
+		CSceneManager(video::IVideoDriver* driver, io::IFileSystem* fs, IMeshCache* cache = 0);
 
 		//! destructor
 		virtual ~CSceneManager();
@@ -52,9 +49,6 @@ namespace scene
 
 		//! returns the video driver
 		virtual video::IVideoDriver* getVideoDriver();
-
-		//! return the gui environment
-		virtual gui::IGUIEnvironment* getGUIEnvironment();
 
 		//! return the filesystem
 		virtual io::IFileSystem* getFileSystem();
@@ -126,14 +120,6 @@ namespace scene
 			const core::vector3df& lookat = core::vector3df(0,0,100),
 			s32 id=-1, bool makeActive=true);
 
-		//! Adds a camera scene node which is able to be controlle with the mouse similar
-		//! like in the 3D Software Maya by Alias Wavefront.
-		//! The returned pointer must not be dropped.
-		virtual ICameraSceneNode* addCameraSceneNodeMaya(ISceneNode* parent=0,
-			f32 rotateSpeed=-1500.f, f32 zoomSpeed=200.f,
-			f32 translationSpeed=1500.f, s32 id=-1, f32 distance=70.f,
-			bool makeActive=true);
-
 		//! Adds a camera scene node which is able to be controled with the mouse and keys
 		//! like in most first person shooters (FPS):
 		virtual ICameraSceneNode* addCameraSceneNodeFPS(ISceneNode* parent = 0,
@@ -170,21 +156,6 @@ namespace scene
 			u32 horiRes=16, u32 vertRes=8,
 			f32 texturePercentage=0.9, f32 spherePercentage=2.0,f32 radius = 1000.f,
 			ISceneNode* parent=0, s32 id=-1);
-
-		//! Adds a text scene node, which is able to display
-		//! 2d text at a position in three dimensional space
-		virtual ITextSceneNode* addTextSceneNode(gui::IGUIFont* font, const wchar_t* text,
-			video::SColor color=video::SColor(100,255,255,255),
-			ISceneNode* parent = 0,	const core::vector3df& position = core::vector3df(0,0,0),
-			s32 id=-1);
-
-		//! Adds a text scene node, which uses billboards
-		virtual IBillboardTextSceneNode* addBillboardTextSceneNode(gui::IGUIFont* font, const wchar_t* text,
-			ISceneNode* parent = 0,
-			const core::dimension2d<f32>& size = core::dimension2d<f32>(10.0f, 10.0f),
-			const core::vector3df& position = core::vector3df(0,0,0), s32 id=-1,
-			video::SColor colorTop = 0xFFFFFFFF, video::SColor colorBottom = 0xFFFFFFFF);
-
 
 		//! Adds a Hill Plane mesh to the mesh pool. The mesh is
 		//! generated on the fly and looks like a plane with some hills
@@ -590,12 +561,6 @@ namespace scene
 
 		//! file system
 		io::IFileSystem* FileSystem;
-
-		//! GUI Enviroment ( Debug Purpose )
-		gui::IGUIEnvironment* GUIEnvironment;
-
-		//! cursor control
-		gui::ICursorControl* CursorControl;
 
 		//! collision manager
 		ISceneCollisionManager* CollisionManager;
