@@ -7,20 +7,8 @@ extern bool GLContextDebugBit;
 
 #include "CIrrDeviceNull.h"
 
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/utsname.h>
-#include <time.h>
-#include <locale.h>
-#include "IEventReceiver.h"
 #include "ISceneManager.h"
 #include "os.h"
-#include "CTimer.h"
-#include "irrString.h"
-#include "Keycodes.h"
-#include "CColorConverter.h"
 #include "SIrrCreationParameters.h"
 #include "CNullDriver.h"
 

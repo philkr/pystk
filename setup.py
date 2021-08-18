@@ -143,10 +143,11 @@ class FetchDataCommand(Command):
                 for data in r.iter_content(1 << 20):
                     dl += len(data)
                     content += data
-                    done = int(50 * dl / total_length)
-                    sys.stdout.write("\r[%s%s] %3d%%" % ('=' * done, ' ' * (50 - done), 100 * dl / total_length))
+                    # done = int(50 * dl / total_length)
+                    # sys.stdout.write("\r[%s%s] %3d%%" % ('=' * done, ' ' * (50 - done), 100 * dl / total_length))
                 print()
             z = zipfile.ZipFile(io.BytesIO(content))
+            import shutil
             try:
                 shutil.rmtree(assets_dir)
             except FileNotFoundError:

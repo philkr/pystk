@@ -17,6 +17,8 @@
 
 #include "IrrCompileConfig.h"
 
+#include "CContextEGL.h"
+
 #if defined(_IRR_POSIX_API_)
 
 #include <cstring>
@@ -24,7 +26,6 @@
 #include <vector>
 #include <dlfcn.h>
 
-#include "CContextEGL.h"
 #include "os.h"
 
 using namespace irr;
