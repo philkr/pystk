@@ -15,8 +15,6 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-#ifndef SERVER_ONLY
-
 #include "graphics/sp/sp_base.hpp"
 #include "config/stk_config.hpp"
 #include "config/user_config.hpp"
@@ -137,6 +135,7 @@ unsigned g_skinning_size;
 // ----------------------------------------------------------------------------
 void displaceUniformAssigner(SP::SPUniformAssigner* ua)
 {
+#ifndef SERVER_ONLY
     static std::array<float, 4> g_direction = {{ 0, 0, 0, 0 }};
     if (!Track::getCurrentTrack())
     {
@@ -162,11 +161,14 @@ void displaceUniformAssigner(SP::SPUniformAssigner* ua)
     g_direction[2] += wind.X;
     g_direction[3] += wind.Z;
     ua->setValue(g_direction);
+#endif
 }   // displaceUniformAssigner
 
 // ----------------------------------------------------------------------------
 void displaceShaderInit(SPShader* shader)
 {
+#ifndef SERVER_ONLY
+
     shader->addShaderFile("sp_pass.vert", GL_VERTEX_SHADER, RP_1ST);
     shader->addShaderFile("white.frag", GL_FRAGMENT_SHADER, RP_1ST);
     shader->linkShaderFiles(RP_1ST);
@@ -230,11 +232,14 @@ void displaceShaderInit(SPShader* shader)
         }, RP_RESERVED);
     static_cast<SPPerObjectUniform*>(shader)
         ->addAssignerFunction("direction", displaceUniformAssigner);
+#endif
 }   // displaceShaderInit
 
 // ----------------------------------------------------------------------------
 void resizeSkinning(unsigned number)
 {
+#ifndef SERVER_ONLY
+
     const irr::core::matrix4 m;
     g_skinning_size = number;
 
@@ -279,12 +284,14 @@ void resizeSkinning(unsigned number)
         glBindTexture(GL_TEXTURE_BUFFER, 0);
 #endif
     }
-
+#endif
 }   // resizeSkinning
 
 // ----------------------------------------------------------------------------
 void initSkinning()
 {
+#ifndef SERVER_ONLY
+
     static_assert(sizeof(std::array<float, 16>) == 64, "No padding");
 
     int max_size = 0;
@@ -332,11 +339,14 @@ void initSkinning()
     resizeSkinning(stk_config->m_max_skinning_bones);
 
     sp_prefilled_tex[0] = g_skinning_tex;
+#endif
 }   // initSkinning
 
 // ----------------------------------------------------------------------------
 void loadShaders()
 {
+#ifndef SERVER_ONLY
+
     SPShaderManager::get()->loadSPShaders(file_manager->getShadersDir());
 
     // Displace shader is not specifiable in XML due to complex callback
@@ -404,22 +414,27 @@ void loadShaders()
     }
 
     SPShaderManager::get()->setOfficialShaders();
-
+#endif
 }   // loadShaders
 
 // ----------------------------------------------------------------------------
 void resetEmptyFogColor()
 {
+#ifndef SERVER_ONLY
+
     glBindBuffer(GL_UNIFORM_BUFFER, sp_fog_ubo);
     std::vector<float> fog_empty;
     fog_empty.resize(8, 0.0f);
     glBufferData(GL_UNIFORM_BUFFER, 8 * sizeof(float), fog_empty.data(),
         GL_DYNAMIC_DRAW);
+#endif
 }   // resetEmptyFogColor
 
 // ----------------------------------------------------------------------------
 void init()
 {
+#ifndef SERVER_ONLY
+
     initSkinning();
     for (unsigned i = 0; i < MAX_PLAYER_COUNT; i++)
     {
@@ -570,11 +585,14 @@ void init()
                 break;
         }
     }
+#endif
 }   // init
 
 // ----------------------------------------------------------------------------
 void destroy()
 {
+#ifndef SERVER_ONLY
+
     g_dy_dc.clear();
     SPShaderManager::destroy();
     g_glow_shader = NULL;
@@ -603,28 +621,42 @@ void destroy()
     }
     glDeleteBuffers(1, &sp_fog_ubo);
     glDeleteSamplers((unsigned)g_samplers.size() - 1, g_samplers.data());
-
+#endif
 }   // destroy
 
 // ----------------------------------------------------------------------------
 GLuint getSampler(SamplerType st)
 {
+#ifdef SERVER_ONLY
+    return 0;
+#else
     assert(st < ST_COUNT);
     return g_samplers[st];
+#endif
 }   // getSampler
 
 // ----------------------------------------------------------------------------
 SPShader* getGlowShader()
 {
+#ifdef SERVER_ONLY
+    return nullptr;
+#else
     return g_glow_shader;
+#endif
 }   // getGlowShader
 
 // ----------------------------------------------------------------------------
 SPShader* getNormalVisualizer()
 {
+#ifdef SERVER_ONLY
+    return nullptr;
+#else
     return g_normal_visualizer;
+#endif
 }   // getNormalVisualizer
 
+
+#ifndef SERVER_ONLY
 // ----------------------------------------------------------------------------
 inline void mathPlaneNormf(float *p)
 {
@@ -729,10 +761,11 @@ void addEdgeForViz(const core::vector3df& p0, const core::vector3df& p1)
     g_bounding_boxes.push_back(p1.Y);
     g_bounding_boxes.push_back(p1.Z);
 }   // addEdgeForViz
-
+#endif
 // ----------------------------------------------------------------------------
 void prepareDrawCalls()
 {
+#ifndef SERVER_ONLY
     if (!sp_culling)
     {
         return;
@@ -771,11 +804,13 @@ void prepareDrawCalls()
     }
     g_glow_meshes.clear();
     g_instances.clear();
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void addObject(SPMeshNode* node)
 {
+#ifndef SERVER_ONLY
     if (!sp_culling)
     {
         return;
@@ -945,11 +980,13 @@ void addObject(SPMeshNode* node)
             g_instances.insert(mb);
         }
     }
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void handleDynamicDrawCall()
 {
+#ifndef SERVER_ONLY
     for (unsigned dc_num = 0; dc_num < g_dy_dc.size(); dc_num++)
     {
         SPDynamicDrawCall* dydc = g_dy_dc[dc_num].get();
@@ -1072,11 +1109,13 @@ void handleDynamicDrawCall()
             }
         }
     }
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void updateModelMatrix()
 {
+#ifndef SERVER_ONLY
     // Make sure all textures (with handles) are loaded
     if (!sp_culling)
     {
@@ -1150,11 +1189,13 @@ void updateModelMatrix()
             }
         }
     }
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void uploadSkinningMatrices()
 {
+#ifndef SERVER_ONLY
     if (g_skinning_mesh.empty())
     {
         return;
@@ -1198,11 +1239,13 @@ void uploadSkinningMatrices()
         g_joint_ptr = NULL;
     }
 #endif
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void uploadAll()
 {
+#ifndef SERVER_ONLY
     uploadSkinningMatrices();
     glBindBuffer(GL_UNIFORM_BUFFER,
         sp_mat_ubo[sp_cur_player][sp_cur_buf_id[sp_cur_player]]);
@@ -1226,11 +1269,13 @@ void uploadAll()
         {
             return dc->isRemoving();
         }), g_dy_dc.end());
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void drawSPDebugView()
 {
+#ifndef SERVER_ONLY
     if (g_normal_visualizer == NULL)
     {
         return;
@@ -1270,11 +1315,13 @@ void drawSPDebugView()
         }
     }
     g_normal_visualizer->unuse();
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void drawGlow()
 {
+#ifndef SERVER_ONLY
     if (g_glow_meshes.empty())
     {
         return;
@@ -1292,11 +1339,13 @@ void drawGlow()
         }
     }
     g_glow_shader->unuse();
+#endif
 }
 
 // ----------------------------------------------------------------------------
 void draw(RenderPass rp, DrawCallType dct)
 {
+#ifndef SERVER_ONLY
     std::stringstream profiler_name;
     profiler_name << "SP::Draw " << dct << " with " << rp;
     PROFILER_PUSH_CPU_MARKER(profiler_name.str().c_str(),
@@ -1354,11 +1403,13 @@ void draw(RenderPass rp, DrawCallType dct)
         p.first->unuse(rp);
     }
     PROFILER_POP_CPU_MARKER();
+#endif
 }   // draw
 
 // ----------------------------------------------------------------------------
 void drawBoundingBoxes()
 {
+#ifndef SERVER_ONLY
     Shaders::ColoredLine *line = Shaders::ColoredLine::getInstance();
     line->use();
     line->bindVertexArray();
@@ -1372,12 +1423,15 @@ void drawBoundingBoxes()
         glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(float), &tmp[i]);
         glDrawArrays(GL_LINES, 0, count / 3);
     }
+#endif
 }   // drawBoundingBoxes
 
 // ----------------------------------------------------------------------------
 void addDynamicDrawCall(std::shared_ptr<SPDynamicDrawCall> dy_dc)
 {
+#ifndef SERVER_ONLY
     g_dy_dc.push_back(dy_dc);
+#endif
 }   // addDynamicDrawCall
 
 // ----------------------------------------------------------------------------
@@ -1422,6 +1476,7 @@ SPMesh* convertEVTStandard(irr::scene::IMesh* mesh,
 // ----------------------------------------------------------------------------
 void uploadSPM(irr::scene::IMesh* mesh)
 {
+#ifndef SERVER_ONLY
     if (!CVS->isGLSL())
     {
         return;
@@ -1435,8 +1490,10 @@ void uploadSPM(irr::scene::IMesh* mesh)
             mb->uploadGLMesh();
         }
     }
+#endif
 }   // uploadSPM
 
+#ifndef SERVER_ONLY
 // ----------------------------------------------------------------------------
 void setMaxTextureSize()
 {
@@ -1446,6 +1503,5 @@ void setMaxTextureSize()
     sp_max_texture_size.store(max);
 }   // setMaxTextureSize
 
-}
-
 #endif
+}

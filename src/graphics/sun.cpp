@@ -37,7 +37,8 @@ SunNode::~SunNode()
 // ----------------------------------------------------------------------------
 void SunNode::render()
 {
+#ifndef SERVER_ONLY
     irr_driver->setSunColor(video::SColorf(m_color[0], m_color[1], m_color[2]));
     irr_driver->setSunDirection(getPosition());
-
+#endif
 }   // render

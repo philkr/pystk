@@ -192,7 +192,7 @@ PYBIND11_MODULE(pystk, m) {
         .def("step", (bool (PySTKRace::*)()) &PySTKRace::step, "Take a step without changing the action")
         .def("stop", &PySTKRace::stop,"Stop the race")
 #ifdef SERVER_ONLY
-        .def_property_readonly("render_data", [](const PySTKRace &) -> py::none {throw py::value_error("Cannot return 'render_data' while compiled without graphics");}, "rendering data from the last step")
+.def_property_readonly("render_data", [](const PySTKRace &) -> py::list {return py::list();}, "rendering data from the last step")
 #else
         .def_property_readonly("render_data", &PySTKRace::render_data, "rendering data from the last step")
 #endif  // SERVER_ONLY

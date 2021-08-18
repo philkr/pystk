@@ -49,7 +49,9 @@ ThreeStrikesBattle::ThreeStrikesBattle() : WorldWithRank()
 
     m_tire = irr_driver->getMesh(file_manager->getAsset(FileManager::MODEL,
                                  "tire.spm") );
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(m_tire);
+#endif
 
     m_total_rescue = 0;
     m_frame_count = 0;
@@ -78,7 +80,9 @@ ThreeStrikesBattle::~ThreeStrikesBattle()
     m_tires.clearWithoutDeleting();
     m_spare_tire_karts.clear();
 
+#ifndef SERVER_ONLY
     irr_driver->dropAllTextures(m_tire);
+#endif
     // Remove the mesh from the cache so that the mesh is properly
     // freed once all refernces to it (which will happen once all
     // karts are being freed, which would have a pointer to this mesh)

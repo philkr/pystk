@@ -241,7 +241,9 @@ KartModel::~KartModel()
         }
         if(m_is_master && m_wheel_model[i])
         {
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(m_wheel_model[i]);
+#endif
             irr_driver->removeMeshFromCache(m_wheel_model[i]);
         }
     }
@@ -257,7 +259,9 @@ KartModel::~KartModel()
         if (m_is_master && m_speed_weighted_objects[i].m_model)
         {
             m_speed_weighted_objects[i].m_model->drop();
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(m_speed_weighted_objects[i].m_model);
+#endif
             if (m_speed_weighted_objects[i].m_model->getReferenceCount() == 1)
             {
                 irr_driver->removeMeshFromCache(m_speed_weighted_objects[i].m_model);
@@ -277,7 +281,9 @@ KartModel::~KartModel()
         if (m_is_master && obj.getModel())
         {
             obj.getModel()->drop();
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(obj.getModel());
+#endif
             if (obj.getModel()->getReferenceCount() == 1)
             {
                 irr_driver->removeMeshFromCache(obj.getModel());
@@ -292,18 +298,14 @@ KartModel::~KartModel()
         // mesh cache, so it can be removed.
         if (m_mesh && m_mesh->getReferenceCount() == 1)
         {
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(m_mesh);
+#endif
             irr_driver->removeMeshFromCache(m_mesh);
         }
     }
 
     delete m_hat_location;
-#ifdef DEBUG
-#if SKELETON_DEBUG
-    irr_driver->clearDebugMeshes();
-#endif
-#endif
-
 }  // ~KartModel
 
 // ----------------------------------------------------------------------------
@@ -546,11 +548,13 @@ scene::ISceneNode* KartModel::attachModel(bool animated_models, bool human_playe
 void HeadlightObject::setLight(scene::ISceneNode* parent,
                                           float energy, float radius)
 {
+#ifndef SERVER_ONLY
     m_node = irr_driver->addLight(core::vector3df(0.0f, 0.0f, 0.0f),
         energy, radius, m_headlight_color.getRed() / 255.f,
         m_headlight_color.getGreen() / 255.f,
         m_headlight_color.getBlue() / 255.f, false/*sun*/, parent);
     m_node->grab();
+#endif
 }   // setLight
 
 // ----------------------------------------------------------------------------
@@ -575,10 +579,10 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         return false;
     }
 
-#ifndef SERVER_ONLY
-#endif
     m_mesh->grab();
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(m_mesh);
+#endif
 
     Vec3 kart_min, kart_max;
     MeshTools::minMax3D(m_mesh->getMesh(m_animation_frame[AF_STRAIGHT]),
@@ -658,7 +662,9 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         }
 #endif
         obj.m_model->grab();
+#ifndef SERVER_ONLY
         irr_driver->grabAllTextures(obj.m_model);
+#endif
 
         // Update min/max, speed weight can be scaled
         Vec3 obj_min, obj_max;
@@ -680,7 +686,9 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         SP::uploadSPM(obj.getModel());
 #endif
         obj.getModel()->grab();
+#ifndef SERVER_ONLY
         irr_driver->grabAllTextures(obj.getModel());
+#endif
     }
 
     Vec3 size     = kart_max-kart_min;
@@ -728,7 +736,9 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         // Grab all textures. This is done for the master only, so
         // the destructor will only free the textures if a master
         // copy is freed.
+#ifndef SERVER_ONLY
         irr_driver->grabAllTextures(m_wheel_model[i]);
+#endif
     }   // for i<4
 
     return true;

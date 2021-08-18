@@ -336,7 +336,9 @@ void Track::cleanup()
     // mesh if it is already contained in the list or not).
     for (unsigned int i = 0; i < m_all_cached_meshes.size(); i++)
     {
+#ifndef SERVER_ONLY
         irr_driver->dropAllTextures(m_all_cached_meshes[i]);
+#endif
         // If a mesh is not in Irrlicht's texture cache, its refcount is
         // 1 (since its scene node was removed, so the only other reference
         // is in m_all_cached_meshes). In this case we only drop it once
@@ -355,7 +357,9 @@ void Track::cleanup()
     // Now free meshes that are not associated to any scene node.
     for (unsigned int i = 0; i < m_detached_cached_meshes.size(); i++)
     {
+#ifndef SERVER_ONLY
         irr_driver->dropAllTextures(m_detached_cached_meshes[i]);
+#endif
         irr_driver->removeMeshFromCache(m_detached_cached_meshes[i]);
     }
     m_detached_cached_meshes.clear();
@@ -436,9 +440,11 @@ void Track::loadTrackInfo()
     m_sun_specular_color    = video::SColor(255, 255, 255, 255);
     m_sun_diffuse_color     = video::SColor(255, 255, 255, 255);
     m_sun_position          = core::vector3df(0, 10, 10);
+#ifndef SERVER_ONLY
     irr_driver->setSSAORadius(1.);
     irr_driver->setSSAOK(1.5);
     irr_driver->setSSAOSigma(1.);
+#endif
     XMLNode *root           = file_manager->createXMLTree(m_filename);
 
     if(!root || root->getName()!="track")
@@ -1000,7 +1006,9 @@ bool Track::loadMainTrack(const XMLNode &root)
     // scene node), but then we need to grab it since it's in the
     // m_all_cached_meshes.
     m_all_cached_meshes.push_back(tangent_mesh);
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(tangent_mesh);
+#endif
 
 #ifdef DEBUG
     std::string debug_name=model_name+" (main track, octtree)";
@@ -1114,7 +1122,9 @@ bool Track::loadMainTrack(const XMLNode &root)
             // 1 - which means that the only reference is now in the cache,
             // and can therefore be removed.
             m_all_cached_meshes.push_back(a_mesh);
+#ifndef SERVER_ONLY
             irr_driver->grabAllTextures(a_mesh);
+#endif
             a_mesh->grab();
             scene_node = irr_driver->addMesh(a_mesh, model_name, NULL, ri);
             scene_node->setPosition(xyz);
@@ -1373,7 +1383,9 @@ void Track::createWater(const XMLNode &node)
 #endif
     mesh->grab();
     m_all_cached_meshes.push_back(mesh);
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(mesh);
+#endif
 
     core::vector3df xyz(0,0,0);
     node.get("xyz", &xyz);
@@ -1676,12 +1688,10 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
                                              m_fog_start, m_fog_end,
                                              1.0f);
     }
-#endif
 
     // Sky dome and boxes support
     // --------------------------
     irr_driver->suppressSkyBox();
-#ifndef SERVER_ONLY
     if(!CVS->isGLSL() && m_sky_type==SKY_DOME && m_sky_textures.size() > 0)
     {
         scene::ISceneNode *node = irr_driver->addSkyDome(m_sky_textures[0],
@@ -1715,7 +1725,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     {
         irr_driver->setClearbackBufferColor(m_sky_color);
     }
-#endif
 
     // ---- Set ambient color
     m_ambient_color = m_default_ambient_color;
@@ -1731,7 +1740,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     const video::SColorf tmpf(m_sun_diffuse_color);
     m_sun = irr_driver->addLight(m_sun_position, 0., 0., tmpf.r, tmpf.g, tmpf.b, true);
 
-#ifndef SERVER_ONLY
     if (!CVS->isGLSL())
     {
         scene::ILightSceneNode *sun = (scene::ILightSceneNode *) m_sun;
@@ -2000,6 +2008,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
         m_sky_texture_percent = 1.0f;
         std::string s;
         xml_node.get("texture",          &s                   );
+#ifndef SERVER_ONLY
         video::ITexture *t = irr_driver->getTexture(s);
         if (t != NULL)
         {
@@ -2017,6 +2026,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
             Log::error("track", "Sky-dome texture '%s' not found - ignored.",
                         s.c_str());
         }
+#endif
     }   // if sky-dome
     else if(xml_node.getName()=="sky-box")
     {
@@ -2033,15 +2043,12 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                     (TexConfig*)NULL/*tex_config*/, true/*no_upload*/);
             }
             else
-#endif   // !SERVER_ONLY
             {
                 t = irr_driver->getTexture(v[i]);
             }
             if (t)
             {
-#ifndef SERVER_ONLY
                 if (!CVS->isGLSL())
-#endif   // !SERVER_ONLY
                     t->grab();
                 m_sky_textures.push_back(t);
             }
@@ -2050,6 +2057,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                 Log::error("track","Sky-box texture '%s' not found - ignored.",
                            v[i].c_str());
             }
+#endif
         }   // for i<v.size()
         if(m_sky_textures.size()!=6)
         {
@@ -2077,15 +2085,12 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                     (TexConfig*)NULL/*tex_config*/, true/*no_upload*/);
             }
             else
-#endif   // !SERVER_ONLY
             {
                 t = irr_driver->getTexture(v[i]);
             }
             if (t)
             {
-#ifndef SERVER_ONLY
                 if (!CVS->isGLSL())
-#endif   // !SERVER_ONLY
                     t->grab();
                 m_spherical_harmonics_textures.push_back(t);
             }
@@ -2094,6 +2099,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                 Log::error("track", "Sky-box spherical harmonics texture '%s' not found - ignored.",
                     v[i].c_str());
             }
+#endif   // !SERVER_ONLY
         }   // for i<v.size()
     }
     else if (xml_node.getName() == "sky-color")

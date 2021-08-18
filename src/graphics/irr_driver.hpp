@@ -81,7 +81,7 @@ struct SHCoefficients;
   *  ways to manage the 3D scene
   * \ingroup graphics
   */
-class IrrDriver : public IEventReceiver, public NoCopy
+class IrrDriver : public NoCopy
 {    
 private:
     /** The irrlicht device. */
@@ -90,42 +90,38 @@ private:
     scene::ISceneManager       *m_scene_manager;
     /** Irrlicht video driver. */
     video::IVideoDriver        *m_video_driver;
+#ifndef SERVER_ONLY
     /** Renderer. */
     ShaderBasedRenderer        *m_renderer;
     
     /** Wind. */
     Wind                 *m_wind;
-
     /** The main MRT setup. */
     core::array<video::IRenderTarget> m_mrt;
+#endif
 
     /** Matrixes used in several places stored here to avoid recomputation. */
     core::matrix4 m_ViewMatrix, m_InvViewMatrix, m_ProjMatrix, m_InvProjMatrix, m_ProjViewMatrix, m_InvProjViewMatrix;
 
 public:
+#ifndef SERVER_ONLY
     struct BloomData {
         scene::ISceneNode * node;
         float power;
     };
 
     video::SColorf getAmbientLight() const;
-
+#endif
 
 
 private:
     void                  setupViewports();
 
-    /** Whether the mouse cursor is currently shown */
-    bool                  m_pointer_shown;
-
     /** Store if the scene is complex (based on polycount, etc) */
     int                  m_scene_complexity;
 
+#ifndef SERVER_ONLY
     /** Internal method that applies the resolution in user settings. */
-    void                 applyResolutionSettings();
-
-    bool                 m_request_screenshot;
-
     bool                 m_ssaoviz;
     bool                 m_shadowviz;
     bool                 m_lightviz;
@@ -136,7 +132,6 @@ private:
     irr::video::SColor m_clear_color;
 
 
-    unsigned             m_last_light_bucket_distance;
     unsigned             m_skinning_joint;
 
     SP::SPDynamicDrawCall* m_sun_interposer;
@@ -153,6 +148,7 @@ private:
     float m_ssao_radius;
     float m_ssao_k;
     float m_ssao_sigma;
+#endif
     
 #ifdef DEBUG
     /** Used to visualise skeletons. */
@@ -160,25 +156,23 @@ private:
 #endif
 
 public:
-    void doScreenShot();    
-public:
          IrrDriver();
         ~IrrDriver();
     void initDevice();
     void reset();
+
+#ifndef SERVER_ONLY
     void setMaxTextureSize();
     void unsetMaxTextureSize();
     void getOpenGLData(std::string *vendor, std::string *renderer,
                        std::string *version);
 
-    void increaseObjectCount();
     core::array<video::IRenderTarget> &getMainSetup();
-    void updateConfigIfRelevant();
+#endif
     void setAllMaterialFlags(scene::IMesh *mesh) const;
     scene::IAnimatedMesh *getAnimatedMesh(const std::string &name);
     scene::IMesh         *getMesh(const std::string &name);
-    void displayFPS();
-    bool                  OnEvent(const irr::SEvent &event);
+#ifndef SERVER_ONLY
     void                  setAmbientLight(const video::SColorf &light,
                                           bool force_SH_computation = true);
     video::ITexture      *getTexture(FileManager::AssetType type,
@@ -194,24 +188,17 @@ public:
     void                  dropAllTextures(const scene::IMesh *mesh);
     scene::IMesh         *createQuadMesh(const video::SMaterial *material=NULL,
                                          bool create_one_quad=false);
-    scene::IMesh         *createTexturedQuadMesh(const video::SMaterial *material,
-                                                 const double w, const double h);
-    scene::ISceneNode    *addWaterNode(scene::IMesh *mesh, scene::IMesh **welded,
-                                       float wave_height,
-                                       float wave_speed, float wave_length);
-    scene::IMeshSceneNode*addOctTree(scene::IMesh *mesh);
     scene::ISceneNode* addSphere(float radius,
                  const video::SColor &color=video::SColor(128, 255, 255, 255));
+#endif
     scene::ISceneNode* addMesh(scene::IMesh *mesh,
                                const std::string& debug_name,
                                scene::ISceneNode *parent = NULL,
                                std::shared_ptr<RenderInfo> render_info = nullptr);
-    PerCameraNode        *addPerCameraNode(scene::ISceneNode* node,
-                                           scene::ICameraSceneNode* cam,
-                                           scene::ISceneNode *parent = NULL);
     scene::ISceneNode    *addBillboard(const core::dimension2d< f32 > size,
                                        const std::string& tex_name,
                                        scene::ISceneNode* parent=NULL);
+#ifndef SERVER_ONLY
     scene::IParticleSystemSceneNode
                          *addParticleNode(bool default_emitter=true);
     scene::ISceneNode    *addSkyDome(video::ITexture *texture, int hori_res,
@@ -220,6 +207,7 @@ public:
     scene::ISceneNode    *addSkyBox(const std::vector<video::ITexture*> &texture_names,
                                     const std::vector<video::ITexture*> &spherical_harmonics_textures);
     void suppressSkyBox();
+#endif
     void                  removeNode(scene::ISceneNode *node);
     void                  removeMeshFromCache(scene::IMesh *mesh);
     void                  removeTexture(video::ITexture *t);
@@ -230,29 +218,18 @@ public:
                          std::shared_ptr<RenderInfo> render_info = nullptr);
     scene::ICameraSceneNode
                          *addCameraSceneNode();
-    Camera               *addCamera(unsigned int index, AbstractKart *kart);
     void                  removeCameraSceneNode(scene::ICameraSceneNode *camera);
-    void                  removeCamera(Camera *camera);
     void                  minimalUpdate(float dt);
 
-    bool                  moveWindow(int x, int y);
-
-    void                  showPointer();
-    void                  hidePointer();
-    void                  setLastLightBucketDistance(unsigned d) { m_last_light_bucket_distance = d; }
+#ifndef SERVER_ONLY
     void                  setSkinningJoint(unsigned d) { m_skinning_joint = d; }
-    bool                  isPointerShown() const { return m_pointer_shown; }
-    core::position2di     getMouseLocation();
+#endif
 
-    void                  printRenderStats();
-    void                  requestScreenshot();
     class GPUTimer        &getGPUTimer(unsigned);
-    const char*           getGPUQueryPhaseName(unsigned);
 
 #ifndef SERVER_ONLY
     std::unique_ptr<RenderTarget> createRenderTarget(const irr::core::dimension2du &dimension,
                                                      const std::string &name);
-#endif
     // ------------------------------------------------------------------------
     /** Returns the color to clear the back buffer. */
     const irr::video::SColor& getClearColor() const { return m_clear_color; }
@@ -262,6 +239,7 @@ public:
     {
         m_clear_color = color;
     }   // setClearbackBufferColor
+#endif
 
     // ------------------------------------------------------------------------
     /** Returns the irrlicht device. */
@@ -283,6 +261,7 @@ public:
         m_renderer->giveBoost(cam_index);
 #endif
     }
+#ifndef SERVER_ONLY
     // ------------------------------------------------------------------------
     inline core::vector3df getWind()  {return m_wind->getWind();}
 
@@ -301,25 +280,8 @@ public:
         m_suncolor = col;
     }
     // ------------------------------------------------------------------------
-    void resetDebugModes();
-    // ------------------------------------------------------------------------
-    void toggleSSAOViz()          { m_ssaoviz = !m_ssaoviz;         }
-    // ------------------------------------------------------------------------
-    bool getSSAOViz()             { return m_ssaoviz;               }
-    // ------------------------------------------------------------------------
-    void toggleShadowViz()        { m_shadowviz = !m_shadowviz;     }
-    // ------------------------------------------------------------------------
-    bool getShadowViz()           { return m_shadowviz;             }
-    // ------------------------------------------------------------------------
-    void toggleBoundingBoxesViz() { m_boundingboxesviz = !m_boundingboxesviz; }
-    // ------------------------------------------------------------------------
-    void toggleRenderNetworkDebug() { m_render_nw_debug = !m_render_nw_debug; }
-    // ------------------------------------------------------------------------
-    bool getRenderNetworkDebug() const            { return m_render_nw_debug; }
-    // ------------------------------------------------------------------------
-    void renderNetworkDebug();
-    // ------------------------------------------------------------------------
     bool getBoundingBoxesViz()    { return m_boundingboxesviz;      }
+#endif
     // ------------------------------------------------------------------------
     int getSceneComplexity() { return m_scene_complexity;           }
     void resetSceneComplexity() { m_scene_complexity = 0;           }
@@ -327,6 +289,7 @@ public:
     {
         if (complexity > 1) m_scene_complexity += (complexity - 1);
     }
+#ifndef SERVER_ONLY
     // ------------------------------------------------------------------------
     std::vector<LightNode *> getLights() { return m_lights; }
     // ------------------------------------------------------------------------
@@ -365,6 +328,7 @@ public:
     
     void cleanSunInterposer();
     void createSunInterposer();
+#endif
     // ------------------------------------------------------------------------
     void setViewMatrix(core::matrix4 matrix)
     {
@@ -409,7 +373,6 @@ public:
     {
         return getCurrentScreenSize();
     }
-#endif  // SERVER_ONLY
     // ------------------------------------------------------------------------
     float getSSAORadius() const
     {
@@ -445,31 +408,16 @@ public:
     {
         m_ssao_sigma = v;
     }
-#ifdef DEBUG
-    std::vector<scene::IAnimatedMeshSceneNode*> getDebugMeshes()
-    {
-        return m_debug_meshes;
-    }
-    /** Removes debug meshes. */
-    void clearDebugMesh() { m_debug_meshes.clear(); }
-    // ------------------------------------------------------------------------
-    /** Adds a debug mesh to be displaed. */
-    void addDebugMesh(scene::IAnimatedMeshSceneNode *node)
-    {
-        m_debug_meshes.push_back(node);
-    }   // addDebugMesh
-
-#endif
+#endif  // SERVER_ONLY
     void onLoadWorld();
     void onUnloadWorld();
-
-    void updateSplitAndLightcoordRangeFromComputeShaders(size_t width,
-                                                         size_t height);
-
-    void uploadLightingData();
     void sameRestart()             {}
+
+#ifndef SERVER_ONLY
+    void uploadLightingData();
     u32 getDefaultFramebuffer() const
                             { return m_video_driver->getDefaultFramebuffer(); }
+#endif  // SERVER_ONLY
 };   // IrrDriver
 
 extern IrrDriver *irr_driver;

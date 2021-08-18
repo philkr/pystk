@@ -574,7 +574,9 @@ void PySTKRace::initRest()
 
     // The maximum texture size can not be set earlier, since
     // e.g. the background image needs to be loaded in high res.
+#ifndef SERVER_ONLY
     irr_driver->setMaxTextureSize();
+#endif
     KartPropertiesManager::addKartSearchDir(
                  file_manager->getAddonsFile("karts/"));
     track_manager->addTrackSearchDir(
@@ -606,7 +608,6 @@ void PySTKRace::cleanSuperTuxKart()
 {
     // Stop music (this request will go into the sfx manager queue, so it needs
     // to be done before stopping the thread).
-    irr_driver->updateConfigIfRelevant();
     if(race_manager)            delete race_manager;
     race_manager = nullptr;
     if(attachment_manager)      delete attachment_manager;

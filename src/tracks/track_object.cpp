@@ -364,7 +364,9 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
             float power = 1;
             xml_node.get("bloompower", &power);
             btClamp(power, 0.5f, 10.0f);
+#ifndef SERVER_ONLY
             irr_driver->addForcedBloomNode(glownode, power);
+#endif
         }
     }
 

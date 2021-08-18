@@ -47,8 +47,6 @@ protected:
     irr::core::dimension2du m_current_screen_size;
 
 #ifdef DEBUG
-    void drawDebugMeshes() const;
-
     void drawJoint(bool drawline, bool drawname,
                    irr::scene::ISkinnedMesh::SJoint* joint,
                    irr::scene::ISkinnedMesh* mesh, int id) const;

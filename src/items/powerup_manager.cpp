@@ -453,7 +453,9 @@ void PowerupManager::loadPowerup(PowerupType type, const XMLNode &node)
 
 
     assert(m_all_icons[type] != NULL);
+#ifndef SERVER_ONLY
     assert(m_all_icons[type]->getTexture() != NULL);
+#endif
 
     std::string model("");
     node.get("model", &model);

@@ -199,7 +199,7 @@ void Profiler::writeToFile()
 
     for (unsigned i = 0; i < Q_LAST; i++)
     {
-        f_gpu << "\"" << irr_driver->getGPUQueryPhaseName(i) << "(" << i+1 << ")\"   ";
+        f_gpu << "\"" << "(" << i+1 << ")\"   ";
     }   // for i < Q_LAST
     f_gpu << std::endl;
 

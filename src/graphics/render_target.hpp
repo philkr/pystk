@@ -26,6 +26,7 @@ class FrameBuffer;
 class RTT;
 class ShaderBasedRenderer;
 
+#ifndef SERVER_ONLY
 class RenderTarget: public NoCopy
 {
 private:
@@ -48,5 +49,5 @@ public:
     void setFrameBuffer(FrameBuffer* fb) { m_frame_buffer = fb; }
     virtual RTT* getRTTs() { return m_rtts; }
 };
-
+#endif
 #endif

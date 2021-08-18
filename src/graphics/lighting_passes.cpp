@@ -417,7 +417,6 @@ void LightingPasses::updateLightsInfo(scene::ICameraSceneNode * const camnode,
         }
         if (m_point_light_count > LightBaseClass::MAXLIGHT)
         {
-            irr_driver->setLastLightBucketDistance(i * 10);
             break;
         }
     }

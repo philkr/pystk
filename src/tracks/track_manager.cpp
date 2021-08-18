@@ -208,10 +208,12 @@ bool TrackManager::loadTrack(const std::string& dirname)
     m_track_avail.push_back(true);
     updateGroups(track);
 
+#ifndef SERVER_ONLY
     // Populate the texture cache with track screenshots
     // (internal tracks like end cutscene don't have screenshots)
     if (!track->isInternal())
         irr_driver->getTexture(track->getScreenshotFile());
+#endif
 
     return true;
 }   // loadTrack
