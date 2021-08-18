@@ -8,8 +8,8 @@ if(POLICY CMP0048)
 endif()
 
 # root CMakeLists for the SuperTuxKart project
-project(SuperTuxKart VERSION 1.0)
-set(PROJECT_VERSION "git")
+project(SuperTuxKart VERSION "${PYSTK_VERSION}")
+set(PROJECT_VERSION "${PYSTK_VERSION}")
 add_definitions( -DSUPERTUXKART_VERSION="${PROJECT_VERSION}" )
 
 set(CMAKE_CXX_STANDARD 14)
