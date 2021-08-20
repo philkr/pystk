@@ -32,3 +32,12 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./wheelhouse/*.whl
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
