@@ -30,7 +30,6 @@ namespace irr
 #endif
 			DisplayAdapter(0),
 			UsePerformanceTimer(true),
-            ShadersPath(""),
 			SDK_version_do_not_use(IRRLICHT_SDK_VERSION)
 		{
 		}
@@ -47,7 +46,6 @@ namespace irr
 			LoggingLevel = other.LoggingLevel;
 			DisplayAdapter = other.DisplayAdapter;
 			UsePerformanceTimer = other.UsePerformanceTimer;
-            ShadersPath = other.ShadersPath;
 			PrivateData = other.PrivateData;
 			return *this;
 		}
@@ -85,11 +83,6 @@ namespace irr
 		problems with speed stepping and other techniques.
 		*/
 		bool UsePerformanceTimer;
-
-        //! Specifies custom path for shaders directory.
-        /** Allows one to overwrite IRR_OGLES2_SHADER_PATH constant
-        */
-        core::stringc ShadersPath;
 
 		//! Don't use or change this parameter.
 		/** Always set it to IRRLICHT_SDK_VERSION, which is done by default.

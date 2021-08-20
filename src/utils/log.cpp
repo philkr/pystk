@@ -35,7 +35,6 @@
 
 Log::LogLevel Log::m_min_log_level = Log::LL_VERBOSE;
 bool          Log::m_no_colors     = false;
-FILE*         Log::m_file_stdout   = NULL;
 std::string   Log::m_prefix        = "";
 size_t        Log::m_buffer_size = 1;
 bool          Log::m_console_log = true;
@@ -204,7 +203,7 @@ void Log::writeLine(const char *line, int level)
 {
 
     // If we don't have a console file, write to stdout and hope for the best
-    if (m_buffer_size <= 1 || !m_file_stdout)
+    if (m_buffer_size <= 1 || !0 /*m_file_stdout*/)
     {
         setTerminalColor((LogLevel)level);
         if (m_console_log)
@@ -240,7 +239,7 @@ void Log::writeLine(const char *line, int level)
     if (m_buffer_size <= 1) OutputDebugStringA(line);
 #endif
 
-    if (m_file_stdout) fprintf(m_file_stdout, "%s", line);
+//    if (m_file_stdout) fprintf(m_file_stdout, "%s", line);
 
 #ifdef WIN32
     if (level >= LL_FATAL)
@@ -276,23 +275,23 @@ void Log::flushBuffers()
  */
 void Log::openOutputFiles(const std::string &logout)
 {
-    m_file_stdout = FileUtils::fopenU8Path(logout, "w");
-    if (!m_file_stdout)
-    {
-        Log::error("main", "Can not open log file '%s'. Writing to "
-                           "stdout instead.", logout.c_str());
-    }
-    else
-    {
-        // Disable buffering so that messages are seen asap
-        setvbuf(m_file_stdout, NULL, _IONBF, 0);
-    }
+//    m_file_stdout = FileUtils::fopenU8Path(logout, "w");
+//    if (!m_file_stdout)
+//    {
+//        Log::error("main", "Can not open log file '%s'. Writing to "
+//                           "stdout instead.", logout.c_str());
+//    }
+//    else
+//    {
+//        // Disable buffering so that messages are seen asap
+//        setvbuf(m_file_stdout, NULL, _IONBF, 0);
+//    }
 } // closeOutputFiles
 
 // ----------------------------------------------------------------------------
 /** Function to close output files */
 void Log::closeOutputFiles()
 {
-    fclose(m_file_stdout);
+//    fclose(m_file_stdout);
 } // closeOutputFiles
 

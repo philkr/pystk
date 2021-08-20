@@ -63,9 +63,6 @@ private:
     /** If false that logging will only be saved to a file. */
     static bool     m_console_log;
 
-    /** The file where stdout output will be written */
-    static FILE* m_file_stdout;
-
     /** An optional buffer for lines to be output. */
     struct LineInfo
     {

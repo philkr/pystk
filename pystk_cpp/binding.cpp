@@ -24,11 +24,10 @@ using namespace pybind11::literals;
 PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
 
 void path_and_init(const PySTKGraphicsConfig & config) {
-    auto sys = py::module::import("sys"), os = py::module::import("os");
-    auto path = os.attr("path"), env = os.attr("environ");
-    auto module_path = path.attr("join")(path.attr("dirname")(path.attr("abspath")(sys.attr("modules")["pystk"].attr("__file__"))), "pystk_data");
+    auto pystk_data = py::module::import("pystk_data"), os = py::module::import("os");
+    auto env = os.attr("environ");
     // Give supertuxkart a hint where the assets are
-    env["SUPERTUXKART_DATADIR"] = module_path;
+    env["SUPERTUXKART_DATADIR"] = py::str(pystk_data.attr("data_dir"));
     PySTKRace::init(config);
 }
 PYBIND11_MODULE(pystk, m) {

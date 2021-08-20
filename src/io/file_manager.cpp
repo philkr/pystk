@@ -150,9 +150,7 @@ FileManager::FileManager()
     // it after.
     char buffer[256];
     getcwd(buffer, 256);
-#endif
 
-#ifdef __APPLE__
     chdir( buffer );
 #endif
 
@@ -1405,53 +1403,6 @@ bool FileManager::removeDirectory(const std::string &name) const
     return remove(name.c_str())==0;
 #endif
 }   // remove directory
-
-// ----------------------------------------------------------------------------
-/** Copies the file source to dest.
- *  \param source The file to read.
- *  \param dest The new filename.
- *  \return True if the copy was successful, false otherwise.
- */
-bool FileManager::copyFile(const std::string &source, const std::string &dest)
-{
-    FILE *f_source = FileUtils::fopenU8Path(source, "rb");
-    if(!f_source) return false;
-
-    FILE *f_dest = FileUtils::fopenU8Path(dest, "wb");
-    if(!f_dest)
-    {
-        fclose(f_source);
-        return false;
-    }
-
-    const int BUFFER_SIZE=32768;
-    char *buffer = new char[BUFFER_SIZE];
-    if(!buffer)
-    {
-        fclose(f_source);
-        fclose(f_dest);
-        return false;
-    }
-    size_t n;
-    while((n=fread(buffer, 1, BUFFER_SIZE, f_source))>0)
-    {
-        if(fwrite(buffer, 1, n, f_dest)!=n)
-        {
-            Log::error("FileManager", "Write error copying '%s' to '%s",
-                        source.c_str(), dest.c_str());
-            delete[] buffer;
-            fclose(f_source);
-            fclose(f_dest);
-            return false;
-
-        }   // if fwrite()!=n
-    }   // while
-
-    delete[] buffer;
-    fclose(f_source);
-    fclose(f_dest);
-    return true;
-}   // copyFile
 
 // ----------------------------------------------------------------------------
 /** Returns true if the first file is newer than the second. The comparison is

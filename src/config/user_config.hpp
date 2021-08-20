@@ -53,9 +53,7 @@ using irr::core::stringw;
 #include "utils/ptr_vector.hpp"
 #include "utils/time.hpp"
 
-class SavedGrandPrix;
 class XMLNode;
-class UTFWriter;
 
 /**
  *  The base of a set of small utilities to enable quickly adding/removing
