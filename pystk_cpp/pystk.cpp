@@ -141,6 +141,21 @@ const PySTKGraphicsConfig & PySTKGraphicsConfig::ld() {
     };
     return config;
 }
+const PySTKGraphicsConfig & PySTKGraphicsConfig::none() {
+    static PySTKGraphicsConfig config = {1,1, 0,
+                                         false, false, false, false, false,
+                                         0,     // particle_effects
+                                         false, // animated_characters
+                                         false, // motionblur
+                                         false, // mlaa
+                                         false, // texture_compression
+                                         false, // ssao
+                                         false, // degraded_IBL
+                                         0,     // high_definition_textures
+                                         false,   // render
+    };
+    return config;
+}
 
 #ifndef SERVER_ONLY
 class PySTKRenderTarget {
@@ -211,6 +226,7 @@ void PySTKAction::get(const KartControl * control) {
 }
 
 PySTKRace * PySTKRace::running_kart = 0;
+PySTKGraphicsConfig PySTKRace::graphics_config_ = {};
 static int is_init = 0;
 #ifdef RENDERDOC
 static RENDERDOC_API_1_1_2 *rdoc_api = NULL;
@@ -222,6 +238,7 @@ void PySTKRace::init(const PySTKGraphicsConfig & config, const std::string & dat
         throw std::invalid_argument("PySTK already initialized! Call clean first!");
     } else {
         is_init = 1;
+        graphics_config_ = config;
         initUserConfig(data_dir);
         stk_config->load(file_manager->getAsset("stk_config.xml"));
         initGraphicsConfig(config);
@@ -273,8 +290,9 @@ PySTKRace::PySTKRace(const PySTKRaceConfig & config) {
     
     setupConfig(config);
 #ifndef SERVER_ONLY
-    for(int i=0; i<config.players.size(); i++)
-        render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
+    if (graphics_config_.render)
+        for(int i=0; i<config.players.size(); i++)
+            render_targets_.push_back( std::make_unique<PySTKRenderTarget>(irr_driver->createRenderTarget( {(unsigned int)UserConfigParams::m_width, (unsigned int)UserConfigParams::m_height}, "player"+std::to_string(i))) );
 #endif  // SERVER_ONLY
 }
 std::vector<std::string> PySTKRace::listTracks() {
@@ -373,7 +391,7 @@ void PySTKRace::stop() {
 void PySTKRace::render(float dt) {
     World *world = World::getWorld();
 #ifndef SERVER_ONLY
-    if (world)
+    if (world && graphics_config_.render)
     {
         // Render all views
         for(unsigned int i = 0; i < Camera::getNumCameras() && i < render_targets_.size(); i++) {
@@ -421,7 +439,7 @@ bool PySTKRace::step() {
     PropertyAnimator::get()->update(dt);
     
     // Then render
-    if (config_.render) {
+    if (graphics_config_.render) {
         World::getWorld()->updateGraphics(dt);
 
         irr_driver->minimalUpdate(dt);
@@ -430,7 +448,7 @@ bool PySTKRace::step() {
         World::getWorld()->updateGraphicsMinimal(dt);
     }
 
-    if (config_.render && !irr_driver->getDevice()->run())
+    if (graphics_config_.render && !irr_driver->getDevice()->run())
         return false;
 #ifdef RENDERDOC
     if(rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
