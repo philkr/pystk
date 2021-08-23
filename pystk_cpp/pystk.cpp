@@ -215,14 +215,14 @@ static int is_init = 0;
 #ifdef RENDERDOC
 static RENDERDOC_API_1_1_2 *rdoc_api = NULL;
 #endif
-void PySTKRace::init(const PySTKGraphicsConfig & config) {
+void PySTKRace::init(const PySTKGraphicsConfig & config, const std::string & data_dir) {
     if (running_kart)
         throw std::invalid_argument("Cannot init while supertuxkart is running!");
     if (is_init) {
         throw std::invalid_argument("PySTK already initialized! Call clean first!");
     } else {
         is_init = 1;
-        initUserConfig();
+        initUserConfig(data_dir);
         stk_config->load(file_manager->getAsset("stk_config.xml"));
         initGraphicsConfig(config);
         initRest();
@@ -531,9 +531,9 @@ void PySTKRace::initGraphicsConfig(const PySTKGraphicsConfig & config) {
 //=============================================================================
 /** Initialises the minimum number of managers to get access to user_config.
  */
-void PySTKRace::initUserConfig()
+void PySTKRace::initUserConfig(const std::string & data_dir)
 {
-    file_manager = new FileManager();
+    file_manager = new FileManager(data_dir);
     // Some parts of the file manager needs user config (paths for models
     // depend on artist debug flag). So init the rest of the file manager
     // after reading the user config file.

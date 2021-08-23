@@ -25,10 +25,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
 
 void path_and_init(const PySTKGraphicsConfig & config) {
     auto pystk_data = py::module::import("pystk_data"), os = py::module::import("os");
-    auto env = os.attr("environ");
-    // Give supertuxkart a hint where the assets are
-    env["SUPERTUXKART_DATADIR"] = py::str(pystk_data.attr("data_dir"));
-    PySTKRace::init(config);
+    PySTKRace::init(config, py::cast<std::string>(py::str(pystk_data.attr("data_dir"))));
 }
 PYBIND11_MODULE(pystk, m) {
     m.doc() = "Python SuperTuxKart interface";
@@ -39,13 +36,6 @@ PYBIND11_MODULE(pystk, m) {
     m.attr("has_graphics") = true;
 #endif  // SERVER_ONLY
 
-    // Make offscreen rendering default
-    if (!getenv("IRR_DEVICE_TYPE"))
-#ifdef WIN32
-        _putenv_s("IRR_DEVICE_TYPE", "offscreen");
-#else
-        setenv("IRR_DEVICE_TYPE", "offscreen", 0);
-#endif
     // Adjust the log level
     Log::setLogLevel(Log::LL_FATAL);
     if (getenv("PYSTK_LOG_LEVEL")) {

@@ -77,14 +77,14 @@ struct PySTKAction {
 class PySTKRace {
 protected: // Static methods
 	static void initRest();
-	static void initUserConfig();
+    static void initUserConfig(const std::string & data_dir);
 	static void initGraphicsConfig(const PySTKGraphicsConfig & config);
 	static void cleanSuperTuxKart();
 	static void cleanUserConfig();
 
 public: // Static methods
 	static PySTKRace * running_kart;
-	static void init(const PySTKGraphicsConfig & config);
+	static void init(const PySTKGraphicsConfig & config, const std::string & data_dir);
 	static void load();
 	static void clean();
 	static bool isRunning();
