@@ -15,10 +15,12 @@ struct PySTKGraphicsConfig {
 	bool ssao = true;
 	bool degraded_IBL = false;
 	int high_definition_textures = 2 | 1;
+	bool render = true;
 	
 	static const PySTKGraphicsConfig & hd();
 	static const PySTKGraphicsConfig & sd();
 	static const PySTKGraphicsConfig & ld();
+	static const PySTKGraphicsConfig & none();
 };
 struct PySTKPlayerConfig {
 	enum Controller: uint8_t {
@@ -49,7 +51,6 @@ struct PySTKRaceConfig {
 	int seed = 0;
 	int num_kart = 1;
 	float step_size = 0.1;
-	bool render = true;
 };
 
 class PySTKRenderTarget;
@@ -77,14 +78,15 @@ struct PySTKAction {
 class PySTKRace {
 protected: // Static methods
 	static void initRest();
-	static void initUserConfig();
+    static void initUserConfig(const std::string & data_dir);
 	static void initGraphicsConfig(const PySTKGraphicsConfig & config);
 	static void cleanSuperTuxKart();
 	static void cleanUserConfig();
+	static PySTKGraphicsConfig graphics_config_;
 
 public: // Static methods
 	static PySTKRace * running_kart;
-	static void init(const PySTKGraphicsConfig & config);
+	static void init(const PySTKGraphicsConfig & config, const std::string & data_dir);
 	static void load();
 	static void clean();
 	static bool isRunning();

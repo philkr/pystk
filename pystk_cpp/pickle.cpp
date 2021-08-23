@@ -30,6 +30,7 @@ void pickle(std::ostream & s, const PySTKGraphicsConfig & o) {
     pickle(s, o.ssao);
     pickle(s, o.degraded_IBL);
     pickle(s, o.high_definition_textures);
+    pickle(s, o.render);
 }
 void unpickle(std::istream & s, PySTKGraphicsConfig * o) {
     unpickle(s, &o->screen_width);
@@ -48,6 +49,7 @@ void unpickle(std::istream & s, PySTKGraphicsConfig * o) {
     unpickle(s, &o->ssao);
     unpickle(s, &o->degraded_IBL);
     unpickle(s, &o->high_definition_textures);
+    unpickle(s, &o->render);
 }
 void pickle(std::ostream & s, const PySTKPlayerConfig & o) {
     pickle(s, o.kart);

@@ -132,7 +132,7 @@ private:
 #endif
 
 public:
-                      FileManager();
+                      FileManager(const std::string & data_dir);
                      ~FileManager();
     void              init();
     void              reinitAfterDownloadAssets();

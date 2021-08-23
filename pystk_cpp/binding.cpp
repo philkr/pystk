@@ -25,10 +25,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<PySTKPlayerConfig>);
 
 void path_and_init(const PySTKGraphicsConfig & config) {
     auto pystk_data = py::module::import("pystk_data"), os = py::module::import("os");
-    auto env = os.attr("environ");
-    // Give supertuxkart a hint where the assets are
-    env["SUPERTUXKART_DATADIR"] = py::str(pystk_data.attr("data_dir"));
-    PySTKRace::init(config);
+    PySTKRace::init(config, py::cast<std::string>(py::str(pystk_data.attr("data_dir"))));
 }
 PYBIND11_MODULE(pystk, m) {
     m.doc() = "Python SuperTuxKart interface";
@@ -39,13 +36,6 @@ PYBIND11_MODULE(pystk, m) {
     m.attr("has_graphics") = true;
 #endif  // SERVER_ONLY
 
-    // Make offscreen rendering default
-    if (!getenv("IRR_DEVICE_TYPE"))
-#ifdef WIN32
-        _putenv_s("IRR_DEVICE_TYPE", "offscreen");
-#else
-        setenv("IRR_DEVICE_TYPE", "offscreen", 0);
-#endif
     // Adjust the log level
     Log::setLogLevel(Log::LL_FATAL);
     if (getenv("PYSTK_LOG_LEVEL")) {
@@ -91,7 +81,7 @@ PYBIND11_MODULE(pystk, m) {
     {
         py::class_<PySTKGraphicsConfig, std::shared_ptr<PySTKGraphicsConfig>> cls(m, "GraphicsConfig", "SuperTuxKart graphics configuration.");
         
-        cls.def(py::init<int, int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("display_adapter") = 0, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1)
+        cls.def(py::init<int, int, int, bool, bool, bool, bool, bool, int, bool, bool, bool, bool, bool, bool, int, bool>(), py::arg("screen_width") = 600, py::arg("screen_height") = 400, py::arg("display_adapter") = 0, py::arg("glow") = false, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("") = true, py::arg("particles_effects") = 2, py::arg("animated_characters") = true, py::arg("motionblur") = true, py::arg("mlaa") = true, py::arg("texture_compression") = true, py::arg("ssao") = true, py::arg("degraded_IBL") = false, py::arg("high_definition_textures") = 2 | 1, py::arg("render") = true)
         .def_readwrite("screen_width", &PySTKGraphicsConfig::screen_width, "Width of the rendering surface")
         .def_readwrite("screen_height", &PySTKGraphicsConfig::screen_height, "Height of the rendering surface")
         .def_readwrite("display_adapter", &PySTKGraphicsConfig::display_adapter, "GPU to use (Linux only)")
@@ -107,12 +97,14 @@ PYBIND11_MODULE(pystk, m) {
         .def_readwrite("texture_compression", &PySTKGraphicsConfig::texture_compression, "Use texture compression")
         .def_readwrite("ssao", &PySTKGraphicsConfig::ssao, "Enable screen space ambient occlusion")
         .def_readwrite("degraded_IBL", &PySTKGraphicsConfig::degraded_IBL, "Disable specular IBL")
-        .def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures, "Enable high definition textures 0 / 2");
+        .def_readwrite("high_definition_textures", &PySTKGraphicsConfig::high_definition_textures, "Enable high definition textures 0 / 2")
+        .def_readwrite("render", &PySTKGraphicsConfig::render, "Is rendering enabled?");
         add_pickle(cls);
         
         cls.def_static("hd", &PySTKGraphicsConfig::hd, "High-definitaiton graphics settings");
         cls.def_static("sd", &PySTKGraphicsConfig::sd, "Standard-definition graphics settings");
         cls.def_static("ld", &PySTKGraphicsConfig::ld, "Low-definition graphics settings");
+        cls.def_static("none", &PySTKGraphicsConfig::none, "Disable graphics and rendering");
     }
     
     {
@@ -145,7 +137,7 @@ PYBIND11_MODULE(pystk, m) {
             .value("SOCCER", PySTKRaceConfig::RaceMode::SOCCER);
         
         cls
-        .def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,bool,int,int,int,float,bool>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("reverse") = false, py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1, py::arg("render") = true)
+        .def(py::init<int,PySTKRaceConfig::RaceMode,std::vector<PySTKPlayerConfig>,std::string,bool,int,int,int,float>(), py::arg("difficulty") = 2, py::arg("mode") = PySTKRaceConfig::NORMAL_RACE, py::arg("players") = std::vector<PySTKPlayerConfig>{{"",PySTKPlayerConfig::PLAYER_CONTROL}}, py::arg("track") = "", py::arg("reverse") = false, py::arg("laps") = 3, py::arg("seed") = 0, py::arg("num_kart") = 1, py::arg("step_size") = 0.1)
         .def_readwrite("difficulty", &PySTKRaceConfig::difficulty, "Skill of AI players 0..2")
         .def_readwrite("mode", &PySTKRaceConfig::mode, "Specify the type of race")
         .def_readwrite("players", &PySTKRaceConfig::players, "List of all agent players")
@@ -154,8 +146,7 @@ PYBIND11_MODULE(pystk, m) {
         .def_readwrite("laps", &PySTKRaceConfig::laps, "Number of laps the race runs for")
         .def_readwrite("seed", &PySTKRaceConfig::seed, "Random seed")
         .def_readwrite("num_kart", &PySTKRaceConfig::num_kart, "Total number of karts, fill the race with num_kart - len(players) AI karts")
-        .def_readwrite("step_size", &PySTKRaceConfig::step_size, "Game time between different step calls")
-        .def_readwrite("render", &PySTKRaceConfig::render, "Is rendering enabled?");
+        .def_readwrite("step_size", &PySTKRaceConfig::step_size, "Game time between different step calls");
         add_pickle(cls);
     }
 
