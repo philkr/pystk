@@ -1,6 +1,4 @@
 from sphinx.ext.autodoc import PropertyDocumenter, AttributeDocumenter, ClassLevelDocumenter, SUPPRESS
-from sphinx.util import inspect
-from typing import Any, Callable, Dict, Iterator, List, Sequence, Set, Tuple, Union
 
 
 class TypedPropertyDocumenter(PropertyDocumenter):  # type: ignore
@@ -14,9 +12,6 @@ class TypedPropertyDocumenter(PropertyDocumenter):  # type: ignore
     # before AttributeDocumenter
     priority = PropertyDocumenter.priority + 10
 
-    def document_members(self, all_members: bool = False) -> None:
-        pass
-
     def format_signature(self, **kwargs) -> str:
         from inspect import signature, getdoc
         sig = super().format_signature(**kwargs)
@@ -27,6 +22,8 @@ class TypedPropertyDocumenter(PropertyDocumenter):  # type: ignore
 
     def add_directive_header(self, sig: str) -> None:
         super().add_directive_header(sig)
+        sourcename = self.get_sourcename()
+        self.add_line('   :property:', sourcename)
 
 
 class EnumAttributeDocumenter(AttributeDocumenter):  # type: ignore
@@ -40,13 +37,12 @@ class EnumAttributeDocumenter(AttributeDocumenter):  # type: ignore
         ClassLevelDocumenter.add_directive_header(self, sig)
         sourcename = self.get_sourcename()
         if not self.options.annotation:
-            if not self._datadescriptor:
-                try:
-                    objrepr = str(int(self.object))
-                except ValueError:
-                    pass
-                else:
-                    self.add_line('   :annotation: = ' + objrepr, sourcename)
+            try:
+                objrepr = str(int(self.object))
+            except ValueError:
+                pass
+            else:
+                self.add_line('   :annotation: = ' + objrepr, sourcename)
         elif self.options.annotation is SUPPRESS:
             pass
         else:

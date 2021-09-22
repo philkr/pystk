@@ -172,6 +172,7 @@ void TrackObject::init(const XMLNode &xml_node, scene::ISceneNode* parent,
             Track::getCurrentTrack()->addMetaLibrary(parent_library, this);
         }
     }
+    else if (type == "sfx-emitter") {}
     else if (type == "action-trigger")
     {
         std::string action;

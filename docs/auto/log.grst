@@ -19,8 +19,8 @@
    .. py:method:: name () -> str
       :property:
 
-      (self: handle) -> str
-
+   .. py:method:: value () -> int
+      :property:
 
    .. py:attribute:: verbose
       :annotation: = 1

@@ -15,8 +15,8 @@
       .. py:method:: name () -> str
          :property:
 
-         (self: handle) -> str
-
+      .. py:method:: value () -> int
+         :property:
 
    .. py:method:: controller () -> pystk.PlayerConfig.Controller
       :property:

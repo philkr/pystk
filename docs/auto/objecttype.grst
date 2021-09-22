@@ -21,9 +21,6 @@
    .. py:method:: name () -> str
       :property:
 
-      (self: handle) -> str
-
-
    .. py:attribute:: nitro
       :annotation: = 5
 
@@ -41,3 +38,6 @@
 
    .. py:attribute:: unknown
       :annotation: = 9
+
+   .. py:method:: value () -> int
+      :property:

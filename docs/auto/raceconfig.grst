@@ -30,8 +30,8 @@
       .. py:method:: name () -> str
          :property:
 
-         (self: handle) -> str
-
+      .. py:method:: value () -> int
+         :property:
 
    .. py:method:: difficulty () -> int
       :property:
@@ -61,12 +61,6 @@
       :property:
 
       List of all agent players
-
-
-   .. py:method:: render () -> bool
-      :property:
-
-      Is rendering enabled?
 
 
    .. py:method:: reverse () -> bool

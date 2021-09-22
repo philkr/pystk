@@ -50,12 +50,6 @@
       The current race configuration
 
 
-   .. py:method:: last_action () -> List[pystk.Action]
-      :property:
-
-      the last action the agent took
-
-
    .. py:method:: render_data () -> List[pystk.RenderData]
       :property:
 

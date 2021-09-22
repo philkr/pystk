@@ -16,7 +16,8 @@ from sphinx.util.osutil import ensuredir, os_path, SEP
 
 
 def get_text(e):
-    return ''.join(str(c) for c in e.children)
+    import docutils
+    return ''.join(str(c) if isinstance(c, docutils.nodes.Text) else get_text(c) for c in e.children)
 
 
 def gen_signature(s, indent):
@@ -116,6 +117,9 @@ class RstBuilder(Builder):
 
     def prepare_writing(self, docnames):
         pass
+
+    def get_target_uri(self, docname: str, typ: str = None):
+        return docname
 
     def write_doc(self, docname, doctree):
         outfilename = path.join(self.outdir, docname+self.file_suffix)

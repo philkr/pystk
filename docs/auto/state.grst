@@ -64,19 +64,19 @@
       length of the track
 
 
-   .. py:method:: path_distance () -> numpy.ndarray[float32]
+   .. py:method:: path_distance () -> numpy.ndarray[numpy.float32]
       :property:
 
       Distance down the track of each line segment (float N x 2)
 
 
-   .. py:method:: path_nodes () -> numpy.ndarray[float32]
+   .. py:method:: path_nodes () -> numpy.ndarray[numpy.float32]
       :property:
 
       Center line of the drivable area as line segments of 3d coordinates (float N x 2 x 3)
 
 
-   .. py:method:: path_width () -> numpy.ndarray[float32]
+   .. py:method:: path_width () -> numpy.ndarray[numpy.float32]
       :property:
 
       Width of the path segment (float N)
@@ -118,8 +118,8 @@
       .. py:method:: name () -> str
          :property:
 
-         (self: handle) -> str
-
+      .. py:method:: value () -> int
+         :property:
 
    .. py:method:: aspect () -> float
       :property:
@@ -176,8 +176,8 @@
       .. py:method:: name () -> str
          :property:
 
-         (self: handle) -> str
-
+      .. py:method:: value () -> int
+         :property:
 
    .. py:method:: id () -> int
       :property:
@@ -371,8 +371,8 @@
       .. py:method:: name () -> str
          :property:
 
-         (self: handle) -> str
-
+      .. py:method:: value () -> int
+         :property:
 
    .. py:method:: num () -> int
       :property:
@@ -411,8 +411,8 @@
       .. py:method:: name () -> str
          :property:
 
-         (self: handle) -> str
-
+      .. py:method:: value () -> int
+         :property:
 
    .. py:method:: time_left () -> float
       :property:
