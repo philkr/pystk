@@ -21,6 +21,7 @@
 #include "modes/soccer_world.hpp"
 #include "modes/free_for_all.hpp"
 #include "modes/three_strikes_battle.hpp"
+#include "modes/capture_the_flag.hpp"
 #include "tracks/drive_graph.hpp"
 #include "tracks/drive_node.hpp"
 #include "tracks/track.hpp"
@@ -413,6 +414,36 @@ struct PySoccer {
 	}
 };
 
+struct PyCapture{
+    int redScore;
+    int blueScore;
+	static void define(py::object m) {
+		py::class_<PyCapture, std::shared_ptr<PyCapture>> c(m, "Capture");
+#define R(x, d) .def_readonly(#x, &PyCapture::x, d)
+		c R(redScore, "Score of red team")
+          R(blueScore, "Score of blue team")
+#undef R
+		 .def("__repr__", [](const PyCapture &s) { return "<Capture red/blue=" + std::to_string(s.redScore) +"/" + std::to_string(s.blueScore) +">"; });
+		add_pickle(c);
+	}
+
+	PyCapture(const CaptureTheFlag * w = nullptr) {
+		update(w);
+	}
+
+	void update(const CaptureTheFlag * w) {
+        if (w)
+        {
+            redScore = w->getRedScore();
+            blueScore = w->getBlueScore();
+            // w->getRedHolder();
+            // w->getBlueHolder();
+            // w->isRedFlagInBase();
+            // w->isBlueFlagInBase();
+        }
+    }
+};
+
 struct PyFFA {
 	std::vector<int> scores;
 
@@ -549,6 +580,7 @@ struct PyWorldState {
 	float time = 0;
 	std::shared_ptr<PySoccer> soccer;
 	std::shared_ptr<PyFFA> ffa;
+	std::shared_ptr<PyCapture> capture;
 	
 	static void define(py::object m) {
 		py::class_<PyWorldState, std::shared_ptr<PyWorldState>> c(m, "WorldState");
@@ -560,6 +592,7 @@ struct PyWorldState {
 		  R(time, "Game time")
 		  R(soccer, "Soccer match info")
 		  R(ffa, "Free for all match info")
+		  R(capture, "Capture the flag match info")
 #undef R
 		 .def("update", &PyWorldState::update, "Update this object with the current world state")
 		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; })
@@ -579,6 +612,7 @@ struct PyWorldState {
 		SoccerWorld * sw = dynamic_cast<SoccerWorld*>(w);
 		FreeForAll  * fw = dynamic_cast<FreeForAll*>(w);
 		ThreeStrikesBattle * tw = dynamic_cast<ThreeStrikesBattle*>(w);
+        CaptureTheFlag * cw = dynamic_cast<CaptureTheFlag*>(w);
 		if (w) {
 			World::KartList k = w->getKarts();
 			karts.resize(k.size());
@@ -621,6 +655,11 @@ struct PyWorldState {
 					ffa = std::make_shared<PyFFA>();
 				ffa->update(fw);
 			}
+            if (cw) {
+                if (!capture)
+                    capture = std::make_shared<PyCapture>();
+                capture->update(cw);
+            }
 		}
 		ItemManager * im = ItemManager::get();
 		if (im) {
@@ -791,6 +830,14 @@ void pickle(std::ostream & s, const PyFFA& o) {
 void unpickle(std::istream & s, PyFFA * o) {
     unpickle(s, &o->scores);
 }
+void pickle(std::ostream & s, const PyCapture& o) {
+    pickle(s, o.redScore);
+    pickle(s, o.blueScore);
+}
+void unpickle(std::istream & s, PyCapture* o) {
+    unpickle(s, &o->redScore);
+    unpickle(s, &o->blueScore);
+}
 void pickle(std::ostream & s, const PyWorldState & o) {
     pickle(s, o.time);
     pickle(s, o.players);
@@ -820,6 +867,7 @@ void defineState(py::object m) {
 	PySoccerBall::define(m);
 	PySoccer::define(m);
 	PyFFA::define(m);
+	PyCapture::define(m);
 	PyWorldState::define(m);
 	PyTrack::define(m);
 };
