@@ -84,8 +84,15 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # PyBind11
-add_subdirectory("${PROJECT_SOURCE_DIR}/lib/pybind11")
-include_directories("${PYBIND11_INCLUDE_DIR}")
+find_package(PythonInterp REQUIRED)
+
+if(${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR} VERSION_EQUAL 3.11)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/lib/pybind11-2.11.1")
+    include_directories("${PYBIND11_INCLUDE_DIR}")
+else()
+    add_subdirectory("${PROJECT_SOURCE_DIR}/lib/pybind11")
+    include_directories("${PYBIND11_INCLUDE_DIR}")
+endif()
 
 # Build the Bullet physics library
 add_subdirectory("${PROJECT_SOURCE_DIR}/lib/bullet")
