@@ -48,22 +48,8 @@ private:
      *  get valid finish times estimates. */
     float       m_distance_increase;
 
-    /** This stores the live time difference between a ghost kart
-     *  and a second kart racing against it (normal or ghost). 
-     */
-    float       m_live_time_difference;
-
-    /** True if the live_time_difference is invalid */
-    bool        m_valid_reference_time;
-
     /* if set then the game will auto end after this time for networking */
     float       m_finish_timeout;
-
-    /** This calculate the time difference between the second kart in the race
-     *  (there must be at least two) and the first kart in the race
-     *  (who must be a ghost).
-     */
-    void  updateLiveDifference();
 
     // ------------------------------------------------------------------------
     /** Some additional info that needs to be kept for each kart
@@ -105,10 +91,6 @@ private:
             m_overall_distance  = 0.0f;
             m_wrong_way_timer   = 0.0f;
         }   // reset
-        // --------------------------------------------------------------------
-        void saveCompleteState(BareNetworkString* bns);
-        // --------------------------------------------------------------------
-        void restoreCompleteState(const BareNetworkString& b);
     };
     // ------------------------------------------------------------------------
 
@@ -141,8 +123,6 @@ public:
     float         getEstimatedFinishTime(const int kart_id) const;
     int           getLapForKart(const int kart_id) const;
     int           getTicksAtLapForKart(const int kart_id) const;
-    float         getLiveTimeDifference() const { return m_live_time_difference; }
-    bool          hasValidTimeDifference() const { return m_valid_reference_time; }
 
     virtual unsigned int getNumberOfRescuePositions() const OVERRIDE;
     virtual unsigned int getRescuePositionIndex(AbstractKart *kart) OVERRIDE;
@@ -210,15 +190,6 @@ public:
     // ------------------------------------------------------------------------
     virtual std::pair<uint32_t, uint32_t> getGameStartedProgress() const
         OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns,
-                                   STKPeer* peer) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b) OVERRIDE;
-    // ------------------------------------------------------------------------
-    void updateCheckLinesServer(int check_id, int kart_id);
-    // ------------------------------------------------------------------------
-    void updateCheckLinesClient(const BareNetworkString& b);
     // ------------------------------------------------------------------------
     void handleServerCheckStructureCount(unsigned count);
 };   // LinearWorld

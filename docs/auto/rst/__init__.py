@@ -9,14 +9,15 @@
 """
 
 from __future__ import (print_function, unicode_literals, absolute_import)
-
-from sphinx.builders import Builder
-from sphinx.writers.text import STDINDENT
+from sphinx.application import Sphinx
 from .builder import RstBuilder
+from .property import TypedPropertyDocumenter, EnumAttributeDocumenter
 
 
 
-def setup(app):
+def setup(app: Sphinx):
     app.require_sphinx('1.0')
     app.add_builder(RstBuilder)
     app.add_config_value('rst_file_suffix', ".rst", False)
+    app.add_autodocumenter(TypedPropertyDocumenter)
+    app.add_autodocumenter(EnumAttributeDocumenter)

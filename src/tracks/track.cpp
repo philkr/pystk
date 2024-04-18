@@ -72,7 +72,6 @@
 #include "utils/mini_glm.hpp"
 #include "utils/objecttype.h"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <IBillboardTextSceneNode.h>
 #include <ILightSceneNode.h>
@@ -101,7 +100,6 @@ Track::Track(const std::string &filename)
     m_magic_number          = 0x17AC3802;
 #endif
 
-    m_minimap_invert_x_z    = false;
     m_materials_loaded      = false;
     m_filename              = filename;
     m_root                  =
@@ -148,12 +146,10 @@ Track::Track(const std::string &filename)
     m_godrays_opacity       = 1.0f;
     m_godrays_color         = video::SColor(255, 255, 255, 255);
     m_weather_lightning      = false;
-    m_weather_sound         = "";
-    m_cache_track           = m_ident=="overworld";
+    // A temporary fix for a bug there the m_track_mesh contained deleted
+    // texture (long term fix might be to use shared pointers)
+    m_cache_track           = true;
     m_render_target         = NULL;
-    m_minimap_x_scale       = 1.0f;
-    m_minimap_y_scale       = 1.0f;
-    m_force_disable_fog     = false;
     m_startup_run           = false;
     m_red_flag = m_blue_flag =
         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f));
@@ -190,7 +186,7 @@ bool Track::operator<(const Track &other) const
 /** Returns the name of the track, which is e.g. displayed on the screen. */
 core::stringw Track::getName() const
 {
-    core::stringw translated = _(m_name.c_str());
+    core::stringw translated = m_name.c_str();
     int index = translated.find("|");
     if(index>-1)
     {
@@ -208,7 +204,7 @@ core::stringw Track::getName() const
  */
 core::stringw Track::getSortName() const
 {
-    core::stringw translated = translations->w_gettext(m_name.c_str());
+    core::stringw translated(m_name.c_str());
     translated.make_lower();
     int index = translated.find("|");
     if(index>-1)
@@ -227,13 +223,6 @@ bool Track::isInGroup(const std::string &group_name)
     return std::find(m_groups.begin(), m_groups.end(), group_name)
         != m_groups.end();
 }   // isInGroup
-
-//-----------------------------------------------------------------------------
-/** Returns number of completed challenges */
-unsigned int Track::getNumOfCompletedChallenges()
-{
-    return m_challenges.size();
-}   // getNumOfCompletedChallenges
 
 //-----------------------------------------------------------------------------
 /** Removes all cached data structures. This is called before the resolution
@@ -303,7 +292,7 @@ void Track::cleanup()
 
     for (unsigned int i = 0; i < m_static_physics_only_nodes.size(); i++)
     {
-        m_static_physics_only_nodes[i]->drop();
+        m_static_physics_only_nodes[i]->remove();
     }
     m_static_physics_only_nodes.clear();
 
@@ -347,7 +336,9 @@ void Track::cleanup()
     // mesh if it is already contained in the list or not).
     for (unsigned int i = 0; i < m_all_cached_meshes.size(); i++)
     {
+#ifndef SERVER_ONLY
         irr_driver->dropAllTextures(m_all_cached_meshes[i]);
+#endif
         // If a mesh is not in Irrlicht's texture cache, its refcount is
         // 1 (since its scene node was removed, so the only other reference
         // is in m_all_cached_meshes). In this case we only drop it once
@@ -366,7 +357,9 @@ void Track::cleanup()
     // Now free meshes that are not associated to any scene node.
     for (unsigned int i = 0; i < m_detached_cached_meshes.size(); i++)
     {
+#ifndef SERVER_ONLY
         irr_driver->dropAllTextures(m_detached_cached_meshes[i]);
+#endif
         irr_driver->removeMeshFromCache(m_detached_cached_meshes[i]);
     }
     m_detached_cached_meshes.clear();
@@ -396,7 +389,6 @@ void Track::cleanup()
     }
 
 #ifndef SERVER_ONLY
-    irr_driver->clearGlowingNodes();
     irr_driver->clearLights();
     irr_driver->clearForcedBloom();
     irr_driver->clearBackgroundNodes();
@@ -448,9 +440,11 @@ void Track::loadTrackInfo()
     m_sun_specular_color    = video::SColor(255, 255, 255, 255);
     m_sun_diffuse_color     = video::SColor(255, 255, 255, 255);
     m_sun_position          = core::vector3df(0, 10, 10);
+#ifndef SERVER_ONLY
     irr_driver->setSSAORadius(1.);
     irr_driver->setSSAOK(1.5);
     irr_driver->setSSAOSigma(1.);
+#endif
     XMLNode *root           = file_manager->createXMLTree(m_filename);
 
     if(!root || root->getName()!="track")
@@ -491,7 +485,6 @@ void Track::loadTrackInfo()
     root->get("color-level-in",        &m_color_inlevel);
     root->get("color-level-out",       &m_color_outlevel);
 
-    getMusicInformation(filenames, m_music);
     if (m_default_number_of_laps <= 0)
         m_default_number_of_laps = 3;
     m_actual_number_of_laps = m_default_number_of_laps;
@@ -586,18 +579,6 @@ void Track::loadCurves(const XMLNode &node)
 }   // loadCurves
 
 //-----------------------------------------------------------------------------
-/** Loads all music information for the specified files (which is taken from
- *  the track.xml file).
- *  \param filenames List of filenames to load.
- *  \param music On return contains the music information object for the
- *         specified files.
- */
-void Track::getMusicInformation(std::vector<std::string>&       filenames,
-                                std::vector<MusicInformation*>& music    )
-{
-}   // getMusicInformation
-
-//-----------------------------------------------------------------------------
 /** Select and set the music for this track (doesn't actually start it yet).
  */
 void Track::startMusic() const
@@ -610,22 +591,6 @@ void Track::startMusic() const
  */
 void Track::loadArenaGraph(const XMLNode &node)
 {
-    // Determine if rotate minimap is needed for soccer mode (for blue team)
-    // Only need to test local player
-    if (race_manager->getMinorMode() == RaceManager::MINOR_MODE_SOCCER)
-    {
-        const unsigned pk = race_manager->getNumPlayers();
-        for (unsigned i = 0; i < pk; i++)
-        {
-            if (race_manager->getKartInfo(i).getKartTeam() ==
-                KART_TEAM_BLUE)
-            {
-                m_minimap_invert_x_z = true;
-                break;
-            }
-        }
-    }
-
     ArenaGraph* graph = new ArenaGraph(m_root+"navmesh.xml", &node);
     Graph::setGraph(graph);
 
@@ -633,10 +598,6 @@ void Track::loadArenaGraph(const XMLNode &node)
     {
         Log::warn("track", "No graph nodes defined for track '%s'\n",
                 m_filename.c_str());
-    }
-    else
-    {
-        loadMinimap();
     }
 }   // loadArenaGraph
 
@@ -693,28 +654,8 @@ void Track::loadDriveGraph(unsigned int mode_id, const bool reverse)
                 "kart mode, but not with AIs\n");
         }
     }
-    else
-    {
-        loadMinimap();
-    }
 }   // loadDriveGraph
 
-// -----------------------------------------------------------------------------
-
-void Track::mapPoint2MiniMap(const Vec3 &xyz, Vec3 *draw_at) const
-{
-    if (m_minimap_invert_x_z)
-    {
-        Vec3 invert = xyz;
-        invert.setX(-xyz.x());
-        invert.setZ(-xyz.z());
-        Graph::get()->mapPoint2MiniMap(invert, draw_at);
-    }
-    else
-        Graph::get()->mapPoint2MiniMap(xyz, draw_at);
-    draw_at->setX(draw_at->getX() * m_minimap_x_scale);
-    draw_at->setY(draw_at->getY() * m_minimap_y_scale);
-}
 // -----------------------------------------------------------------------------
 /** Convert the track tree into its physics equivalents.
  *  \param main_track_count The number of meshes that are already converted
@@ -1002,40 +943,6 @@ void Track::convertTrackToBullet(scene::ISceneNode *node)
 }   // convertTrackToBullet
 
 // ----------------------------------------------------------------------------
-
-void Track::loadMinimap()
-{
-#ifndef SERVER_ONLY
-    //Use twice the size of the rendered minimap to reduce significantly aliasing
-    m_render_target = Graph::get()->makeMiniMap({uint32_t(stk_config->m_minimap_size * 2), uint32_t(stk_config->m_minimap_size * 2)},
-        "minimap::" + m_ident, video::SColor(127, 255, 255, 255),
-        m_minimap_invert_x_z);
-
-    updateMiniMapScale();
-#endif
-}   // loadMinimap
-
-// ----------------------------------------------------------------------------
-void Track::updateMiniMapScale()
-{
-    if (!m_render_target)
-        return;
-
-    core::dimension2du mini_map_size = {uint32_t(stk_config->m_minimap_size * 2), uint32_t(stk_config->m_minimap_size * 2)};
-    core::dimension2du mini_map_texture_size = m_render_target->getTextureSize();
-
-    if(mini_map_texture_size.Width)
-        m_minimap_x_scale = float(mini_map_size.Width) / float(mini_map_texture_size.Width);
-    else
-        m_minimap_x_scale = 0;
-
-    if(mini_map_texture_size.Height) 
-        m_minimap_y_scale = float(mini_map_size.Height) / float(mini_map_texture_size.Height);
-    else
-        m_minimap_y_scale = 0;
-}
-
-// ----------------------------------------------------------------------------
 /** Loads the main track model (i.e. all other objects contained in the
  *  scene might use raycast on this track model to determine the actual
  *  height of the terrain.
@@ -1044,8 +951,6 @@ bool Track::loadMainTrack(const XMLNode &root)
 {
     assert(m_track_mesh==NULL);
     assert(m_gfx_effect_mesh==NULL);
-
-    m_challenges.clear();
 
     m_track_mesh      = new TriangleMesh(/*can_be_transformed*/false);
     m_gfx_effect_mesh = new TriangleMesh(/*can_be_transformed*/false);
@@ -1101,7 +1006,9 @@ bool Track::loadMainTrack(const XMLNode &root)
     // scene node), but then we need to grab it since it's in the
     // m_all_cached_meshes.
     m_all_cached_meshes.push_back(tangent_mesh);
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(tangent_mesh);
+#endif
 
 #ifdef DEBUG
     std::string debug_name=model_name+" (main track, octtree)";
@@ -1215,7 +1122,9 @@ bool Track::loadMainTrack(const XMLNode &root)
             // 1 - which means that the only reference is now in the cache,
             // and can therefore be removed.
             m_all_cached_meshes.push_back(a_mesh);
+#ifndef SERVER_ONLY
             irr_driver->grabAllTextures(a_mesh);
+#endif
             a_mesh->grab();
             scene_node = irr_driver->addMesh(a_mesh, model_name, NULL, ri);
             scene_node->setPosition(xyz);
@@ -1474,7 +1383,9 @@ void Track::createWater(const XMLNode &node)
 #endif
     mesh->grab();
     m_all_cached_meshes.push_back(mesh);
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(mesh);
+#endif
 
     core::vector3df xyz(0,0,0);
     node.get("xyz", &xyz);
@@ -1546,7 +1457,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     assert(m_all_cached_meshes.size()==0);
 
     CameraEnd::clearEndCameras();
-    m_minimap_invert_x_z   = false;
     m_sky_type             = SKY_NONE;
     m_track_object_manager = new TrackObjectManager();
 
@@ -1769,8 +1679,7 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     // otherwise the skycube node could be modified to have fog enabled, which
     // we don't want
 #ifndef SERVER_ONLY
-    if (m_use_fog && Camera::getDefaultCameraType()!=Camera::CM_TYPE_DEBUG &&
-        !CVS->isGLSL())
+    if (m_use_fog && !CVS->isGLSL())
     {
         /* NOTE: if LINEAR type, density does not matter, if EXP or EXP2, start
            and end do not matter */
@@ -1779,12 +1688,10 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
                                              m_fog_start, m_fog_end,
                                              1.0f);
     }
-#endif
 
     // Sky dome and boxes support
     // --------------------------
     irr_driver->suppressSkyBox();
-#ifndef SERVER_ONLY
     if(!CVS->isGLSL() && m_sky_type==SKY_DOME && m_sky_textures.size() > 0)
     {
         scene::ISceneNode *node = irr_driver->addSkyDome(m_sky_textures[0],
@@ -1818,7 +1725,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     {
         irr_driver->setClearbackBufferColor(m_sky_color);
     }
-#endif
 
     // ---- Set ambient color
     m_ambient_color = m_default_ambient_color;
@@ -1834,7 +1740,6 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
     const video::SColorf tmpf(m_sun_diffuse_color);
     m_sun = irr_driver->addLight(m_sun_position, 0., 0., tmpf.r, tmpf.g, tmpf.b, true);
 
-#ifndef SERVER_ONLY
     if (!CVS->isGLSL())
     {
         scene::ILightSceneNode *sun = (scene::ILightSceneNode *) m_sun;
@@ -1900,8 +1805,7 @@ void Track::loadTrackModel(bool reverse_track, unsigned int mode_id)
         }   // for i<root->getNumNodes()
     }
 
-    if (m_is_ctf &&
-        race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
+    if (m_is_ctf && race_manager->isCTFMode())
     {
         for (unsigned int i=0; i<root->getNumNodes(); i++)
         {
@@ -1967,8 +1871,7 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
     unsigned int start_position_counter = 0;
 
     unsigned int node_count = root->getNumNodes();
-    const bool is_mode_ctf = m_is_ctf && race_manager->getMinorMode() ==
-        RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
+    const bool is_mode_ctf = m_is_ctf && race_manager->isCTFMode();
 
     // We keep track of the complexity of the scene (amount of objects loaded, etc)
     irr_driver->addSceneComplexity(node_count);
@@ -2053,7 +1956,6 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
 
             node->get("particles", &weather_particles);
             node->get("lightning", &m_weather_lightning);
-            node->get("sound", &m_weather_sound);
 
             if (weather_particles.size() > 0)
             {
@@ -2076,23 +1978,6 @@ void Track::loadObjects(const XMLNode* root, const std::string& path,
         else if (name == "instancing")
         {
             // TODO: eventually remove, this is now automatic
-        }
-        else if (name == "subtitles")
-        {
-            std::vector<XMLNode*> subtitles;
-            node->getNodes("subtitle", subtitles);
-            for (unsigned int i = 0; i < subtitles.size(); i++)
-            {
-                int from = -1, to = -1;
-                std::string subtitle_text;
-                subtitles[i]->get("from", &from);
-                subtitles[i]->get("to", &to);
-                subtitles[i]->get("text", &subtitle_text);
-                if (from != -1 && to != -1 && subtitle_text.size() > 0)
-                {
-                    m_subtitles.push_back( Subtitle(from, to, _(subtitle_text.c_str())) );
-                }
-            }
         }
         else
         {
@@ -2123,6 +2008,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
         m_sky_texture_percent = 1.0f;
         std::string s;
         xml_node.get("texture",          &s                   );
+#ifndef SERVER_ONLY
         video::ITexture *t = irr_driver->getTexture(s);
         if (t != NULL)
         {
@@ -2140,6 +2026,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
             Log::error("track", "Sky-dome texture '%s' not found - ignored.",
                         s.c_str());
         }
+#endif
     }   // if sky-dome
     else if(xml_node.getName()=="sky-box")
     {
@@ -2156,15 +2043,12 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                     (TexConfig*)NULL/*tex_config*/, true/*no_upload*/);
             }
             else
-#endif   // !SERVER_ONLY
             {
                 t = irr_driver->getTexture(v[i]);
             }
             if (t)
             {
-#ifndef SERVER_ONLY
                 if (!CVS->isGLSL())
-#endif   // !SERVER_ONLY
                     t->grab();
                 m_sky_textures.push_back(t);
             }
@@ -2173,6 +2057,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                 Log::error("track","Sky-box texture '%s' not found - ignored.",
                            v[i].c_str());
             }
+#endif
         }   // for i<v.size()
         if(m_sky_textures.size()!=6)
         {
@@ -2200,15 +2085,12 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                     (TexConfig*)NULL/*tex_config*/, true/*no_upload*/);
             }
             else
-#endif   // !SERVER_ONLY
             {
                 t = irr_driver->getTexture(v[i]);
             }
             if (t)
             {
-#ifndef SERVER_ONLY
                 if (!CVS->isGLSL())
-#endif   // !SERVER_ONLY
                     t->grab();
                 m_spherical_harmonics_textures.push_back(t);
             }
@@ -2217,6 +2099,7 @@ void Track::handleSky(const XMLNode &xml_node, const std::string &filename)
                 Log::error("track", "Sky-box spherical harmonics texture '%s' not found - ignored.",
                     v[i].c_str());
             }
+#endif   // !SERVER_ONLY
         }   // for i<v.size()
     }
     else if (xml_node.getName() == "sky-color")
@@ -2306,8 +2189,7 @@ void Track::itemCommand(const XMLNode *node)
 {
     const std::string &name = node->getName();
 
-    const bool is_mode_ctf = m_is_ctf &&
-        race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG;
+    const bool is_mode_ctf = m_is_ctf && race_manager->isCTFMode();
     bool ctf = false;
     node->get("ctf", &ctf);
     if ((is_mode_ctf && !ctf) || (!is_mode_ctf && ctf))
@@ -2334,8 +2216,7 @@ void Track::itemCommand(const XMLNode *node)
         return;
 
     // Only do easter eggs in easter egg mode.
-    if(type==Item::ITEM_EASTER_EGG &&
-        !(race_manager->getMinorMode()==RaceManager::MINOR_MODE_EASTER_EGG))
+    if(!(race_manager->isEggHuntMode()) && type==Item::ITEM_EASTER_EGG)
     {
         Log::warn("track",
                   "Found easter egg in non-easter-egg mode - ignored.\n");
@@ -2392,54 +2273,6 @@ void Track::itemCommand(const XMLNode *node)
 
     ItemManager::get()->placeItem(type, drop ? hit_point : loc, normal);
 }   // itemCommand
-
-// ----------------------------------------------------------------------------
-
-std::vector< std::vector<float> > Track::buildHeightMap()
-{
-    std::vector< std::vector<float> > out(HEIGHT_MAP_RESOLUTION);
-
-    float x = m_aabb_min.getX();
-    const float x_len = m_aabb_max.getX() - m_aabb_min.getX();
-    const float z_len = m_aabb_max.getZ() - m_aabb_min.getZ();
-
-    const float x_step = x_len/HEIGHT_MAP_RESOLUTION;
-    const float z_step = z_len/HEIGHT_MAP_RESOLUTION;
-
-    btVector3 hitpoint;
-    const Material* material;
-    btVector3 normal;
-
-    for (int i=0; i<HEIGHT_MAP_RESOLUTION; i++)
-    {
-        out[i].resize(HEIGHT_MAP_RESOLUTION);
-        float z = m_aabb_min.getZ();
-
-        for (int j=0; j<HEIGHT_MAP_RESOLUTION; j++)
-        {
-            btVector3 pos(x, 100.0f, z);
-            btVector3 to = pos;
-            to.setY(-100000.f);
-
-            m_track_mesh->castRay(pos, to, &hitpoint, &material, &normal);
-            z += z_step;
-
-            out[i][j] = hitpoint.getY();
-        }   // j<HEIGHT_MAP_RESOLUTION
-        x += x_step;
-    }
-
-    return out;
-}   // buildHeightMap
-
-// ----------------------------------------------------------------------------
-void Track::drawMiniMap(const core::rect<s32>& dest_rect) const
-{
-    if(m_render_target)
-        m_render_target->draw2DImage(dest_rect, NULL,
-                                     video::SColor(127, 255, 255, 255),
-                                     true);
-}
 
 // ----------------------------------------------------------------------------
 /** Returns the rotation of the sun. */

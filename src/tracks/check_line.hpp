@@ -89,8 +89,6 @@ public:
                              int indx) OVERRIDE;
     virtual void reset(const Track &track) OVERRIDE;
     virtual void resetAfterKartMove(unsigned int kart_index) OVERRIDE;
-    virtual void resetAfterRewind(unsigned int kart_index) OVERRIDE
-                                            { resetAfterKartMove(kart_index); }
     virtual void changeDebugColor(bool is_active) OVERRIDE;
     virtual bool triggeringCheckline() const OVERRIDE { return true; }
     // ------------------------------------------------------------------------
@@ -101,10 +99,6 @@ public:
      *  if a line is crossed. Used for basket calls in cannon (the ball can
      *  be too heigh to otherwise trigger he cannon). */
     void setIgnoreHeight(bool b) { m_ignore_height = b;  }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b) OVERRIDE;
     // ------------------------------------------------------------------------
     const Vec3 &getLeftPoint() const { return m_left_point;  }
     // ------------------------------------------------------------------------

@@ -578,13 +578,6 @@ const core::dimension2d<u32>& COpenGLTexture::getSize() const
 }
 
 
-//! returns driver type of texture, i.e. the driver, which created the texture
-E_DRIVER_TYPE COpenGLTexture::getDriverType() const
-{
-	return EDT_OPENGL;
-}
-
-
 //! returns color format of texture
 ECOLOR_FORMAT COpenGLTexture::getColorFormat() const
 {
@@ -711,7 +704,7 @@ COpenGLFBOTexture::COpenGLFBOTexture(const core::dimension2d<u32>& size,
 	TextureSize = size;
 
 	if (ECF_UNKNOWN == format)
-		format = getBestColorFormat(driver->getColorFormat());
+	    format = ECF_A8R8G8B8;
 
 	ColorFormat = format;
 

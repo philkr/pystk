@@ -27,6 +27,7 @@
 #include "utils/vec3.hpp"
 #include "view.hpp"
 #include "pickle.hpp"
+#include <physics/btKart.hpp>
 
 namespace py = pybind11;
 
@@ -58,10 +59,30 @@ void unpickle(std::istream & s, PyWorldState * o);
 // End AUTO Generated
 
 typedef std::array<float, 3> PyVec3;
-typedef std::array<float, 4> PyVec4;
+typedef std::array<float, 4> PyQuaternion;
+
+// What a great idea to #define _ !!!
+#undef _
+namespace pybind11 { namespace detail {
+template <> struct type_caster<PyVec3>: array_caster<PyVec3, float, false, 3> {
+public:
+	static constexpr auto name = _("float3");
+};
+template <size_t N> struct type_caster<std::array<int,N> >: array_caster<std::array<int,N> , int, false, N> {
+public:
+	static constexpr auto name = _("int[")+_<N>()+_("]");
+};
+template <> struct type_caster<PyQuaternion>: array_caster<PyQuaternion, float, false, 4> {
+public:
+	static constexpr auto name = _("Quaternion");
+};
+}}
 
 PyVec3 P(const Vec3 & v) {
 	return {v.getX(), v.getY(), v.getZ()};
+}
+Vec3 P(const PyVec3 & v) {
+	return Vec3(v[0], v[1], v[2]);
 }
 void pickle(std::ostream & s, const core::matrix4 & o) {
 	s.write((const char*)o.pointer(), 16*sizeof(irr::f32));
@@ -111,7 +132,7 @@ void unpickle(std::istream & s, std::shared_ptr<T> * o) {
 namespace std {
 	std::string to_string(const PyVec3 & v) {
 		char buf[256] = {0};
-		sprintf(buf, "(%0.2f, %0.2f, %0.2f)", v[0], v[1], v[2]);
+		sprintf(buf, "[%0.2f, %0.2f, %0.2f]", v[0], v[1], v[2]);
 		return buf;
 	}
 }
@@ -138,8 +159,8 @@ struct PyAttachment {
 		  V(BOMB)
 		  V(SWATTER)
 		  V(BUBBLEGUM_SHIELD);
-		c.def_readonly("type", &PyAttachment::type, "Attachment type (Attachment.Type)")
-		 .def_readonly("time_left", &PyAttachment::time_left, "Seconds until attachment detaches/explodes (float)")
+		c.def_readonly("type", &PyAttachment::type, "Attachment type")
+		 .def_readonly("time_left", &PyAttachment::time_left, "Seconds until attachment detaches/explodes")
 		 .def("__repr__", [E](const PyAttachment &a) { return "<Attachment type=" + std::string(py::repr(E(a.type))) + " time_left="+std::to_string(a.time_left)+">"; });
 		add_pickle(c);
 	}
@@ -187,8 +208,8 @@ struct PyPowerup {
 		  V(RUBBERBALL)
 		  V(PARACHUTE)
 		  V(ANVIL);
-		c.def_readonly("type", &PyPowerup::type, "Powerup type (Powerup.Type)")
-		 .def_readonly("num" , &PyPowerup::num, "Number of powerups (int)")
+		c.def_readonly("type", &PyPowerup::type, "Powerup type")
+		 .def_readonly("num" , &PyPowerup::num, "Number of powerups")
 		 .def("__repr__", [E](const PyPowerup &p) { return "<Powerup type=" + std::string(py::repr(E(p.type))) + " num="+std::to_string(p.num)+">"; });
 		add_pickle(c);
 	}
@@ -211,7 +232,7 @@ struct PyKart {
 	int id = 0, player_id = -1;
 	std::string name;
 	PyVec3 location = {0,0,0};
-	PyVec4 rotation = {0,0,0,1};
+	PyQuaternion rotation = {0,0,0,1};
 	PyVec3 front = {0,0,0};
 	PyVec3 velocity = {0,0,0};
 	PyVec3 size = {0,0,0};
@@ -306,16 +327,16 @@ struct PyItem {
 		py::class_<PyItem, std::shared_ptr<PyItem>> c(m, "Item");
 		py::enum_<Type> E(c, "Type");
 		E V(BONUS_BOX)
-		  V(BUBBLEGUM)
+		  V(BANANA)
 		  V(NITRO_BIG)
 		  V(NITRO_SMALL)
 		  V(BUBBLEGUM)
 		  V(EASTER_EGG);
 #define R(x, d) .def_readonly(#x, &PyItem::x, d)
-		c R(id, "Item id compatible with instance data (int)")
-		  R(location, "3D world location of the item (float 3)")
-		  R(size, "Size of the object (float)")
-		  R(type, "Item type (Item.Type)")
+		c R(id, "Item id compatible with instance data")
+		  R(location, "3D world location of the item")
+		  R(size, "Size of the object")
+		  R(type, "Item type")
 #undef R
 		 .def("__repr__", [E](const PyItem &i) { return "<Item id=" + std::to_string(i.id)+" location=" + std::to_string(i.location)+" size="+std::to_string(i.size)+" type="+std::string(py::repr(E(i.type)))+">"; });
 		add_pickle(c);
@@ -341,8 +362,8 @@ struct PySoccerBall {
 		py::class_<PySoccerBall, std::shared_ptr<PySoccerBall>> c(m, "SoccerBall");
 #define R(x, d) .def_readonly(#x, &PySoccerBall::x, d)
 		c R(id, "Object id of the soccer ball")
-		  R(location, "3D world location of the item (float 3)")
-		  R(size, "Size of the ball (float)")
+		  R(location, "3D world location of the item")
+		  R(size, "Size of the ball")
 #undef R
 		 .def("__repr__", [](const PySoccerBall &i) { return "<SoccerBall id=" + std::to_string(i.id)+" location=" + std::to_string(i.location)+" size="+std::to_string(i.size)+">"; });
 		add_pickle(c);
@@ -431,14 +452,13 @@ struct PyCamera {
 		 .value("CLOSEUP", Camera::CM_CLOSEUP)
 		 .value("REVERSE", Camera::CM_REVERSE)
 		 .value("LEADER_MODE", Camera::CM_LEADER_MODE)
-		 .value("SIMPLE_REPLAY", Camera::CM_SIMPLE_REPLAY)
 		 .value("FALLING", Camera::CM_FALLING);
 		c
          .def(py::init<>())
 #define R(x, d) .def_readonly(#x, &PyCamera::x, d)
-		  R(mode, "Camera mode (Camera.Mode)")
-		  R(aspect, "Aspect ratio (float)")
-		  R(fov, "Field of view (float)")
+		  R(mode, "Camera mode")
+		  R(aspect, "Aspect ratio")
+		  R(fov, "Field of view")
 #undef R
 		  .def_property_readonly("view", [](const PyCamera & c) { return py::ro_view(c.view.pointer(), {4, 4}); }, "View matrix (float 4x4)")
 		  .def_property_readonly("projection", [](const PyCamera & c) { return py::ro_view(c.projection.pointer(), {4, 4}); }, "Projection matrix (float 4x4)")
@@ -466,8 +486,8 @@ struct PyPlayer {
 		py::class_<PyPlayer, std::shared_ptr<PyPlayer> > c(m, "Player");
 		c.def(py::init<>())
 #define R(x, d) .def_readonly(#x, &PyPlayer::x, d)
-		  R(kart, "Kart of the player (Kart)")
-		  R(camera, "Camera parameters of the player (Camera)")
+		  R(kart, "Kart of the player")
+		  R(camera, "Camera parameters of the player")
 #undef R
 		 .def("__repr__", [](const PyPlayer &t) { return "<Player id="+std::to_string(t.id)+">"; });
 	}
@@ -490,7 +510,7 @@ struct PyTrack {
 		py::class_<PyTrack, std::shared_ptr<PyTrack> > c(m, "Track");
 		c.def(py::init<>())
 #define R(x, d) .def_readonly(#x, &PyTrack::x, d)
-		  R(length, "length of the track (float)")
+		  R(length, "length of the track")
 		  R(path_nodes, "Center line of the drivable area as line segments of 3d coordinates (float N x 2 x 3)")
 		  R(path_width, "Width of the path segment (float N)")
 		  R(path_distance, "Distance down the track of each line segment (float N x 2)")
@@ -534,15 +554,17 @@ struct PyWorldState {
 		py::class_<PyWorldState, std::shared_ptr<PyWorldState>> c(m, "WorldState");
 		c.def(py::init<>())
 #define R(x, d) .def_readonly(#x, &PyWorldState::x, d)
-		  R(players, "State of active players (List[Player])")
-		  R(karts, "State of karts (List[Kart])")
-		  R(items, "State of items (List[Item])")
+		  R(players, "State of active players")
+		  R(karts, "State of karts")
+		  R(items, "State of items")
 		  R(time, "Game time")
 		  R(soccer, "Soccer match info")
 		  R(ffa, "Free for all match info")
 #undef R
 		 .def("update", &PyWorldState::update, "Update this object with the current world state")
-		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; });
+		 .def("__repr__", [](const PyWorldState &k) { return "<WorldState #karts="+std::to_string(k.karts.size())+">"; })
+		 .def_static("set_ball_location", &PyWorldState::set_ball_location, py::arg("position"), py::arg("velocity")=PyVec3{0,0,0}, py::arg("angular_velocity")=PyVec3{0,0,0}, "Specify the soccer ball / hockey puck position (SOCCER mode only).")
+		 .def_static("set_kart_location", &PyWorldState::set_kart_location, py::arg("kart_id"), py::arg("position"), py::arg("rotation")=PyQuaternion{0,0,0,1}, py::arg("speed")=0, "Move a kart to a specific location.");
 		// TODO: Add pickling and make sure players are updated
 		add_pickle(c);
 	}
@@ -610,6 +632,28 @@ struct PyWorldState {
 			}
 		}
 	}
+	static void set_ball_location(const PyVec3 & position, const PyVec3 & velocity, const PyVec3 & angular_velocity) {
+		World * w = World::getWorld();
+		SoccerWorld * sw = dynamic_cast<SoccerWorld*>(World::getWorld());
+		if (sw) {
+			sw->setBallPosition(P(position), P(velocity), P(angular_velocity));
+		}
+	}
+	static void set_kart_location(int id, const PyVec3 & position, const PyQuaternion & rotation, float speed) {
+		World * w = World::getWorld();
+		World::KartList k = w->getKarts();
+		if (0 <= id && id < k.size()) {
+			auto kart = k[id];
+			btTransform transform = kart->getTrans();
+			transform.setOrigin(P(position));
+			transform.setRotation(btQuaternion(rotation[0], rotation[1], rotation[2], rotation[3]));
+			kart->getBody()->proceedToTransform(transform);
+			kart->setTrans(transform);
+			// Reset all btKart members (bounce back ticks / rotation ticks..)
+			kart->getVehicle()->reset();
+			kart->setSpeed(speed);
+		}
+	}
 };
 
 // AUTO Generated //
@@ -634,6 +678,7 @@ void pickle(std::ostream & s, const PyKart & o) {
     pickle(s, o.player_id);
     pickle(s, o.name);
     pickle(s, o.location);
+    pickle(s, o.rotation);
     pickle(s, o.front);
     pickle(s, o.velocity);
     pickle(s, o.size);
@@ -656,6 +701,7 @@ void unpickle(std::istream & s, PyKart * o) {
     unpickle(s, &o->player_id);
     unpickle(s, &o->name);
     unpickle(s, &o->location);
+    unpickle(s, &o->rotation);
     unpickle(s, &o->front);
     unpickle(s, &o->velocity);
     unpickle(s, &o->size);
@@ -771,10 +817,10 @@ void defineState(py::object m) {
 	PyItem::define(m);
 	PyCamera::define(m);
 	PyPlayer::define(m);
-	PyWorldState::define(m);
-	PyTrack::define(m);
 	PySoccerBall::define(m);
 	PySoccer::define(m);
 	PyFFA::define(m);
+	PyWorldState::define(m);
+	PyTrack::define(m);
 };
 

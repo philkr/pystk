@@ -64,12 +64,8 @@ friend class KartRewinder;
     bool m_direct_hit;
 
     // ------------------------------------------------------------------------
-    void restoreData(BareNetworkString* b);
-    // ------------------------------------------------------------------------
     void init(bool direct_hit, const Vec3& normal,
               const btTransform& reset_trans);
-    // ------------------------------------------------------------------------
-    ExplosionAnimation(AbstractKart* kart, BareNetworkString* buffer);
     // ------------------------------------------------------------------------
     ExplosionAnimation(AbstractKart* kart, bool direct_hit);
 public:
@@ -87,10 +83,6 @@ public:
     // ------------------------------------------------------------------------
     virtual KartAnimationType getAnimationType() const
                                                       { return KAT_EXPLOSION; }
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer);
     // ------------------------------------------------------------------------
     bool hasResetAlready() const;
 

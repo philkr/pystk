@@ -18,8 +18,6 @@
 #ifndef PROFILER_HPP
 #define PROFILER_HPP
 
-#include "utils/synchronised.hpp"
-
 #include <irrlicht.h>
 
 #include <assert.h>
@@ -66,7 +64,7 @@ extern Profiler profiler;
 
 double getTimeMilliseconds();
 
-#define ENABLE_PROFILER
+// #define ENABLE_PROFILER
 
 #ifdef ENABLE_PROFILER
     #define PROFILER_PUSH_CPU_MARKER(name, r, g, b) \
@@ -240,7 +238,7 @@ private:
      *  instance (since we need to avoid that a synch is done which changes
      *  the current frame while another threaded uses this variable, or
      *  while a new thread is added. */
-    Synchronised<bool> m_lock;
+    bool m_lock;
 
     /** True if the circular buffer has wrapped around. */
     bool m_has_wrapped_around;
@@ -285,8 +283,6 @@ public:
     void     popCPUMarker();
     void     toggleStatus(); 
     void     synchronizeFrame();
-    void     draw();
-    void     onClick(const core::vector2di& mouse_pos);
     void     writeToFile();
 
     // ------------------------------------------------------------------------

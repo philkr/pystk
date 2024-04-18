@@ -24,7 +24,6 @@
 #include "io/xml_node.hpp"
 #include "karts/abstract_kart.hpp"
 #include "utils/constants.hpp"
-#include "utils/random_generator.hpp"
 
 #include "utils/log.hpp" //TODO: remove after debugging is done
 

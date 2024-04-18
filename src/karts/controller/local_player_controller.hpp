@@ -27,7 +27,6 @@
 
 class AbstractKart;
 class ParticleEmitter;
-class PlayerProfile;
 
 /** PlayerKart manages control events from the player and moves
   * them to the Kart
@@ -37,8 +36,7 @@ class PlayerProfile;
 class LocalPlayerController : public PlayerController
 {
 private:
-    bool           m_sound_schedule;
-    bool           m_has_started;
+//     bool           m_has_started;
 
     std::unique_ptr<ParticleEmitter> m_sky_particles_emitter;
 
@@ -50,7 +48,6 @@ private:
 
     virtual void steer(int, int) OVERRIDE;
     virtual void displayPenaltyWarning() OVERRIDE;
-    void         nitroNotFullSound();
 
 public:
                  LocalPlayerController(AbstractKart *kart,
@@ -61,7 +58,7 @@ public:
     bool         action            (PlayerAction action, int value,
                                     bool dry_run=false) OVERRIDE;
             void initParticleEmitter();
-    virtual void handleZipper      (bool play_sound) OVERRIDE;
+    virtual void handleZipper      () OVERRIDE;
     void         collectedItem     (const ItemState &item,
                                     float previous_energy=0) OVERRIDE;
     virtual void setPosition       (int p) OVERRIDE;

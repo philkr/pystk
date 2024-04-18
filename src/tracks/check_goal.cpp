@@ -18,7 +18,6 @@
 
 #include "tracks/check_goal.hpp"
 
-#include "config/user_config.hpp"
 #include "io/xml_node.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object_manager.hpp"

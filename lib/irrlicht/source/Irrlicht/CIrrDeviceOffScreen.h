@@ -11,16 +11,13 @@
 
 #include "CIrrDeviceStub.h"
 #include "IrrlichtDevice.h"
-#include "IImagePresenter.h"
-#include "ICursorControl.h"
 #include "os.h"
-#include <EGL/egl.h>
 
-class ContextManagerEGL;
+class ContextManager;
 namespace irr
 {
 	
-	class CIrrDeviceOffScreen : public CIrrDeviceStub, public video::IImagePresenter
+	class CIrrDeviceOffScreen : public CIrrDeviceStub
 	{
 	public:
 
@@ -31,64 +28,19 @@ namespace irr
 		virtual ~CIrrDeviceOffScreen();//! runs the device. Returns false if device wants to be deleted
 		virtual bool run() _IRR_OVERRIDE_;
 
-		//! Cause the device to temporarily pause execution and let other processes to run
-		// This should bring down processor usage without major performance loss for Irrlicht
-		virtual void yield() _IRR_OVERRIDE_;
-
-		//! Pause execution and let other processes to run for a specified amount of time.
-		virtual void sleep(u32 timeMs, bool pauseTimer) _IRR_OVERRIDE_;
-
-		//! sets the caption of the window
-		virtual void setWindowCaption(const wchar_t* text) _IRR_OVERRIDE_;
-
-		//! returns if window is active. if not, nothing need to be drawn
-		virtual bool isWindowActive() const _IRR_OVERRIDE_;
-
-		//! returns if window has focus
-		virtual bool isWindowFocused() const _IRR_OVERRIDE_;
-
-		//! returns if window is minimized
-		virtual bool isWindowMinimized() const _IRR_OVERRIDE_;
-
-		//! Minimizes window
-		virtual void minimizeWindow() _IRR_OVERRIDE_;
-
-		//! Maximizes window
-		virtual void maximizeWindow() _IRR_OVERRIDE_;
-
-		//! Restores original window size
-		virtual void restoreWindow() _IRR_OVERRIDE_;
-
-		virtual void setWindowClass(const char* text) {}
-		
-		//! Move window to requested position
-		virtual bool moveWindow(int x, int y) {return false;}
-
-		//! Get current window position.
-		virtual bool getWindowPosition(int* x, int* y) {return (*x = *y = 0);}
-
-		//! presents a surface in the client area
-		virtual bool present(video::IImage* surface, void* windowId = 0, core::rect<s32>* src=0 ) _IRR_OVERRIDE_;
-
 		//! notifies the device that it should close itself
 		virtual void closeDevice() _IRR_OVERRIDE_;
-
-		//! Sets if the window should be resizeable in windowed mode.
-		virtual void setResizable(bool resize=false) _IRR_OVERRIDE_;
-
-		//! Returns the type of this device
-		virtual E_DEVICE_TYPE getType() const _IRR_OVERRIDE_;
 		
-        ContextManagerEGL* getEGLContext() {return m_egl_context;}
+		ContextManager* getContext() {return m_context;}
 
 	private:
 
 		//! create the driver
 		void createDriver();
 		
-		bool initEGL();
+		bool initContext();
 		
-		ContextManagerEGL * m_egl_context;
+		ContextManager * m_context;
 	};
 
 

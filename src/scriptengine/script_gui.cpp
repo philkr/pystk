@@ -26,7 +26,6 @@
 #include "tracks/track_object.hpp"
 #include "tracks/track_object_manager.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <angelscript.h>
 #include "scriptarray.hpp"
@@ -71,46 +70,27 @@ namespace Scripting
         /** Get translated version of string */
         std::string translate(std::string* input)
         {
-            irr::core::stringw out = translations->w_gettext(input->c_str());
-
-            return StringUtils::wideToUtf8(out);
+            return *input;
         }
 
         /** Translate string and insert values. e.g. GUI::translate("Hello %s !", "John") */
         std::string translate(std::string* formatString, std::string* arg1)
         {
-            irr::core::stringw out = translations->w_gettext(formatString->c_str());
-
-            out = StringUtils::insertValues(out,
-                                            StringUtils::utf8ToWide(*arg1));
-
-            return StringUtils::wideToUtf8(out);
+            return StringUtils::insertValues(*formatString, *arg1);
         }
 
         /** Translate string and insert values. e.g. GUI::translate("Hello %s !", "John") */
         std::string translate(std::string* formatString, std::string* arg1, std::string* arg2)
         {
-            irr::core::stringw out = translations->w_gettext(formatString->c_str());
-
-            out = StringUtils::insertValues(out,
-                                            StringUtils::utf8ToWide(*arg1),
-                                            StringUtils::utf8ToWide(*arg2));
-
-            return StringUtils::wideToUtf8(out);
+            return StringUtils::insertValues(*formatString, *arg1, *arg2);
         }
 
         /** Translate string and insert values. e.g. GUI::translate("Hello %s !", "John") */
         std::string translate(std::string* formatString, std::string* arg1, std::string* arg2,
             std::string* arg3)
         {
-            irr::core::stringw out = translations->w_gettext(formatString->c_str());
-
-            out = StringUtils::insertValues(out,
-                                            StringUtils::utf8ToWide(*arg1),
-                                            StringUtils::utf8ToWide(*arg2),
-                                            StringUtils::utf8ToWide(*arg3));
-
-            return StringUtils::wideToUtf8(out);
+            
+            return StringUtils::insertValues(*formatString, *arg1, *arg2, *arg3);
         }
         /** @}*/
         /** @}*/
@@ -200,13 +180,6 @@ namespace Scripting
             engine->RegisterEnumValue("PlayerAction", "RESCUE", PA_RESCUE);
             engine->RegisterEnumValue("PlayerAction", "FIRE", PA_FIRE);
             engine->RegisterEnumValue("PlayerAction", "LOOK_BACK", PA_LOOK_BACK);
-            engine->RegisterEnumValue("PlayerAction", "PAUSE_RACE", PA_PAUSE_RACE);
-            engine->RegisterEnumValue("PlayerAction", "MENU_UP", PA_MENU_UP);
-            engine->RegisterEnumValue("PlayerAction", "MENU_DOWN", PA_MENU_DOWN);
-            engine->RegisterEnumValue("PlayerAction", "MENU_LEFT", PA_MENU_LEFT);
-            engine->RegisterEnumValue("PlayerAction", "MENU_RIGHT", PA_MENU_RIGHT);
-            engine->RegisterEnumValue("PlayerAction", "MENU_SELECT", PA_MENU_SELECT);
-            engine->RegisterEnumValue("PlayerAction", "MENU_CANCEL", PA_MENU_CANCEL);
         }
     }
 

@@ -4,19 +4,19 @@
    SuperTuxKart rendering output
 
 
-   .. py:method:: depth
+   .. py:method:: depth () -> numpy.ndarray
       :property:
 
       Depth image of the kart (memoryview[float] screen_height x screen_width)
 
 
-   .. py:method:: image
+   .. py:method:: image () -> numpy.ndarray
       :property:
 
       Color image of the kart (memoryview[uint8] screen_height x screen_width x 3)
 
 
-   .. py:method:: instance
+   .. py:method:: instance () -> numpy.ndarray
       :property:
 
       Instance labels (memoryview[uint32] screen_height x screen_width)

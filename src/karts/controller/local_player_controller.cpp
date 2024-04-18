@@ -35,13 +35,10 @@
 #include "karts/skidding.hpp"
 #include "karts/rescue_animation.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_manager.hpp"
-#include "race/history.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 /** The constructor for a loca player kart, i.e. a player that is playing
  *  on this machine (non-local player would be network clients).
@@ -55,7 +52,7 @@ LocalPlayerController::LocalPlayerController(AbstractKart *kart,
                                              PerPlayerDifficulty d)
                      : PlayerController(kart)
 {
-    m_has_started = false;
+//     m_has_started = false;
     m_difficulty = d;
 
     // Keep a pointer to the camera to remove the need to search for
@@ -105,8 +102,7 @@ void LocalPlayerController::initParticleEmitter()
 void LocalPlayerController::reset()
 {
     PlayerController::reset();
-    m_sound_schedule = false;
-    m_has_started = false;
+//     m_has_started = false;
 }   // reset
 
 // ----------------------------------------------------------------------------
@@ -117,7 +113,6 @@ void LocalPlayerController::reset()
 void LocalPlayerController::resetInputState()
 {
     PlayerController::resetInputState();
-    m_sound_schedule = false;
 }   // resetInputState
 
 // ----------------------------------------------------------------------------
@@ -140,33 +135,21 @@ void LocalPlayerController::resetInputState()
 bool LocalPlayerController::action(PlayerAction action, int value,
                                    bool dry_run)
 {
-    // Pause race doesn't need to be sent to server
-    if (action == PA_PAUSE_RACE)
-    {
-        PlayerController::action(action, value);
-        return true;
-    }
-
-    if (action == PA_ACCEL && value != 0 && !m_has_started)
-    {
-        m_has_started = true;
-        
-        {
-            float f = m_kart->getStartupBoostFromStartTicks(
-                World::getWorld()->getAuxiliaryTicks());
-            m_kart->setStartupBoost(f);
-        }
-        
-    }
+//     if (action == PA_ACCEL && value != 0 && !m_has_started)
+//     {
+//         m_has_started = true;
+//         
+//         {
+//             float f = m_kart->getStartupBoostFromStartTicks(0);
+//             m_kart->setStartupBoost(f);
+//         }
+//         
+//     }
 
     // If this event does not change the control state (e.g.
     // it's a (auto) repeat event), do nothing. This especially
     // optimises traffic to the server and other clients.
     if (!PlayerController::action(action, value, /*dry_run*/true)) return false;
-
-    // Register event with history
-    if(!history->replayHistory())
-        history->addEvent(m_kart->getWorldKartId(), action, value);
 
     return PlayerController::action(action, value, /*dry_run*/false);
 }   // action
@@ -217,14 +200,6 @@ void LocalPlayerController::update(int ticks)
     }
 
 #endif
-    if (m_kart->getKartAnimation() && m_sound_schedule == false)
-    {
-        m_sound_schedule = true;
-    }
-    else if (!m_kart->getKartAnimation() && m_sound_schedule == true)
-    {
-        m_sound_schedule = false;
-    }
 }   // update
 
 //-----------------------------------------------------------------------------
@@ -275,9 +250,9 @@ void LocalPlayerController::finishedRace(float time)
 //-----------------------------------------------------------------------------
 /** Called when a kart hits or uses a zipper.
  */
-void LocalPlayerController::handleZipper(bool play_sound)
+void LocalPlayerController::handleZipper()
 {
-    PlayerController::handleZipper(play_sound);
+    PlayerController::handleZipper();
 
     // Only play a zipper sound if it's not already playing, and
     // if the material has changed (to avoid machine gun effect
@@ -300,13 +275,6 @@ void LocalPlayerController::collectedItem(const ItemState &item_state,
                                           float old_energy)
 {
 }   // collectedItem
-
-//-----------------------------------------------------------------------------
-/** If the nitro level has gone under the nitro goal, play a bad effect sound 
- */
-void LocalPlayerController::nitroNotFullSound()
-{
-} //nitroNotFullSound
 
 // ----------------------------------------------------------------------------
 /** Returns true if the player of this controller can collect achievements.

@@ -23,8 +23,8 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "config/user_config.hpp"
 #include "config/stk_config.hpp"
+#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/particle_kind_manager.hpp"

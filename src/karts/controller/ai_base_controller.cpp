@@ -20,20 +20,16 @@
 #include "karts/controller/ai_base_controller.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "karts/controller/ai_properties.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
+
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 
 #include <assert.h>
-
-bool AIBaseController::m_ai_debug = false;
-int  AIBaseController::m_test_ai  = 0;
 
 AIBaseController::AIBaseController(AbstractKart *kart)
                 : Controller(kart)
@@ -49,7 +45,6 @@ AIBaseController::AIBaseController(AbstractKart *kart)
 
 void AIBaseController::reset()
 {
-    m_enabled_network_ai = false;
     m_stuck = false;
     m_collision_ticks.clear();
 }   // reset
@@ -69,10 +64,6 @@ void AIBaseController::update(int ticks)
 */
 void AIBaseController::setControllerName(const std::string &name)
 {
-#ifdef DEBUG
-    if(m_ai_debug && Camera::getActiveCamera()->getType()==Camera::CM_TYPE_NORMAL)
-        m_kart->setOnScreenText(core::stringw(name.c_str()).c_str());
-#endif
     Controller::setControllerName(name);
 }   // setControllerName
 
@@ -331,20 +322,3 @@ void AIBaseController::determineTurnRadius(const Vec3 &end, Vec3 *center,
     }
 
 }   // determineTurnRadius
-
-//-----------------------------------------------------------------------------
-bool AIBaseController::saveState(BareNetworkString *buffer) const
-{
-    // Endcontroller needs this for proper offset in kart rewinder
-    // Must match the number of bytes in Playercontroller.
-    buffer->addUInt16(0).addUInt16(0).addUInt8(0);
-    return false;
-}   // copyToBuffer
-
-//-----------------------------------------------------------------------------
-void AIBaseController::rewindTo(BareNetworkString *buffer)
-{
-    // Endcontroller needs this for proper offset in kart rewinder.
-    // Skip the same number of bytes as PlayerController.
-    buffer->skip(2 + 2 + 1);
-}   // rewindTo

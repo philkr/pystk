@@ -33,12 +33,6 @@ namespace io
 	class IFileSystem;
 } // end namespace io
 
-namespace gui
-{
-	class IGUIFont;
-	class IGUIEnvironment;
-} // end namespace gui
-
 namespace video
 {
 	class IVideoDriver;
@@ -413,11 +407,6 @@ namespace scene
 		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
 		virtual video::IVideoDriver* getVideoDriver() = 0;
 
-		//! Get the active GUIEnvironment
-		/** \return Pointer to the GUIEnvironment
-		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-		virtual gui::IGUIEnvironment* getGUIEnvironment() = 0;
-
 		//! Get the active FileSystem
 		/** \return Pointer to the FileSystem
 		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
@@ -587,28 +576,6 @@ namespace scene
 			const core::vector3df& position = core::vector3df(0,0,0),
 			const core::vector3df& lookat = core::vector3df(0,0,100),
 			s32 id=-1, bool makeActive=true) = 0;
-
-		//! Adds a maya style user controlled camera scene node to the scene graph.
-		/** This is a standard camera with an animator that provides mouse control similar
-		to camera in the 3D Software Maya by Alias Wavefront.
-		The camera does not react on setPosition anymore after applying this animator. Instead
-		use setTarget, to fix the target the camera the camera hovers around. And setDistance
-		to set the current distance from that target, i.e. the radius of the orbit the camera
-		hovers on.
-		\param parent: Parent scene node of the camera. Can be null.
-		\param rotateSpeed: Rotation speed of the camera.
-		\param zoomSpeed: Zoom speed of the camera.
-		\param translationSpeed: TranslationSpeed of the camera.
-		\param id: id of the camera. This id can be used to identify the camera.
-		\param distance Initial distance of the camera from the object
-		\param makeActive Flag whether this camera should become the active one.
-		Make sure you always have one active camera.
-		\return Returns a pointer to the interface of the camera if successful, otherwise 0.
-		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-		virtual ICameraSceneNode* addCameraSceneNodeMaya(ISceneNode* parent=0,
-			f32 rotateSpeed=-1500.f, f32 zoomSpeed=200.f,
-			f32 translationSpeed=1500.f, s32 id=-1, f32 distance=70.f,
-			bool makeActive=true) =0;
 
 		//! Adds a camera scene node with an animator which provides mouse and keyboard control appropriate for first person shooters (FPS).
 		/** This FPS camera is intended to provide a demonstration of a
@@ -905,29 +872,6 @@ namespace scene
 		virtual IDummyTransformationSceneNode* addDummyTransformationSceneNode(
 			ISceneNode* parent=0, s32 id=-1) = 0;
 
-		//! Adds a text scene node, which is able to display 2d text at a position in three dimensional space
-		virtual ITextSceneNode* addTextSceneNode(gui::IGUIFont* font, const wchar_t* text,
-			video::SColor color=video::SColor(100,255,255,255),
-			ISceneNode* parent = 0, const core::vector3df& position = core::vector3df(0,0,0),
-			s32 id=-1) = 0;
-
-		//! Adds a text scene node, which uses billboards. The node, and the text on it, will scale with distance.
-		/**
-		\param font The font to use on the billboard. Pass 0 to use the GUI environment's default font.
-		\param text The text to display on the billboard.
-		\param parent The billboard's parent. Pass 0 to use the root scene node.
-		\param size The billboard's width and height.
-		\param position The billboards position relative to its parent.
-		\param id: An id of the node. This id can be used to identify the node.
-		\param colorTop: The color of the vertices at the top of the billboard (default: white).
-		\param colorBottom: The color of the vertices at the bottom of the billboard (default: white).
-		\return Pointer to the billboard if successful, otherwise NULL.
-		This pointer should not be dropped. See IReferenceCounted::drop() for more information. */
-		virtual IBillboardTextSceneNode* addBillboardTextSceneNode( gui::IGUIFont* font, const wchar_t* text,
-			ISceneNode* parent = 0,
-			const core::dimension2d<f32>& size = core::dimension2d<f32>(10.0f, 10.0f),
-			const core::vector3df& position = core::vector3df(0,0,0), s32 id=-1,
-			video::SColor colorTop = 0xFFFFFFFF, video::SColor colorBottom = 0xFFFFFFFF) = 0;
 
 		//! Adds a Hill Plane mesh to the mesh pool.
 		/** The mesh is generated on the fly

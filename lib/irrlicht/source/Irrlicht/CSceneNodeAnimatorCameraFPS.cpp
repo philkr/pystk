@@ -6,7 +6,6 @@
 #include "IVideoDriver.h"
 #include "ISceneManager.h"
 #include "Keycodes.h"
-#include "ICursorControl.h"
 #include "ICameraSceneNode.h"
 #include "ISceneNodeAnimatorCollisionResponse.h"
 
@@ -16,10 +15,10 @@ namespace scene
 {
 
 //! constructor
-CSceneNodeAnimatorCameraFPS::CSceneNodeAnimatorCameraFPS(gui::ICursorControl* cursorControl,
+CSceneNodeAnimatorCameraFPS::CSceneNodeAnimatorCameraFPS(
 		f32 rotateSpeed, f32 moveSpeed, f32 jumpSpeed,
 		SKeyMap* keyMapArray, u32 keyMapSize, bool noVerticalMovement, bool invertY)
-: CursorControl(cursorControl), MaxVerticalAngle(88.0f),
+: MaxVerticalAngle(88.0f),
 	MoveSpeed(moveSpeed), RotateSpeed(rotateSpeed), JumpSpeed(jumpSpeed),
 	MouseYDirection(invertY ? -1.0f : 1.0f),
 	LastAnimationTime(0), firstUpdate(true), firstInput(true), NoVerticalMovement(noVerticalMovement)
@@ -27,9 +26,6 @@ CSceneNodeAnimatorCameraFPS::CSceneNodeAnimatorCameraFPS(gui::ICursorControl* cu
 	#ifdef _DEBUG
 	setDebugName("CCameraSceneNodeAnimatorFPS");
 	#endif
-
-	if (CursorControl)
-		CursorControl->grab();
 
 	allKeysUp();
 
@@ -54,46 +50,7 @@ CSceneNodeAnimatorCameraFPS::CSceneNodeAnimatorCameraFPS(gui::ICursorControl* cu
 //! destructor
 CSceneNodeAnimatorCameraFPS::~CSceneNodeAnimatorCameraFPS()
 {
-	if (CursorControl)
-		CursorControl->drop();
 }
-
-
-//! It is possible to send mouse and key events to the camera. Most cameras
-//! may ignore this input, but camera scene nodes which are created for
-//! example with scene::ISceneManager::addMayaCameraSceneNode or
-//! scene::ISceneManager::addFPSCameraSceneNode, may want to get this input
-//! for changing their position, look at target or whatever.
-bool CSceneNodeAnimatorCameraFPS::OnEvent(const SEvent& evt)
-{
-	switch(evt.EventType)
-	{
-	case EET_KEY_INPUT_EVENT:
-		for (u32 i=0; i<KeyMap.size(); ++i)
-		{
-			if (KeyMap[i].KeyCode == evt.KeyInput.Key)
-			{
-				CursorKeys[KeyMap[i].Action] = evt.KeyInput.PressedDown;
-				return true;
-			}
-		}
-		break;
-
-	case EET_MOUSE_INPUT_EVENT:
-		if (evt.MouseInput.Event == EMIE_MOUSE_MOVED)
-		{
-			CursorPos = CursorControl->getRelativePosition();
-			return true;
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	return false;
-}
-
 
 void CSceneNodeAnimatorCameraFPS::animateNode(ISceneNode* node, u32 timeMs)
 {
@@ -105,11 +62,6 @@ void CSceneNodeAnimatorCameraFPS::animateNode(ISceneNode* node, u32 timeMs)
 	if (firstUpdate)
 	{
 		camera->updateAbsolutePosition();
-		if (CursorControl )
-		{
-			CursorControl->setPosition(0.5f, 0.5f);
-			CursorPos = CenterCursor = CursorControl->getRelativePosition();
-		}
 
 		LastAnimationTime = timeMs;
 
@@ -143,53 +95,6 @@ void CSceneNodeAnimatorCameraFPS::animateNode(ISceneNode* node, u32 timeMs)
 	// Update rotation
 	core::vector3df target = (camera->getTarget() - camera->getAbsolutePosition());
 	core::vector3df relativeRotation = target.getHorizontalAngle();
-
-	if (CursorControl)
-	{
-		if (CursorPos != CenterCursor)
-		{
-			relativeRotation.Y -= (0.5f - CursorPos.X) * RotateSpeed;
-			relativeRotation.X -= (0.5f - CursorPos.Y) * RotateSpeed * MouseYDirection;
-
-			// X < MaxVerticalAngle or X > 360-MaxVerticalAngle
-
-			if (relativeRotation.X > MaxVerticalAngle*2 &&
-				relativeRotation.X < 360.0f-MaxVerticalAngle)
-			{
-				relativeRotation.X = 360.0f-MaxVerticalAngle;
-			}
-			else
-			if (relativeRotation.X > MaxVerticalAngle &&
-				relativeRotation.X < 360.0f-MaxVerticalAngle)
-			{
-				relativeRotation.X = MaxVerticalAngle;
-			}
-
-			// Do the fix as normal, special case below
-			// reset cursor position to the centre of the window.
-			CursorControl->setPosition(0.5f, 0.5f);
-			CenterCursor = CursorControl->getRelativePosition();
-
-			// needed to avoid problems when the event receiver is disabled
-			CursorPos = CenterCursor;
-		}
-
-		// Special case, mouse is whipped outside of window before it can update.
-		video::IVideoDriver* driver = smgr->getVideoDriver();
-		core::vector2d<u32> mousepos(u32(CursorControl->getPosition().X), u32(CursorControl->getPosition().Y));
-		core::rect<u32> screenRect(0, 0, driver->getScreenSize().Width, driver->getScreenSize().Height);
-
-		// Only if we are moving outside quickly.
-		bool reset = !screenRect.isPointInside(mousepos);
-
-		if(reset)
-		{
-			// Force a reset.
-			CursorControl->setPosition(0.5f, 0.5f);
-			CenterCursor = CursorControl->getRelativePosition();
-			CursorPos = CenterCursor;
- 		}
-	}
 
 	// set target
 
@@ -343,8 +248,7 @@ void CSceneNodeAnimatorCameraFPS::setInvertMouse(bool invert)
 ISceneNodeAnimator* CSceneNodeAnimatorCameraFPS::createClone(ISceneNode* node, ISceneManager* newManager)
 {
 	CSceneNodeAnimatorCameraFPS * newAnimator =
-		new CSceneNodeAnimatorCameraFPS(CursorControl,	RotateSpeed, MoveSpeed, JumpSpeed,
-											0, 0, NoVerticalMovement);
+		new CSceneNodeAnimatorCameraFPS(RotateSpeed, MoveSpeed, JumpSpeed, 0, 0, NoVerticalMovement);
 	newAnimator->setKeyMap(KeyMap);
 	return newAnimator;
 }

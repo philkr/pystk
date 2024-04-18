@@ -21,6 +21,7 @@
 #include "graphics/irr_driver.hpp"
 #include "graphics/material.hpp"
 #include "graphics/material_manager.hpp"
+#include "graphics/rtts.hpp"
 #include "utils/log.hpp"
 
 #include <algorithm>
@@ -254,7 +255,7 @@ void CPUParticleManager::uploadAll()
 }   // uploadAll
 
 // ----------------------------------------------------------------------------
-void CPUParticleManager::drawAll()
+void CPUParticleManager::drawAll(const RTT* rtts)
 {
     using namespace SP;
     std::vector<std::pair<Material*, std::string> > particle_drawn;
@@ -320,7 +321,7 @@ void CPUParticleManager::drawAll()
             ParticleRenderer::getInstance()->setTextureUnits
                 (cur_mat->getTexture()->getOpenGLTextureName(),
                 CVS->isDeferredEnabled() ?
-                irr_driver->getDepthStencilTexture() : 0);
+                rtts->getDepthStencilTexture() : 0);
             ParticleRenderer::getInstance()->setUniforms(flips, billboard);
         }
         else

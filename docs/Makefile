@@ -20,6 +20,6 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 rst: Makefile
-	@$(SPHINXBUILD) -M rst "$(SOURCEDIR)/auto" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M rst "$(SOURCEDIR)/auto" "$(BUILDDIR)" $(SPHINXOPTS) -E $(O)
 	cp -f "$(BUILDDIR)"/rst/*.grst auto/
 

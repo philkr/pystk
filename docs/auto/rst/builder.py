@@ -11,48 +11,57 @@ from __future__ import (print_function, unicode_literals, absolute_import)
 
 import codecs
 from os import path
-
-from docutils.io import StringOutput
-
 from sphinx.builders import Builder
 from sphinx.util.osutil import ensuredir, os_path, SEP
 
+
 def get_text(e):
-    return ''.join(str(c) for c in e.children)
+    import docutils
+    return ''.join(str(c) if isinstance(c, docutils.nodes.Text) else get_text(c) for c in e.children)
+
 
 def gen_signature(s, indent):
-    def g(e, additional):
-        if e.tagname == 'desc_signature':
-            pass
-        elif e.tagname == 'desc_annotation':
+    def all_children(e):
+        r = [e]
+        for c in e.children:
+            r.extend(all_children(c))
+        return r
+
+    for c in s.children:
+        if c.tagname == 'desc_signature':
+            all_c = all_children(c)
+            break
+    additional = []
+    desc_name = ''
+    desc_addname = ''
+    desc_parameterlist = []
+    desc_returns = None
+    for e in all_c:
+        if e.tagname == 'desc_annotation':
             a = get_text(e).strip()
             if a == 'property':
                 additional.append(':%s:'%a)
-            #else:
-                #print('A ', a )
-            return ''
+            elif a == 'static':
+                additional.append(':staticmethod:')
+            elif a == 'class':
+                pass
+            else:
+                additional.append(':annotation: '+a)
+                # print(c)
         elif e.tagname == 'desc_name':
-            return get_text(e)
+            desc_name = get_text(e)
         elif e.tagname == 'desc_addname':
-            return get_text(e)
+            desc_addname = get_text(e)
         elif e.tagname == 'desc_parameterlist':
-            # TODO: finish
-            
-            return '(%s)'%(', '.join(get_text(c) for c in e.children if c.tagname == 'desc_parameter'))
+            desc_parameterlist = [get_text(c) for c in e.children if c.tagname == 'desc_parameter']
         elif e.tagname == 'desc_returns':
-            return ' -> '+get_text(e)
-        else:
-            print( 'Unknown signature tag ', e.tagname )
-        sign = ''
-        for c in e.children:
-            sign += g(c, additional)
-        return sign
-    
-    additional = []
-    for c in s.children:
-        if c.tagname == 'desc_signature':
-            sign = g(c, additional)
-    sign += '\n'
+            desc_returns = get_text(e)
+    if desc_returns is not None and desc_name != '__init__':
+        sign = '%s%s (%s) -> %s\n'%(desc_addname, desc_name, ', '.join(desc_parameterlist), desc_returns)
+    elif desc_parameterlist:
+        sign = '%s%s (%s)\n'%(desc_addname, desc_name, ', '.join(desc_parameterlist))
+    else:
+        sign = '%s%s\n'%(desc_addname, desc_name)
     for a in additional:
         sign += indent + str(a) + '\n'
     return sign
@@ -62,30 +71,39 @@ def gen(e, writer, indent='', hide_paragraph=True):
     if e.tagname == 'document':
         pass
     elif e.tagname == 'index':
-        return
+        return hide_paragraph
     elif e.tagname == 'paragraph':
         if not hide_paragraph:
-            writer.write('\n%s\n\n'%(indent+get_text(e)))
-        return
+            text = get_text(e)
+            if 'Members:' in text:
+                hide_paragraph = True
+            else:
+                writer.write('\n%s\n\n'%(indent+get_text(e)))
+        return hide_paragraph
     elif e.tagname == 'desc':
+        # if e.attributes['desctype'] == 'attribute':
+        #     print(e.attributes['domain'], e.attributes['desctype'])
+        #     print(e)
         writer.write('\n'+indent+'.. %s:%s:: '%(e.attributes['domain'], e.attributes['desctype']))
         indent = 3 * ' ' + indent
         writer.write(gen_signature(e, indent))
     elif e.tagname == 'desc_signature':
-        return
+        return hide_paragraph
     elif e.tagname == 'desc_content':
-        hide_paragraph = False
+        hide_paragraph = len(e.children) and 'Members:' in get_text(e.children[0])
     elif e.tagname == 'enumerated_list':
-        print( e.parent )
         indent = indent + '* '
     elif e.tagname == 'list_item':
-        hode_paragraph = False
+        hide_paragraph = False
+    elif e.tagname == 'block_quote':
+        pass
     else:
-        print( 'Unknown tag', e.tagname )
-        return
+        print('Unknown tag', e.tagname)
+        return hide_paragraph
     # Recurse
     for c in e.children:
-        gen(c, writer, indent=indent, hide_paragraph=hide_paragraph)
+        hide_paragraph = gen(c, writer, indent=indent, hide_paragraph=hide_paragraph)
+
 
 class RstBuilder(Builder):
     name = 'rst'
@@ -100,11 +118,14 @@ class RstBuilder(Builder):
     def prepare_writing(self, docnames):
         pass
 
+    def get_target_uri(self, docname: str, typ: str = None):
+        return docname
+
     def write_doc(self, docname, doctree):
-        print(docname, type(doctree))
-        
         outfilename = path.join(self.outdir, docname+self.file_suffix)
         # print "write(%s,%s) -> %s" % (type(doctree), type(destination), outfilename)
+        # print('-'*20, docname, '-'*20)
+        # print(doctree)
         ensuredir(path.dirname(outfilename))
         try:
             f = codecs.open(outfilename, 'w', 'utf-8')

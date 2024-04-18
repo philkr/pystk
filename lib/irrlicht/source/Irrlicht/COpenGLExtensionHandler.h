@@ -29,28 +29,11 @@
                 #pragma comment(lib, "OpenGL32.lib")
         #endif
 
-#elif defined(_IRR_COMPILE_WITH_OSX_DEVICE_)
-        #include "MacOSX/CIrrDeviceMacOSX.h"
-        #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-                #define GL_GLEXT_LEGACY 1
-        #endif
+#elif defined(_IRR_OSX_PLATFORM_)
         #include <OpenGL/gl.h>
         #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
                 #include "glext.h"
         #endif
-#elif defined(_IRR_COMPILE_WITH_SDL_DEVICE_) && !defined(_IRR_COMPILE_WITH_X11_DEVICE_)
-        #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
-                #define GL_GLEXT_LEGACY 1
-                #define GLX_GLXEXT_LEGACY 1
-        #else
-                #define GL_GLEXT_PROTOTYPES 1
-                #define GLX_GLXEXT_PROTOTYPES 1
-        #endif
-        #define NO_SDL_GLEXT
-        #include <SDL/SDL_video.h>
-        #include <SDL/SDL_opengl.h>
-        typedef void (APIENTRYP PFNGLBLENDEQUATIONPROC) (GLenum mode);
-        #include "glext.h"
 #else
         #if defined(_IRR_OPENGL_USE_EXTPOINTER_)
                 #define GL_GLEXT_LEGACY 1
@@ -2533,36 +2516,6 @@ inline void COpenGLExtensionHandler::extGlSwapInterval(int interval)
 #ifdef WGL_EXT_swap_control
 	if (pWglSwapIntervalEXT)
 		pWglSwapIntervalEXT(interval);
-#endif
-#endif
-#ifdef _IRR_COMPILE_WITH_X11_DEVICE_
-	//TODO: Check GLX_EXT_swap_control and GLX_MESA_swap_control
-#ifdef GLX_SGI_swap_control
-	// does not work with interval==0
-#ifdef _IRR_OPENGL_USE_EXTPOINTER_
-	if (interval && pGlxSwapIntervalSGI)
-		pGlxSwapIntervalSGI(interval);
-#else
-	if (interval)
-		glXSwapIntervalSGI(interval);
-#endif
-#elif defined(GLX_EXT_swap_control)
-#ifdef _IRR_OPENGL_USE_EXTPOINTER_
-	Display *dpy = glXGetCurrentDisplay();
-	GLXDrawable drawable = glXGetCurrentDrawable();
-
-	if (pGlxSwapIntervalEXT)
-		pGlxSwapIntervalEXT(dpy, drawable, interval);
-#else
-	pGlXSwapIntervalEXT(dpy, drawable, interval);
-#endif
-#elif defined(GLX_MESA_swap_control)
-#ifdef _IRR_OPENGL_USE_EXTPOINTER_
-	if (pGlxSwapIntervalMESA)
-		pGlxSwapIntervalMESA(interval);
-#else
-	pGlXSwapIntervalMESA(interval);
-#endif
 #endif
 #endif
 }

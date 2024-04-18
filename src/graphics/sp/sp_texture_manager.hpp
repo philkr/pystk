@@ -31,9 +31,7 @@
 #include <list>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <string>
-#include <thread>
 
 #include "irrString.h"
 
@@ -49,20 +47,6 @@ private:
     static SPTextureManager* m_sptm;
 
     std::map<std::string, std::shared_ptr<SPTexture> > m_textures;
-
-    std::atomic_uint m_max_threaded_load_obj;
-
-    std::atomic_int m_gl_cmd_function_count;
-
-    std::list<std::function<bool()> > m_threaded_functions;
-
-    std::list<std::function<bool()> > m_gl_cmd_functions;
-
-    std::mutex m_thread_obj_mutex, m_gl_cmd_mutex;
-
-    std::condition_variable m_thread_obj_cv;
-
-    std::list<std::thread> m_threaded_load_obj;
 
 public:
     // ------------------------------------------------------------------------
@@ -85,39 +69,7 @@ public:
     // ------------------------------------------------------------------------
     ~SPTextureManager();
     // ------------------------------------------------------------------------
-    void stopThreads()
-    {
-        m_max_threaded_load_obj.store(0);
-        std::unique_lock<std::mutex> ul(m_thread_obj_mutex);
-        m_threaded_functions.push_back([](){ return true; });
-        m_thread_obj_cv.notify_all();
-        ul.unlock();
-        for (std::thread& t : m_threaded_load_obj)
-        {
-            t.join();
-        }
-        m_threaded_load_obj.clear();
-    }
-    // ------------------------------------------------------------------------
     void removeUnusedTextures();
-    // ------------------------------------------------------------------------
-    void addThreadedFunction(std::function<bool()> threaded_function)
-    {
-        std::lock_guard<std::mutex> lock(m_thread_obj_mutex);
-        m_threaded_functions.push_back(threaded_function);
-        m_thread_obj_cv.notify_one();
-    }
-    // ------------------------------------------------------------------------
-    void addGLCommandFunction(std::function<bool()> function)
-    {
-        std::lock_guard<std::mutex> lock(m_gl_cmd_mutex);
-        m_gl_cmd_functions.push_back(function);
-    }
-    // ------------------------------------------------------------------------
-    void increaseGLCommandFunctionCount(int count)
-                                  { m_gl_cmd_function_count.fetch_add(count); }
-    // ------------------------------------------------------------------------
-    void checkForGLCommand(bool before_scene = false);
     // ------------------------------------------------------------------------
     std::shared_ptr<SPTexture> getTexture(const std::string& p,
                                           Material* m, bool undo_srgb,

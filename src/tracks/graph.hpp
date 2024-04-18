@@ -87,9 +87,6 @@ private:
     /** Scaling for mini map. */
     float m_scaling;
 
-    /** The render target used for drawing the minimap. */
-    std::unique_ptr<RenderTarget> m_render_target;
-
     // ------------------------------------------------------------------------
     void createMesh(bool show_invisible=true,
                     bool enable_transparency=false,
@@ -142,11 +139,6 @@ public:
     virtual ~Graph();
     // ------------------------------------------------------------------------
     void createDebugMesh();
-    // ------------------------------------------------------------------------
-    RenderTarget* makeMiniMap(const core::dimension2du &dimension,
-                              const std::string &name,
-                              const video::SColor &fill_color,
-                              bool invert_x_z);
     // ------------------------------------------------------------------------
     void mapPoint2MiniMap(const Vec3 &xyz, Vec3 *out) const;
     // ------------------------------------------------------------------------

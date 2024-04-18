@@ -8,7 +8,6 @@
 #include "IReferenceCounted.h"
 #include "IImage.h"
 #include "dimension2d.h"
-#include "EDriverTypes.h"
 #include "path.h"
 #include "matrix4.h"
 
@@ -146,13 +145,6 @@ public:
 	//! Get dimension (=size) of the texture.
 	/** \return The size of the texture. */
 	virtual const core::dimension2d<u32>& getSize() const = 0;
-
-	//! Get driver type of texture.
-	/** This is the driver, which created the texture. This method is used
-	internally by the video devices, to check, if they may use a texture
-	because textures may be incompatible between different devices.
-	\return Driver type of texture. */
-	virtual E_DRIVER_TYPE getDriverType() const = 0;
 
 	//! Get the color format of texture.
 	/** \return The color format of texture. */

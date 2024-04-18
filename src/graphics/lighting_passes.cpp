@@ -17,8 +17,8 @@
 
 #ifndef SERVER_ONLY
 
-#include "graphics/lighting_passes.hpp"
 #include "config/user_config.hpp"
+#include "graphics/lighting_passes.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/frame_buffer.hpp"
 #include "graphics/glwrap.hpp"
@@ -417,7 +417,6 @@ void LightingPasses::updateLightsInfo(scene::ICameraSceneNode * const camnode,
         }
         if (m_point_light_count > LightBaseClass::MAXLIGHT)
         {
-            irr_driver->setLastLightBucketDistance(i * 10);
             break;
         }
     }

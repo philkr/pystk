@@ -19,7 +19,6 @@
 #include "script_track.hpp"
 
 #include "animations/three_d_animation.hpp"
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "modes/world.hpp"
@@ -50,14 +49,14 @@ namespace Scripting
         /** Get total number of challenges */
         int getChallengeCount()
         {
-            return (int)::Track::getCurrentTrack()->getChallengeList().size();
+            return 0;
         }   // getChallengeCount
 
         // --------------------------------------------------------------------
         /** Get number of challenges that were completed at any difficulty */
         int getCompletedChallengesCount()
         {
-            return getChallengeCount();
+            return 0;
         }   // getCompletedChallengesCount
 
         // --------------------------------------------------------------------

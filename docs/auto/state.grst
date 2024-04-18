@@ -1,87 +1,99 @@
 
 .. py:class:: pystk.WorldState
 
-   .. py:method:: ffa
+   .. py:method:: set_ball_location (position: float3, velocity: float3 = [0.0, 0.0, 0.0], angular_velocity: float3 = [0.0, 0.0, 0.0]) -> None
+      :staticmethod:
+
+      Specify the soccer ball / hockey puck position (SOCCER mode only).
+
+
+   .. py:method:: set_kart_location (kart_id: int, position: float3, rotation: Quaternion = [0.0, 0.0, 0.0, 1.0], speed: float = 0) -> None
+      :staticmethod:
+
+      Move a kart to a specific location.
+
+
+   .. py:method:: update (self: pystk.WorldState) -> None
+
+      Update this object with the current world state
+
+
+   .. py:method:: ffa () -> pystk.FFA
       :property:
 
       Free for all match info
 
 
-   .. py:method:: items
+   .. py:method:: items () -> List[pystk.Item]
       :property:
 
-      State of items (List[Item])
+      State of items
 
 
-   .. py:method:: karts
+   .. py:method:: karts () -> List[pystk.Kart]
       :property:
 
-      State of karts (List[Kart])
+      State of karts
 
 
-   .. py:method:: players
+   .. py:method:: players () -> List[pystk.Player]
       :property:
 
-      State of active players (List[Player])
+      State of active players
 
 
-   .. py:method:: soccer
+   .. py:method:: soccer () -> pystk.Soccer
       :property:
 
       Soccer match info
 
 
-   .. py:method:: time
+   .. py:method:: time () -> float
       :property:
 
       Game time
 
 
-   .. py:method:: update(self: pystk.WorldState) -> None
-
-      Update this object with the current world state
-
-
 .. py:class:: pystk.Track
 
-   .. py:method:: length
+   .. py:method:: update (self: pystk.Track) -> None
+
+   .. py:method:: length () -> float
       :property:
 
-      length of the track (float)
+      length of the track
 
 
-   .. py:method:: path_distance
+   .. py:method:: path_distance () -> numpy.ndarray[numpy.float32]
       :property:
 
       Distance down the track of each line segment (float N x 2)
 
 
-   .. py:method:: path_nodes
+   .. py:method:: path_nodes () -> numpy.ndarray[numpy.float32]
       :property:
 
       Center line of the drivable area as line segments of 3d coordinates (float N x 2 x 3)
 
 
-   .. py:method:: path_width
+   .. py:method:: path_width () -> numpy.ndarray[numpy.float32]
       :property:
 
       Width of the path segment (float N)
 
 
-   .. py:method:: update(self: pystk.Track) -> None
-
 .. py:class:: pystk.Player
 
-   .. py:method:: camera
+   .. py:method:: camera () -> pystk.Camera
       :property:
 
-      Camera parameters of the player (Camera)
+      Camera parameters of the player
 
 
-   .. py:method:: kart
+   .. py:method:: kart () -> pystk.Kart
       :property:
 
-      Kart of the player (Kart)
+      Kart of the player
 
 
 .. py:class:: pystk.Camera
@@ -89,42 +101,51 @@
    .. py:class:: Mode
 
       .. py:attribute:: CLOSEUP
+         :annotation: = 1
 
       .. py:attribute:: FALLING
+         :annotation: = 4
 
       .. py:attribute:: LEADER_MODE
+         :annotation: = 3
 
       .. py:attribute:: NORMAL
+         :annotation: = 0
 
       .. py:attribute:: REVERSE
+         :annotation: = 2
 
-      .. py:attribute:: SIMPLE_REPLAY
+      .. py:method:: name () -> str
+         :property:
 
-   .. py:method:: aspect
+      .. py:method:: value () -> int
+         :property:
+
+   .. py:method:: aspect () -> float
       :property:
 
-      Aspect ratio (float)
+      Aspect ratio
 
 
-   .. py:method:: fov
+   .. py:method:: fov () -> float
       :property:
 
-      Field of view (float)
+      Field of view
 
 
-   .. py:method:: mode
+   .. py:method:: mode () -> pystk.Camera.Mode
       :property:
 
-      Camera mode (Camera.Mode)
+      Camera mode
 
 
-   .. py:method:: projection
+   .. py:method:: projection () -> readonly_memoryview
       :property:
 
       Projection matrix (float 4x4)
 
 
-   .. py:method:: view
+   .. py:method:: view () -> readonly_memoryview
       :property:
 
       View matrix (float 4x4)
@@ -134,166 +155,180 @@
 
    .. py:class:: Type
 
+      .. py:attribute:: BANANA
+         :annotation: = 1
+
       .. py:attribute:: BONUS_BOX
+         :annotation: = 0
 
       .. py:attribute:: BUBBLEGUM
+         :annotation: = 4
 
       .. py:attribute:: EASTER_EGG
+         :annotation: = 6
 
       .. py:attribute:: NITRO_BIG
+         :annotation: = 2
 
       .. py:attribute:: NITRO_SMALL
+         :annotation: = 3
 
-   .. py:method:: id
+      .. py:method:: name () -> str
+         :property:
+
+      .. py:method:: value () -> int
+         :property:
+
+   .. py:method:: id () -> int
       :property:
 
-      Item id compatible with instance data (int)
+      Item id compatible with instance data
 
 
-   .. py:method:: location
+   .. py:method:: location () -> float3
       :property:
 
-      3D world location of the item (float 3)
+      3D world location of the item
 
 
-   .. py:method:: size
+   .. py:method:: size () -> float
       :property:
 
-      Size of the object (float)
+      Size of the object
 
 
-   .. py:method:: type
+   .. py:method:: type () -> pystk.Item.Type
       :property:
 
-      Item type (Item.Type)
+      Item type
 
 
 .. py:class:: pystk.Kart
 
-   .. py:method:: attachment
+   .. py:method:: attachment () -> pystk.Attachment
       :property:
 
-      Attachment of kart (Attachment)
+      Attachment of kart
 
 
-   .. py:method:: distance_down_track
+   .. py:method:: distance_down_track () -> float
       :property:
 
-      Distance traveled on current lap (float)
+      Distance traveled on current lap
 
 
-   .. py:method:: finish_time
+   .. py:method:: finish_time () -> float
       :property:
 
-      Time to complete race (float)
+      Time to complete race
 
 
-   .. py:method:: finished_laps
+   .. py:method:: finished_laps () -> int
       :property:
 
-      Number of laps completed (int)
+      Number of laps completed
 
 
-   .. py:method:: front
+   .. py:method:: front () -> float3
       :property:
 
-      Front direction of kart 1/2 kart length forward from location (float 3)
+      Front direction of kart 1/2 kart length forward from location
 
 
-   .. py:method:: id
+   .. py:method:: id () -> int
       :property:
 
-      Kart id compatible with instance labels (int)
+      Kart id compatible with instance labels
 
 
-   .. py:method:: jumping
+   .. py:method:: jumping () -> bool
       :property:
 
-      Is the kart jumping? (bool)
+      Is the kart jumping?
 
 
-   .. py:method:: lap_time
+   .. py:method:: lap_time () -> float
       :property:
 
-      Time to completion for last lap (float)
+      Time to completion for last lap
 
 
-   .. py:method:: lives
+   .. py:method:: lives () -> int
       :property:
 
-      Lives in three strikes battle (int)
+      Lives in three strikes battle
 
 
-   .. py:method:: location
+   .. py:method:: location () -> float3
       :property:
 
-      3D world location of the kart (float 3)
+      3D world location of the kart
 
 
-   .. py:method:: max_steer_angle
+   .. py:method:: max_steer_angle () -> float
       :property:
 
-      Maximum steering angle (float)
+      Maximum steering angle
 
 
-   .. py:method:: name
+   .. py:method:: name () -> str
       :property:
 
-      Player name (str)
+      Player name
 
 
-   .. py:method:: overall_distance
+   .. py:method:: overall_distance () -> float
       :property:
 
-      Overall distance traveled (float)
+      Overall distance traveled
 
 
-   .. py:method:: player_id
+   .. py:method:: player_id () -> int
       :property:
 
-      Player id (int)
+      Player id
 
 
-   .. py:method:: powerup
+   .. py:method:: powerup () -> pystk.Powerup
       :property:
 
-      Powerup collected (Powerup)
+      Powerup collected
 
 
-   .. py:method:: race_result
+   .. py:method:: race_result () -> bool
       :property:
 
-      Did the kart finish the race? (bool)
+      Did the kart finish the race?
 
 
-   .. py:method:: rotation
+   .. py:method:: rotation () -> Quaternion
       :property:
 
-      Quaternion rotation of the kart (float 4)
+      Quaternion rotation of the kart
 
 
-   .. py:method:: shield_time
+   .. py:method:: shield_time () -> float
       :property:
 
-      Second the shield is up for (float)
+      Second the shield is up for
 
 
-   .. py:method:: size
+   .. py:method:: size () -> float3
       :property:
 
-      Width, height and length of kart (float 3)
+      Width, height and length of kart
 
 
-   .. py:method:: velocity
+   .. py:method:: velocity () -> float3
       :property:
 
-      Velocity of kart (float 3)
+      Velocity of kart
 
 
-   .. py:method:: wheel_base
+   .. py:method:: wheel_base () -> float
       :property:
 
-      Wheel base (float)
+      Wheel base
 
 
 .. py:class:: pystk.Powerup
@@ -301,37 +336,54 @@
    .. py:class:: Type
 
       .. py:attribute:: ANVIL
+         :annotation: = 10
 
       .. py:attribute:: BOWLING
+         :annotation: = 3
 
       .. py:attribute:: BUBBLEGUM
+         :annotation: = 1
 
       .. py:attribute:: CAKE
+         :annotation: = 2
 
       .. py:attribute:: NOTHING
+         :annotation: = 0
 
       .. py:attribute:: PARACHUTE
+         :annotation: = 9
 
       .. py:attribute:: PLUNGER
+         :annotation: = 5
 
       .. py:attribute:: RUBBERBALL
+         :annotation: = 8
 
       .. py:attribute:: SWATTER
+         :annotation: = 7
 
       .. py:attribute:: SWITCH
+         :annotation: = 6
 
       .. py:attribute:: ZIPPER
+         :annotation: = 4
 
-   .. py:method:: num
+      .. py:method:: name () -> str
+         :property:
+
+      .. py:method:: value () -> int
+         :property:
+
+   .. py:method:: num () -> int
       :property:
 
-      Number of powerups (int)
+      Number of powerups
 
 
-   .. py:method:: type
+   .. py:method:: type () -> pystk.Powerup.Type
       :property:
 
-      Powerup type (Powerup.Type)
+      Powerup type
 
 
 .. py:class:: pystk.Attachment
@@ -339,44 +391,56 @@
    .. py:class:: Type
 
       .. py:attribute:: ANVIL
+         :annotation: = 1
 
       .. py:attribute:: BOMB
+         :annotation: = 2
 
       .. py:attribute:: BUBBLEGUM_SHIELD
+         :annotation: = 6
 
       .. py:attribute:: NOTHING
+         :annotation: = 9
 
       .. py:attribute:: PARACHUTE
+         :annotation: = 0
 
       .. py:attribute:: SWATTER
+         :annotation: = 3
 
-   .. py:method:: time_left
+      .. py:method:: name () -> str
+         :property:
+
+      .. py:method:: value () -> int
+         :property:
+
+   .. py:method:: time_left () -> float
       :property:
 
-      Seconds until attachment detaches/explodes (float)
+      Seconds until attachment detaches/explodes
 
 
-   .. py:method:: type
+   .. py:method:: type () -> pystk.Attachment.Type
       :property:
 
-      Attachment type (Attachment.Type)
+      Attachment type
 
 
 .. py:class:: pystk.Soccer
 
-   .. py:method:: ball
+   .. py:method:: ball () -> pystk.SoccerBall
       :property:
 
       Soccer ball information
 
 
-   .. py:method:: goal_line
+   .. py:method:: goal_line () -> List[List[float3[2]][2]]
       :property:
 
       Start and end of the goal line for each team
 
 
-   .. py:method:: score
+   .. py:method:: score () -> int[2]
       :property:
 
       Score of the soccer match
@@ -384,20 +448,20 @@
 
 .. py:class:: pystk.SoccerBall
 
-   .. py:method:: id
+   .. py:method:: id () -> int
       :property:
 
       Object id of the soccer ball
 
 
-   .. py:method:: location
+   .. py:method:: location () -> float3
       :property:
 
-      3D world location of the item (float 3)
+      3D world location of the item
 
 
-   .. py:method:: size
+   .. py:method:: size () -> float
       :property:
 
-      Size of the ball (float)
+      Size of the ball
 

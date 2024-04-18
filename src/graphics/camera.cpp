@@ -20,8 +20,6 @@
 #include "graphics/camera.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
-#include "graphics/camera_debug.hpp"
 #include "graphics/camera_end.hpp"
 #include "graphics/camera_fps.hpp"
 #include "graphics/camera_normal.hpp"
@@ -80,7 +78,6 @@ Camera* Camera::createCamera(unsigned int index, CameraType type,
     {
     case CM_TYPE_NORMAL: camera = new CameraNormal(CM_TYPE_NORMAL, index, kart);
                                                                  break;
-    case CM_TYPE_DEBUG:  camera = new CameraDebug (index, kart); break;
     case CM_TYPE_FPS:    camera = new CameraFPS   (index, kart); break;
     case CM_TYPE_END:    camera = new CameraEnd   (index, kart); break;
     }   // switch type
@@ -167,19 +164,10 @@ void Camera::setKart(AbstractKart *new_kart)
  */
 void Camera::setupCamera()
 {
-    m_viewport = irr_driver->getSplitscreenWindow(m_index);
-    m_aspect = (float)((float)(m_viewport.getWidth()) / (float)(m_viewport.getHeight()));
-	
-    m_scaling = core::vector2df(
-        float(irr_driver->getActualScreenSize().Width) / m_viewport.getWidth() , 
-        float(irr_driver->getActualScreenSize().Height) / m_viewport.getHeight());
-
-    m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov
-        [race_manager->getNumLocalPlayers() > 0 ?
-        race_manager->getNumLocalPlayers() - 1 : 0];
+    m_fov = DEGREE_TO_RAD * stk_config->m_camera_fov;
 
     m_camera->setFOV(m_fov);
-    m_camera->setAspectRatio(m_aspect);
+    m_camera->setAspectRatio(1.f);
     m_camera->setFarValue(Track::getCurrentTrack()->getCameraFar());
 }   // setupCamera
 
@@ -195,8 +183,8 @@ void Camera::setMode(Mode mode)
         (m_mode==CM_FALLING && mode==CM_NORMAL)    )
     {
         Vec3 start_offset(0, 1.6f, -3);
-        Vec3 current_position = m_kart->getSmoothedTrans()(start_offset);
-        Vec3 target_position = m_kart->getSmoothedTrans()(Vec3(0, 0, 1));
+        Vec3 current_position = m_kart->getTrans()(start_offset);
+        Vec3 target_position = m_kart->getTrans()(Vec3(0, 0, 1));
         // Don't set position and target the same, otherwise
         // nan values will be calculated in ViewArea of camera
         m_camera->setPosition(current_position.toIrrVector());
@@ -235,7 +223,7 @@ void Camera::setInitialTransform()
 {
     if (m_kart == NULL) return;
     Vec3 start_offset(0, 1.6f, -3);
-    Vec3 current_position = m_kart->getSmoothedTrans()(start_offset);
+    Vec3 current_position = m_kart->getTrans()(start_offset);
     assert(!std::isnan(current_position.getX()));
     assert(!std::isnan(current_position.getY()));
     assert(!std::isnan(current_position.getZ()));
@@ -245,7 +233,7 @@ void Camera::setInitialTransform()
     // direction till smoothMoveCamera has corrected this. Setting target
     // to position doesn't make sense, but smoothMoves will adjust the
     // value before the first frame is rendered
-    Vec3 target_position = m_kart->getSmoothedTrans()(Vec3(0, 0, 1));
+    Vec3 target_position = m_kart->getTrans()(Vec3(0, 0, 1));
     m_camera->setTarget(target_position.toIrrVector());
     m_camera->setRotation(core::vector3df(0, 0, 0));
     m_camera->setFOV(m_fov);
@@ -270,7 +258,6 @@ void Camera::activate(bool alsoActivateInIrrlicht)
     {
         irr::scene::ISceneManager *sm = irr_driver->getSceneManager();
         sm->setActiveCamera(m_camera);
-        irr_driver->getVideoDriver()->setViewPort(m_viewport);
     }
 }   // activate
 

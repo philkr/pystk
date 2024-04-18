@@ -27,8 +27,7 @@
 #include "karts/controller/controller.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
+
 #include "physics/triangle_mesh.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
@@ -65,56 +64,8 @@ void Powerup::reset()
 }   // reset
 
 //-----------------------------------------------------------------------------
-/** Save the powerup state. Called from the kart rewinder when saving the kart
- *  state or when a new powerup even is saved.
- *  \param buffer The buffer into which to save the state.
- */
-void Powerup::saveState(BareNetworkString *buffer) const
-{
-    buffer->addUInt8(uint8_t(m_type));
-    buffer->addUInt8(m_number);   // number is <=255
-}   // saveState
-
-//-----------------------------------------------------------------------------
-/** Restore a powerup state. Called from the kart rewinder when restoring a
- *  state.
- *  \param buffer Buffer with the state of this powerup object.
- */
-void Powerup::rewindTo(BareNetworkString *buffer)
-{
-    PowerupManager::PowerupType new_type = 
-        PowerupManager::PowerupType(buffer->getUInt8());
-    int n=0;
-    if(new_type==PowerupManager::POWERUP_NOTHING)
-    {
-        set(new_type, 0);
-        return;
-    }
-    n = buffer->getUInt8();
-    if(m_type == new_type)
-        m_number = n;
-    else
-    {
-        m_number = 0;
-        set(new_type, n);
-    }
-}   // rewindTo
-
-//-----------------------------------------------------------------------------
 void Powerup::update(int ticks)
 {
-    // Remove any sound ticks that should have played
-    const int remove_ticks = World::getWorld()->getTicksSinceStart() - 1000;
-    for (auto it = m_played_sound_ticks.begin();
-         it != m_played_sound_ticks.end();)
-    {
-        if (*it < remove_ticks)
-        {
-            it = m_played_sound_ticks.erase(it);
-            continue;
-        }
-        break;
-    }
 }   // update
 
 //-----------------------------------------------------------------------------
@@ -139,10 +90,6 @@ void Powerup::set(PowerupManager::PowerupType type, int n)
     if(n>255) n = 255;
 
     m_number=n;
-
-    // Don't re-create sound sound during rewinding
-    if (RewindManager::get()->isRewinding())
-        return;
 }  // set
 
 //-----------------------------------------------------------------------------
@@ -161,14 +108,6 @@ Material *Powerup::getIcon() const
  */
 void Powerup::use()
 {
-    const int ticks = World::getWorld()->getTicksSinceStart();
-    bool has_played_sound = false;
-    auto it = m_played_sound_ticks.find(ticks);
-    if (it != m_played_sound_ticks.end())
-        has_played_sound = true;
-    else
-        m_played_sound_ticks.insert(ticks);
-
     const KartProperties *kp = m_kart->getKartProperties();
 
     m_number--;
@@ -176,7 +115,7 @@ void Powerup::use()
     switch (m_type)
     {
     case PowerupManager::POWERUP_ZIPPER:
-        m_kart->handleZipper(NULL, true);
+        m_kart->handleZipper(NULL);
         break ;
     case PowerupManager::POWERUP_SWITCH:
         {

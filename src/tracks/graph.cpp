@@ -18,7 +18,6 @@
 
 #include "tracks/graph.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/render_target.hpp"
@@ -44,7 +43,6 @@ Graph::Graph()
     m_node        = NULL;
     m_mesh        = NULL;
     m_mesh_buffer = NULL;
-    m_render_target = NULL;
     m_bb_min      = Vec3( 99999,  99999,  99999);
     m_bb_max      = Vec3(-99999, -99999, -99999);
     memset(m_bb_nodes, 0, 4 * sizeof(int));
@@ -382,139 +380,6 @@ void Graph::createMeshSP(bool show_invisible, bool enable_transparency,
     spm->setBoundingBox(spmb->getBoundingBox());
 #endif
 }   // createMeshSP
-
-// -----------------------------------------------------------------------------
-/** Takes a snapshot of the graph so they can be used as minimap.
- */
-RenderTarget* Graph::makeMiniMap(const core::dimension2du &dimension,
-                                 const std::string &name,
-                                 const video::SColor &fill_color,
-                                 bool invert_x_z)
-{
-    // Skip minimap when profiling
-    const video::SColor oldClearColor = irr_driver->getClearColor();
-    irr_driver->setClearbackBufferColor(video::SColor(0, 255, 255, 255));
-    Track::getCurrentTrack()->forceFogDisabled(true);
-#ifndef SERVER_ONLY
-    m_render_target = irr_driver->createRenderTarget(dimension, name);
-#endif
-    irr_driver->getSceneManager()
-        ->setAmbientLight(video::SColor(255, 255, 255, 255));
-
-#ifndef SERVER_ONLY
-    if (CVS->isGLSL())
-    {
-        createMeshSP(/*show_invisible part of the track*/ false,
-            /*enable_transparency*/ false, /*track_color*/&fill_color,
-            invert_x_z);
-    }
-    else
-    {
-        createMesh(/*show_invisible part of the track*/ false,
-            /*enable_transparency*/ false, /*track_color*/&fill_color,
-            invert_x_z);
-    }
-#endif
-
-    // Adjust bounding boxes for flags in CTF
-    if (Track::getCurrentTrack()->isCTF() &&
-        race_manager->getMinorMode() == RaceManager::MINOR_MODE_CAPTURE_THE_FLAG)
-    {
-        Vec3 red_flag = Track::getCurrentTrack()->getRedFlag().getOrigin();
-        Vec3 blue_flag = Track::getCurrentTrack()->getBlueFlag().getOrigin();
-        // In case the flag is placed outside of the graph, we scale it a bit
-        red_flag *= 1.1f;
-        blue_flag *= 1.1f;
-        m_bb_max.max(red_flag);
-        m_bb_max.max(blue_flag);
-        m_bb_min.min(red_flag);
-        m_bb_min.min(blue_flag);
-    }
-
-    m_node = irr_driver->addMesh(m_mesh, "mini_map");
-#ifdef DEBUG
-    m_node->setName("minimap-mesh");
-#endif
-
-    m_node->setAutomaticCulling(0);
-    m_node->setMaterialFlag(video::EMF_LIGHTING, false);
-
-    // Add the camera:
-    // ---------------
-    scene::ICameraSceneNode *camera = irr_driver->addCameraSceneNode();
-    Vec3 center = (m_bb_max+m_bb_min)*0.5f;
-
-    float dx = m_bb_max.getX()-m_bb_min.getX();
-    float dz = m_bb_max.getZ()-m_bb_min.getZ();
-
-    // Set the scaling correctly. Also the center point (which is used
-    // as the camera position) needs to be adjusted: the track must
-    // be aligned to the left/top of the texture which is used (otherwise
-    // mapPoint2MiniMap doesn't work), so adjust the camera position
-    // that the track is properly aligned (view from the side):
-    //          c        camera
-    //         / \       .
-    //        /   \     <--- camera angle
-    //       /     \     .
-    //      {  [-]  }   <--- track flat (viewed from the side)
-    // If [-] is the shorter side of the track, then the camera will
-    // actually render the area in { } - which is the length of the
-    // longer side of the track.
-    // To align the [-] side to the left, the camera must be moved
-    // the distance betwwen '{' and '[' to the right. This distance
-    // is exacly (longer_side - shorter_side) / 2.
-    // So, adjust the center point by this amount:
-    if (dz > dx)
-    {
-        center.setX(center.getX() + (dz-dx)*0.5f);
-        m_scaling = dimension.Width / dz;
-    }
-    else
-    {
-        center.setZ(center.getZ() + (dx-dz)*0.5f);
-        m_scaling = dimension.Width / dx;
-    }
-
-    float range = (dx>dz) ? dx : dz;
-
-    core::matrix4 projection;
-    projection.buildProjectionMatrixOrthoLH
-        (range /* width */, range /* height */, -1,
-        m_bb_max.getY()-m_bb_min.getY()+1);
-    camera->setProjectionMatrix(projection, true);
-
-    irr_driver->suppressSkyBox();
-    irr_driver->clearLights();
-
-    // Adjust Y position by +1 for max, -1 for min - this helps in case that
-    // the maximum Y coordinate is negative (otherwise the minimap is mirrored)
-    // and avoids problems for tracks which have a flat (max Y=min Y) minimap.
-    camera->setPosition(core::vector3df(center.getX(), m_bb_min.getY() + 1.0f,
-        center.getZ()));
-    //camera->setPosition(core::vector3df(center.getX() - 5.0f,
-    //    m_bb_min.getY() - 1 - 5.0f, center.getZ() - 15.0f));
-    camera->setUpVector(core::vector3df(0, 0, 1));
-    camera->setTarget(core::vector3df(center.getX(), m_bb_min.getY() - 1,
-        center.getZ()));
-    //camera->setAspectRatio(1.0f);
-    camera->updateAbsolutePosition();
-
-    m_render_target->renderToTexture(camera, 0.1);
-
-    cleanupDebugMesh();
-    irr_driver->removeCameraSceneNode(camera);
-
-    irr_driver->setClearbackBufferColor(oldClearColor);
-    Track::getCurrentTrack()->forceFogDisabled(false);
-
-    irr_driver->getSceneManager()->clear();
-    irr_driver->clearGlowingNodes();
-    irr_driver->clearLights();
-    irr_driver->clearForcedBloom();
-    irr_driver->clearBackgroundNodes();
-    return m_render_target.get();
-
-}   // makeMiniMap
 
 // -----------------------------------------------------------------------------
 /** Returns the 2d coordinates of a point when drawn on the mini map

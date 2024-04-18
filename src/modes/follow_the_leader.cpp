@@ -18,14 +18,12 @@
 #include "modes/follow_the_leader.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/camera.hpp"
 #include "items/powerup_manager.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/controller/controller.hpp"
 #include "tracks/track.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <ISceneManager.h>
 
@@ -42,7 +40,6 @@ FollowTheLeaderRace::FollowTheLeaderRace() : LinearWorld()
     for(unsigned int i=0; i<m_leader_intervals.size(); i++)
         m_leader_intervals[i] +=
             stk_config->m_leader_time_per_kart*race_manager->getNumberOfKarts();
-    m_use_highscores   = false;  // disable high scores
     setClockMode(WorldStatus::CLOCK_COUNTDOWN, m_leader_intervals[0]);
     m_is_over_delay = 5.0f;
 }
@@ -58,7 +55,6 @@ void FollowTheLeaderRace::init()
     // WorldWithRank determines the score based on getNumKarts(), but since
     // we ignore the leader, the points need to be based on number of karts -1
     stk_config->getAllScores(&m_score_for_position, getNumKarts() - 1);
-    getKart(0)->setOnScreenText(_("Leader"));
     getKart(0)->setBoostAI(true);
 }    // init
 

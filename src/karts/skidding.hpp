@@ -24,7 +24,6 @@
 #include "utils/no_copy.hpp"
 #include "utils/types.hpp"
 
-class BareNetworkString;
 class Kart;
 class ShowCurve;
 
@@ -38,7 +37,6 @@ class ShowCurve;
 
 class Skidding
 {
-friend class KartRewinder;
 public:
     LEAK_CHECK();
 private:
@@ -111,8 +109,6 @@ public:
     float updateGraphics(float dt);
     void update(int dt, bool is_on_ground, float steer,
                 KartControl::SkidControl skidding);
-    void saveState(BareNetworkString *buffer);
-    void rewindTo(BareNetworkString *buffer);
     // ------------------------------------------------------------------------
     /** Determines how much the graphics model of the kart should be rotated
      *  additionally (for skidding), depending on how long the kart has been
@@ -148,10 +144,6 @@ public:
     bool getSkidBonusReady() const { return m_skid_bonus_ready; }
     // ------------------------------------------------------------------------
     bool isJumping() const { return m_graphical_remaining_jump_time > 0;  }
-    // ------------------------------------------------------------------------
-    void prepareSmoothing();
-    // ------------------------------------------------------------------------
-    void checkSmoothing();
 
 };   // Skidding
 

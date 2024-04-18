@@ -13,10 +13,6 @@
 
 namespace irr
 {
-namespace gui
-{
-	class ICursorControl;
-}
 
 namespace scene
 {
@@ -27,7 +23,7 @@ namespace scene
 	public:
 
 		//! Constructor
-		CSceneNodeAnimatorCameraFPS(gui::ICursorControl* cursorControl,
+		CSceneNodeAnimatorCameraFPS(
 			f32 rotateSpeed = 100.0f, f32 moveSpeed = .5f, f32 jumpSpeed=0.f,
 			SKeyMap* keyMapArray=0, u32 keyMapSize=0, bool noVerticalMovement=false,
 			bool invertY=false);
@@ -37,9 +33,6 @@ namespace scene
 
 		//! Animates the scene node, currently only works on cameras
 		virtual void animateNode(ISceneNode* node, u32 timeMs);
-
-		//! Event receiver
-		virtual bool OnEvent(const SEvent& event);
 
 		//! Returns the speed of movement in units per second
 		virtual f32 getMoveSpeed() const;
@@ -93,8 +86,6 @@ namespace scene
 
 	private:
 		void allKeysUp();
-
-		gui::ICursorControl *CursorControl;
 
 		f32 MaxVerticalAngle;
 

@@ -32,14 +32,11 @@ static std::vector<UserConfigParam*> all_params;
 #include "config/user_config.hpp"
 
 #include "config/stk_config.hpp"
-#include "io/file_manager.hpp"
-#include "io/utf_writer.hpp"
 #include "io/xml_node.hpp"
 #include "race/race_manager.hpp"
 #include "utils/file_utils.hpp"
 #include "utils/log.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -47,9 +44,6 @@ static std::vector<UserConfigParam*> all_params;
 #include <stdlib.h>
 #include <string>
 #include <vector>
-
-const int UserConfig::m_current_config_version = 8;
-
 
 // ----------------------------------------------------------------------------
 UserConfigParam::~UserConfigParam()
@@ -639,126 +633,52 @@ core::stringc FloatUserConfigParam::toString() const
 }   // toString
 
 // =====================================================================================
+
+
+int UserConfigParams::m_default_num_karts = 4;
+int UserConfigParams::m_num_laps = 4;
+int UserConfigParams::m_ffa_time_limit = 3;
+bool UserConfigParams::m_use_ffa_mode = false;
+int UserConfigParams::m_num_goals = 3;
+int UserConfigParams::m_soccer_default_team = 0;
+int UserConfigParams::m_soccer_time_limit = 3;
+bool UserConfigParams::m_soccer_use_time_limit = false;
+bool UserConfigParams::m_random_arena_item = false;
+int UserConfigParams::m_difficulty = 0;
+int UserConfigParams::m_game_mode = 0;
+std::string UserConfigParams::m_default_kart = "tux";
+
+int UserConfigParams::m_width = 1024;
+int UserConfigParams::m_height = 768;
+int UserConfigParams::m_display_adapter = 0;
+
+bool UserConfigParams::m_texture_compression = true;
+int UserConfigParams::m_high_definition_textures = 1;
+bool UserConfigParams::m_glow = false;
+bool UserConfigParams::m_bloom = false;
+bool UserConfigParams::m_light_shaft = false;
+bool UserConfigParams::m_dynamic_lights = true;
+bool UserConfigParams::m_dof = false;
+float UserConfigParams::m_scale_rtts_factor = 1.0f;
+int UserConfigParams::m_max_texture_size = 512;
+
+int UserConfigParams::m_particles_effects = 2;
+bool UserConfigParams::m_animated_characters = true;
+int UserConfigParams::m_geometry_level = GEOLEVEL_0;
+
+int UserConfigParams::m_anisotropic = 4;
+bool UserConfigParams::m_motionblur = false;
+bool UserConfigParams::m_mlaa = false;
+bool UserConfigParams::m_ssao = false;
+bool UserConfigParams::m_light_scatter = true;
+int UserConfigParams::m_shadows_resolution = 0;
+bool UserConfigParams::m_degraded_IBL = true;
+
+// ---- Misc
+int UserConfigParams::m_reverse_look_threshold = 0;
+float UserConfigParams::m_fpscam_direction_speed = 0.003f;
+float UserConfigParams::m_fpscam_smooth_direction_max_speed = 0.04f;
+float UserConfigParams::m_fpscam_angular_velocity = 0.02f;
+float UserConfigParams::m_fpscam_max_angular_velocity = 1.0f;
+
 // =====================================================================================
-
-#if 0
-#pragma mark -
-#pragma mark UserConfig
-#endif
-
-UserConfig *user_config;
-
-UserConfig::UserConfig()
-{
-    m_filename = "config.xml";
-    m_warning  = "";
-    //m_blacklist_res.clear();
-
-}   // UserConfig
-
-// -----------------------------------------------------------------------------
-UserConfig::~UserConfig()
-{
-}   // ~UserConfig
-
-// -----------------------------------------------------------------------------
-/** Load configuration values from file. */
-bool UserConfig::loadConfig()
-{
-    const std::string filename = file_manager->getUserConfigFile(m_filename);
-    XMLNode* root = file_manager->createXMLTree(filename);
-    if(!root || root->getName() != "stkconfig")
-    {
-        Log::info("UserConfig",
-                   "Could not read user config file '%s'.  A new file will be created.", filename.c_str());
-        if(root) delete root;
-        // Create a default config file - just in case that stk crashes later
-        // there is a config file that can be modified (to e.g. disable
-        // shaders)
-        saveConfig();
-        return false;
-    }
-
-    // ---- Read config file version
-    int config_file_version = m_current_config_version;
-    if(root->get("version", &config_file_version) < 1)
-    {
-        Log::error("UserConfig",
-                   "Warning, malformed user config file! Contains no version");
-    }
-    if (config_file_version < m_current_config_version)
-    {
-        // current version (8) is 100% incompatible with other versions (which were lisp)
-        // so we just delete the old config. in the future, for smaller updates, we can
-        // add back the code previously there that upgraded the config file to the new
-        // format instead of overwriting it.
-
-        Log::info("UserConfig", "Your config file was too old, so it was deleted and a new one will be created.");
-        delete root;
-        return false;
-
-    }   // if configFileVersion<SUPPORTED_CONFIG_VERSION
-
-    // ---- Read parameters values (all parameter objects must have been created before this point if
-    //      you want them automatically read from the config file)
-    for (unsigned i = 0; i < all_params.size(); i++)
-    {
-        all_params[i]->findYourDataInAChildOf(root);
-    }
-
-    delete root;
-
-    return true;
-}   // loadConfig
-
-// ----------------------------------------------------------------------------
-/** Write settings to config file. */
-void UserConfig::saveConfig()
-{
-    const std::string filename = file_manager->getUserConfigFile(m_filename);
-    std::stringstream ss;
-    ss << "<?xml version=\"1.0\"?>\n";
-    ss << "<stkconfig version=\"" << m_current_config_version
-        << "\" >\n\n";
-    for (unsigned i = 0; i < all_params.size(); i++)
-    {
-        all_params[i]->write(ss);
-    }
-    ss << "</stkconfig>\n";
-
-    try
-    {
-        std::string s = ss.str();
-        std::ofstream configfile(FileUtils::getPortableWritingPath(filename),
-            std::ofstream::out);
-        configfile << ss.rdbuf();
-        configfile.close();
-    }
-    catch (std::runtime_error& e)
-    {
-        Log::error("UserConfig::saveConfig", "Failed to write config to %s, "
-            "because %s", filename.c_str(), e.what());
-    }
-
-}   // saveConfig
-
-// ----------------------------------------------------------------------------
-bool UserConfigParams::logMemory()
-     { return (m_verbosity&LOG_MEMORY) == LOG_MEMORY;}
-
-// ----------------------------------------------------------------------------
-bool UserConfigParams::logGUI ()
-     { return (m_verbosity&LOG_GUI) == LOG_GUI;   }
-
-// ----------------------------------------------------------------------------
-bool UserConfigParams::logAddons()
-     { return (m_verbosity&LOG_ADDONS) == LOG_ADDONS;}
-
-// ----------------------------------------------------------------------------
-bool UserConfigParams::logFlyable()
-     { return (m_verbosity&LOG_FLYABLE) == LOG_FLYABLE;  }
-
-// ----------------------------------------------------------------------------
-bool UserConfigParams::logMisc()
-     { return (m_verbosity&LOG_MISC) == LOG_MISC;  }
-

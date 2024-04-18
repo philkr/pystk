@@ -23,7 +23,6 @@
 #include <ISceneManager.h>
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/b3d_mesh_loader.hpp"
 #include "graphics/irr_driver.hpp"
@@ -38,7 +37,6 @@
 #include "io/file_manager.hpp"
 #include "io/xml_node.hpp"
 #include "karts/abstract_kart.hpp"
-#include "karts/ghost_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "physics/btKart.hpp"
 #include "tracks/track.hpp"
@@ -243,7 +241,9 @@ KartModel::~KartModel()
         }
         if(m_is_master && m_wheel_model[i])
         {
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(m_wheel_model[i]);
+#endif
             irr_driver->removeMeshFromCache(m_wheel_model[i]);
         }
     }
@@ -259,7 +259,9 @@ KartModel::~KartModel()
         if (m_is_master && m_speed_weighted_objects[i].m_model)
         {
             m_speed_weighted_objects[i].m_model->drop();
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(m_speed_weighted_objects[i].m_model);
+#endif
             if (m_speed_weighted_objects[i].m_model->getReferenceCount() == 1)
             {
                 irr_driver->removeMeshFromCache(m_speed_weighted_objects[i].m_model);
@@ -279,7 +281,9 @@ KartModel::~KartModel()
         if (m_is_master && obj.getModel())
         {
             obj.getModel()->drop();
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(obj.getModel());
+#endif
             if (obj.getModel()->getReferenceCount() == 1)
             {
                 irr_driver->removeMeshFromCache(obj.getModel());
@@ -294,18 +298,14 @@ KartModel::~KartModel()
         // mesh cache, so it can be removed.
         if (m_mesh && m_mesh->getReferenceCount() == 1)
         {
+#ifndef SERVER_ONLY
             irr_driver->dropAllTextures(m_mesh);
+#endif
             irr_driver->removeMeshFromCache(m_mesh);
         }
     }
 
     delete m_hat_location;
-#ifdef DEBUG
-#if SKELETON_DEBUG
-    irr_driver->clearDebugMeshes();
-#endif
-#endif
-
 }  // ~KartModel
 
 // ----------------------------------------------------------------------------
@@ -548,11 +548,13 @@ scene::ISceneNode* KartModel::attachModel(bool animated_models, bool human_playe
 void HeadlightObject::setLight(scene::ISceneNode* parent,
                                           float energy, float radius)
 {
+#ifndef SERVER_ONLY
     m_node = irr_driver->addLight(core::vector3df(0.0f, 0.0f, 0.0f),
         energy, radius, m_headlight_color.getRed() / 255.f,
         m_headlight_color.getGreen() / 255.f,
         m_headlight_color.getBlue() / 255.f, false/*sun*/, parent);
     m_node->grab();
+#endif
 }   // setLight
 
 // ----------------------------------------------------------------------------
@@ -577,10 +579,10 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         return false;
     }
 
-#ifndef SERVER_ONLY
-#endif
     m_mesh->grab();
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(m_mesh);
+#endif
 
     Vec3 kart_min, kart_max;
     MeshTools::minMax3D(m_mesh->getMesh(m_animation_frame[AF_STRAIGHT]),
@@ -660,7 +662,9 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         }
 #endif
         obj.m_model->grab();
+#ifndef SERVER_ONLY
         irr_driver->grabAllTextures(obj.m_model);
+#endif
 
         // Update min/max, speed weight can be scaled
         Vec3 obj_min, obj_max;
@@ -682,7 +686,9 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         SP::uploadSPM(obj.getModel());
 #endif
         obj.getModel()->grab();
+#ifndef SERVER_ONLY
         irr_driver->grabAllTextures(obj.getModel());
+#endif
     }
 
     Vec3 size     = kart_max-kart_min;
@@ -730,7 +736,9 @@ bool KartModel::loadModels(const KartProperties &kart_properties)
         // Grab all textures. This is done for the master only, so
         // the destructor will only free the textures if a master
         // copy is freed.
+#ifndef SERVER_ONLY
         irr_driver->grabAllTextures(m_wheel_model[i]);
+#endif
     }   // for i<4
 
     return true;
@@ -987,14 +995,6 @@ void KartModel::OnAnimationEnd(scene::IAnimatedMeshSceneNode *node)
 // ----------------------------------------------------------------------------
 void KartModel::setDefaultSuspension()
 {
-    GhostKart* gk = dynamic_cast<GhostKart*>(m_kart);
-    if (gk)
-    {
-        for (int i = 0; i < 4; i++)
-            m_default_physics_suspension[i] = gk->getSuspensionLength(0, i);
-        return;
-    }
-
     for(int i=0; i<m_kart->getVehicle()->getNumWheels(); i++)
     {
         const btWheelInfo &wi = m_kart->getVehicle()->getWheelInfo(i);
@@ -1014,10 +1014,9 @@ void KartModel::setDefaultSuspension()
  *         speed-weighted objects' animations
  *  \param current_lean_angle How much the kart is leaning (positive meaning
  *         left side down)
- *  \param gt_replay_index The index to get replay data, used by ghost kart
  */
 void KartModel::update(float dt, float distance, float steer, float speed,
-                       float current_lean_angle, int gt_replay_index)
+                       float current_lean_angle)
 {
     core::vector3df wheel_steer(0, steer*30.0f, 0);
 
@@ -1027,20 +1026,9 @@ void KartModel::update(float dt, float distance, float steer, float speed,
         core::vector3df pos =  m_wheel_graphics_position[i].toIrrVector();
 
         float suspension_length = m_default_physics_suspension[i];
-        GhostKart* gk = dynamic_cast<GhostKart*>(m_kart);
         // Prevent using suspension length uninitialized
-        if ( !gk || gt_replay_index != -1)
-        {
-            if (gk)
-            {
-                suspension_length = gk->getSuspensionLength(gt_replay_index, i);
-            }
-            else
-            {
-                suspension_length = m_kart->getVehicle()->getWheelInfo(i).
-                                    m_raycastInfo.m_suspensionLength;
-            }
-        }
+        suspension_length = m_kart->getVehicle()->getWheelInfo(i).
+                            m_raycastInfo.m_suspensionLength;
 
         // Check documentation of Kart::updateGraphics for the following line
         pos.Y +=   m_default_physics_suspension[i]

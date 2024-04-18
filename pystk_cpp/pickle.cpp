@@ -16,6 +16,7 @@ void unpickle(std::istream & s, std::string * o) {
 void pickle(std::ostream & s, const PySTKGraphicsConfig & o) {
     pickle(s, o.screen_width);
     pickle(s, o.screen_height);
+    pickle(s, o.display_adapter);
     pickle(s, o.glow);
     pickle(s, o.bloom);
     pickle(s, o.light_shaft);
@@ -29,11 +30,12 @@ void pickle(std::ostream & s, const PySTKGraphicsConfig & o) {
     pickle(s, o.ssao);
     pickle(s, o.degraded_IBL);
     pickle(s, o.high_definition_textures);
-    pickle(s, o.render_window);
+    pickle(s, o.render);
 }
 void unpickle(std::istream & s, PySTKGraphicsConfig * o) {
     unpickle(s, &o->screen_width);
     unpickle(s, &o->screen_height);
+    unpickle(s, &o->display_adapter);
     unpickle(s, &o->glow);
     unpickle(s, &o->bloom);
     unpickle(s, &o->light_shaft);
@@ -47,7 +49,7 @@ void unpickle(std::istream & s, PySTKGraphicsConfig * o) {
     unpickle(s, &o->ssao);
     unpickle(s, &o->degraded_IBL);
     unpickle(s, &o->high_definition_textures);
-    unpickle(s, &o->render_window);
+    unpickle(s, &o->render);
 }
 void pickle(std::ostream & s, const PySTKPlayerConfig & o) {
     pickle(s, o.kart);
@@ -76,20 +78,6 @@ void unpickle(std::istream & s, PySTKRaceConfig * o) {
     unpickle(s, &o->seed);
     unpickle(s, &o->num_kart);
     unpickle(s, &o->step_size);
-}
-void pickle(std::ostream & s, const PySTKRenderData & o) {
-    pickle(s, o.width);
-    pickle(s, o.height);
-    pickle(s, o.color_buf_);
-    pickle(s, o.depth_buf_);
-    pickle(s, o.instance_buf_);
-}
-void unpickle(std::istream & s, PySTKRenderData * o) {
-    unpickle(s, &o->width);
-    unpickle(s, &o->height);
-    unpickle(s, &o->color_buf_);
-    unpickle(s, &o->depth_buf_);
-    unpickle(s, &o->instance_buf_);
 }
 void pickle(std::ostream & s, const PySTKAction & o) {
     pickle(s, o.steering_angle);

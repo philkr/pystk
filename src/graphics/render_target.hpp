@@ -20,52 +20,14 @@
 
 #include <irrlicht.h>
 #include <string>
+#include "utils/no_copy.hpp"
 
 class FrameBuffer;
 class RTT;
 class ShaderBasedRenderer;
 
-class RenderTarget
-{
-public:
-    virtual ~RenderTarget() {}
-
-    virtual irr::core::dimension2du  getTextureSize()          const = 0;
-
-    virtual void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt) = 0;
-    virtual void draw2DImage(const irr::core::rect<irr::s32>& dest_rect,
-                             const irr::core::rect<irr::s32>* clip_rect,
-                             const irr::video::SColor &colors,
-                             bool use_alpha_channel_of_texture) const = 0;    
-    virtual RTT* getRTTs() { return nullptr; }
-};
-
-class GL1RenderTarget: public RenderTarget
-{
-private:
-    /** A pointer to texture on which a scene is rendered. Only used
-     *  in between beginRenderToTexture() and endRenderToTexture calls. */
-    irr::video::ITexture            *m_render_target_texture;
-
-    /** Main node of the RTT scene */
-    irr::scene::ISceneNode          *m_rtt_main_node;
-
-public:
-    GL1RenderTarget(const irr::core::dimension2du &dimension,
-                    const std::string &name);
-    ~GL1RenderTarget();
-
-    irr::core::dimension2du getTextureSize() const;
-
-    void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt);
-    void draw2DImage(const irr::core::rect<irr::s32>& dest_rect,
-                     const irr::core::rect<irr::s32>* clip_rect,
-                     const irr::video::SColor &colors,
-                     bool use_alpha_channel_of_texture) const;
-
-};
-
-class GL3RenderTarget: public RenderTarget
+#ifndef SERVER_ONLY
+class RenderTarget: public NoCopy
 {
 private:
     ShaderBasedRenderer* m_renderer;
@@ -74,10 +36,10 @@ private:
     FrameBuffer* m_frame_buffer;
 
 public:
-    GL3RenderTarget(const irr::core::dimension2du &dimension,
+    RenderTarget(const irr::core::dimension2du &dimension,
                     const std::string &name,
                     ShaderBasedRenderer *renderer);
-    ~GL3RenderTarget();
+    ~RenderTarget();
     void draw2DImage(const irr::core::rect<irr::s32>& dest_rect,
                      const irr::core::rect<irr::s32>* clip_rect,
                      const irr::video::SColor &colors,
@@ -85,7 +47,7 @@ public:
     irr::core::dimension2du getTextureSize() const;
     void renderToTexture(irr::scene::ICameraSceneNode* camera, float dt);
     void setFrameBuffer(FrameBuffer* fb) { m_frame_buffer = fb; }
-    virtual RTT* getRTTs() override { return m_rtts; }
+    virtual RTT* getRTTs() { return m_rtts; }
 };
-
+#endif
 #endif

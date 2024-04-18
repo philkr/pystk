@@ -34,7 +34,6 @@
 #include "utils/vec3.hpp"
 
 class AbstractKart;
-class NetworkString;
 class SavedGrandPrix;
 class Track;
 
@@ -46,7 +45,6 @@ static const std::string IDENT_FFA      ("BATTLE_FFA"      );
 static const std::string IDENT_CTF      ("BATTLE_CTF"      );
 static const std::string IDENT_EASTER   ("EASTER_EGG_HUNT" );
 static const std::string IDENT_SOCCER   ("SOCCER"          );
-static const std::string IDENT_GHOST    ("GHOST"           );
 
 /**
  * The race manager has two functions:
@@ -107,15 +105,6 @@ public:
         MINOR_MODE_SOCCER           = BATTLE_ARENA(3),
 
         MINOR_MODE_EASTER_EGG       = EASTER_EGG(0),
-    };
-
-    // ------------------------------------------------------------------------
-    /** True if the AI should have additional abbilities, e.g.
-     *  nolok will get special bubble gums in the final challenge. */
-    enum AISuperPower
-    {
-        SUPERPOWER_NONE       = 0,
-        SUPERPOWER_NOLOK_BOSS = 1
     };
 
     // ------------------------------------------------------------------------
@@ -219,7 +208,7 @@ public:
      *  an AI kart, the leader kart (currently not used), a ghost kart and
      *  spare tire karts which allow gain life in battle mode */
     enum KartType       { KT_PLAYER, KT_AI, KT_LEADER,
-                          KT_GHOST, KT_SPARE_TIRE };
+                          KT_SPARE_TIRE };
 public:
 
     /** This data structure accumulates kart data and race result data from
@@ -296,13 +285,10 @@ private:
     /** If set, specifies which kart to use for AI(s) */
     std::string                      m_ai_kart_override;
 
-    AISuperPower                     m_ai_superpower;
-
     /** The list of AI karts to use. This is stored here so that the
      *  same list of AIs is used for all tracks of a GP. */
     std::vector<std::string>         m_ai_kart_list;
     int                              m_num_karts;
-    unsigned int                     m_num_ghost_karts;
     unsigned int                     m_num_spare_tire_karts;
     unsigned int                     m_num_finished_karts;
     unsigned int                     m_num_finished_players;
@@ -322,10 +308,6 @@ private:
     }
 
     bool m_is_recording_race;
-
-    bool m_has_ghost_karts;
-
-    bool m_watching_replay;
 public:
          RaceManager();
         ~RaceManager();
@@ -358,7 +340,6 @@ public:
     void rerunRace();
     void exitRace(bool delete_world=true);
     void startSingleRace(const std::string &track_ident, const int num_laps);
-    void startWatchingReplay(const std::string &track_ident, const int num_laps);
     void setupPlayerKartInfo();
     void kartFinishedRace(const AbstractKart* kart, float time);
     void setNumPlayers(int players, int local_players=-1);
@@ -383,13 +364,6 @@ public:
         m_ai_kart_override = kart;
     }   // setAIKartOverride
     // ------------------------------------------------------------------------
-    void setAISuperPower(AISuperPower superpower)
-    {
-        m_ai_superpower = superpower;
-    }   // setAISuperPower
-    // ------------------------------------------------------------------------
-    AISuperPower getAISuperPower() const { return m_ai_superpower; }
-    // ------------------------------------------------------------------------
     void setNumLaps(int num)
     {
         m_num_laps = num;
@@ -409,7 +383,6 @@ public:
     {
         m_num_karts = num;
         m_ai_kart_override = "";
-        m_ai_superpower = SUPERPOWER_NONE;
     }   // setNumKarts
     // ------------------------------------------------------------------------
     void setTimeTarget(float time)
@@ -449,9 +422,6 @@ public:
     {
         return (unsigned int)m_ai_kart_list.size(); 
     }   // getNumberOfAIKarts
-    // ------------------------------------------------------------------------
-    unsigned int getNumNonGhostKarts() const
-                                    { return m_num_karts - m_num_ghost_karts; }
     // ------------------------------------------------------------------------
     MinorRaceModeType getMinorMode() const { return m_minor_mode; }
     // ------------------------------------------------------------------------
@@ -633,24 +603,18 @@ public:
         else            return false;
     }   // isSoccerMode
 
-    // ------------------------------------------------------------------------
-    bool isFollowMode() const
-    {
-        return m_minor_mode == MINOR_MODE_FOLLOW_LEADER;
-    }
- 
-    // ------------------------------------------------------------------------
-    bool isEggHuntMode() const
-    {
-        return m_minor_mode == MINOR_MODE_EASTER_EGG;
-    }   //  isEggHuntMode
+    // ----------------------------------------------------------------------------------------
+    bool isFollowMode() const    { return m_minor_mode == MINOR_MODE_FOLLOW_LEADER; }
 
-    // ------------------------------------------------------------------------
-    bool isTimeTrialMode() const
-    {
-        return m_minor_mode == MINOR_MODE_TIME_TRIAL;
-    }   //  isTimeTrialMode
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
+    bool isCTFMode() const       { return m_minor_mode == MINOR_MODE_CAPTURE_THE_FLAG; }
+ 
+    // ----------------------------------------------------------------------------------------
+    bool isEggHuntMode() const   { return m_minor_mode == MINOR_MODE_EASTER_EGG; }
+
+    // ----------------------------------------------------------------------------------------
+    bool isTimeTrialMode() const { return m_minor_mode == MINOR_MODE_TIME_TRIAL; }
+    // ----------------------------------------------------------------------------------------
      /** \brief Returns the number of second's decimals to display */
     int currentModeTimePrecision() const
     {
@@ -704,30 +668,10 @@ public:
         m_is_recording_race = record;
     }   // setRecordRace
     // ------------------------------------------------------------------------
-    void setRaceGhostKarts(bool ghost)
-    {
-        m_has_ghost_karts = ghost;
-    }   // setRaceGhostKarts
-    // ------------------------------------------------------------------------
-    void setWatchingReplay(bool watch)
-    {
-        m_watching_replay = watch;
-    }   // setWatchingReplay
-    // ------------------------------------------------------------------------
     bool isRecordingRace() const
     {
         return m_is_recording_race;
     }   // isRecordingRace
-    // ------------------------------------------------------------------------
-    bool hasGhostKarts() const
-    {
-        return m_has_ghost_karts;
-    }   // hasGhostKarts
-    // ------------------------------------------------------------------------
-    bool isWatchingReplay() const
-    {
-        return m_watching_replay;
-    }   // isWatchingReplay
     // ------------------------------------------------------------------------
     void addSpareTireKart(const std::string& name)
     {
@@ -746,8 +690,6 @@ public:
     {
         return m_num_spare_tire_karts;
     }   // getNumSpareTireKarts
-    // ------------------------------------------------------------------------
-    void configGrandPrixResultFromNetwork(NetworkString& ns);
     // ------------------------------------------------------------------------
     void setHitCaptureTime(int hc, float time)
     {

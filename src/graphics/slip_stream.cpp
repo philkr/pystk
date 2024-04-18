@@ -19,7 +19,6 @@
 #include "config/stk_config.hpp"
 #include "graphics/slip_stream.hpp"
 #include "graphics/central_settings.hpp"
-#include "config/user_config.hpp"
 #include "graphics/irr_driver.hpp"
 #include "graphics/material_manager.hpp"
 #include "graphics/sp/sp_dynamic_draw_call.hpp"
@@ -33,8 +32,6 @@
 #include "karts/kart_properties.hpp"
 #include "karts/max_speed.hpp"
 #include "modes/world.hpp"
-#include "network/rewind_info.hpp"
-#include "network/rewind_manager.hpp"
 #include "tracks/quad.hpp"
 #include "utils/constants.hpp"
 #include "utils/mini_glm.hpp"
@@ -551,8 +548,7 @@ void SlipStream::update(int ticks)
     const KartProperties *kp = m_kart->getKartProperties();
 
     // Low level AIs and ghost karts should not do any slipstreaming.
-    if (m_kart->getController()->disableSlipstreamBonus()
-        || m_kart->isGhostKart())
+    if (m_kart->getController()->disableSlipstreamBonus())
         return;
 
     //there is no slipstreaming at low speed
@@ -620,7 +616,6 @@ void SlipStream::update(int ticks)
         // rescued or exploding, a ghost kart or an eliminated kart
         if(m_target_kart==m_kart               ||
             m_target_kart->getKartAnimation()  ||
-            m_target_kart->isGhostKart()       ||
             m_target_kart->isEliminated()        )
         {
             if (m_previous_target_id >= 0 && (int) i==m_previous_target_id)

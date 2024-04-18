@@ -20,13 +20,12 @@
 #ifndef HEADER_LOG_HPP
 #define HEADER_LOG_HPP
 
-#include "utils/synchronised.hpp"
-
 #include <assert.h>
 #include <exception>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -64,16 +63,13 @@ private:
     /** If false that logging will only be saved to a file. */
     static bool     m_console_log;
 
-    /** The file where stdout output will be written */
-    static FILE* m_file_stdout;
-
     /** An optional buffer for lines to be output. */
     struct LineInfo
     {
         std::string m_line;
         int m_level;
     };
-    static Synchronised<std::vector<struct LineInfo> > m_line_buffer;
+    static std::vector<struct LineInfo> m_line_buffer;
     
     /** <0 if no buffered logging is to be used, otherwise this is
      ** the maximum number of lines the buffer should hold. */

@@ -29,12 +29,12 @@
 #include "io/xml_node.hpp"
 #include "physics/physics.hpp"
 #include "physics/triangle_mesh.hpp"
-#include "network/compress_network_body.hpp"
 #include "tracks/track.hpp"
 #include "tracks/track_object.hpp"
 #include "utils/constants.hpp"
 #include "utils/mini_glm.hpp"
 #include "utils/string_utils.hpp"
+#include "utils/mini_glm.hpp"
 
 #include <ISceneManager.h>
 #include <IMeshSceneNode.h>
@@ -606,15 +606,13 @@ void PhysicalObject::updateGraphics(float dt)
     if (!m_is_dynamic)
         return;
 
-    SmoothNetworkBody::updateSmoothedGraphics(m_body->getWorldTransform(),
-        m_body->getLinearVelocity(), dt);
-    Vec3 xyz = SmoothNetworkBody::getSmoothedTrans().getOrigin();
+    Vec3 xyz = m_body->getWorldTransform().getOrigin();
 
     // Offset the graphical position correctly:
-    xyz += SmoothNetworkBody::getSmoothedTrans().getBasis()*m_graphical_offset;
+    xyz += m_body->getWorldTransform().getBasis()*m_graphical_offset;
 
     Vec3 hpr;
-    hpr.setHPR(SmoothNetworkBody::getSmoothedTrans().getRotation());
+    hpr.setHPR(m_body->getWorldTransform().getRotation());
 
     // This will only update the visual position, so it can be
     // called in updateGraphics()
@@ -675,7 +673,6 @@ bool PhysicalObject::castRay(const btVector3 &from, const btVector3 &to,
 // ----------------------------------------------------------------------------
 void PhysicalObject::reset()
 {
-    Rewinder::reset();
     m_body->setCenterOfMassTransform(m_init_pos);
     m_body->setAngularVelocity(btVector3(0,0,0));
     m_body->setLinearVelocity(btVector3(0,0,0));
@@ -773,73 +770,6 @@ void PhysicalObject::hit(const Material *m, const Vec3 &normal)
         m_body->applyCentralImpulse(normal * m_mass * 5.0f);
     }
 }   // hit
-
-// ----------------------------------------------------------------------------
-void PhysicalObject::addForRewind()
-{
-    SmoothNetworkBody::setEnable(true);
-    SmoothNetworkBody::setSmoothRotation(false);
-    SmoothNetworkBody::setAdjustVerticalOffset(false);
-    Rewinder::setUniqueIdentity(
-        {
-            RN_PHYSICAL_OBJ,
-            // We have max moveable physical object defined in stk_config,
-            // which is 15 at the moment
-            static_cast<char>(Track::getCurrentTrack()->getPhysicalObjectUID())
-        });
-    Rewinder::rewinderAdd();
-}   // addForRewind
-
-// ----------------------------------------------------------------------------
-void PhysicalObject::saveTransform()
-{
-    m_no_server_state = true;
-    SmoothNetworkBody::prepareSmoothing(m_body->getWorldTransform(),
-        m_body->getLinearVelocity());
-}   // saveTransform
-
-// ----------------------------------------------------------------------------
-void PhysicalObject::computeError()
-{
-    SmoothNetworkBody::checkSmoothing(m_body->getWorldTransform(),
-        m_body->getLinearVelocity());
-}   // computeError
-
-// ----------------------------------------------------------------------------
-BareNetworkString* PhysicalObject::saveState(std::vector<std::string>* ru)
-{
-    assert(!"This is broken");
-    bool has_live_join = false;
-
-    btTransform cur_transform = m_body->getWorldTransform();
-    Vec3 current_lv = m_body->getLinearVelocity();
-    Vec3 current_av = m_body->getAngularVelocity();
-
-    if ((cur_transform.getOrigin() - m_last_transform.getOrigin())
-        .length() < 0.01f &&
-        (current_lv - m_last_lv).length() < 0.01f &&
-        (current_av - m_last_av).length() < 0.01f && !has_live_join)
-    {
-        return nullptr;
-    }
-
-    ru->push_back(getUniqueIdentity());
-    m_last_transform = cur_transform;
-    m_last_lv = current_lv;
-    m_last_av = current_av;
-    return nullptr;
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void PhysicalObject::restoreState(BareNetworkString *buffer, int count)
-{
-    assert(!"This is broken");
-    m_no_server_state = false;
-    // Save the newly decompressed value for local state restore
-    m_last_transform = m_body->getWorldTransform();
-    m_last_lv = m_body->getLinearVelocity();
-    m_last_av = m_body->getAngularVelocity();
-}   // restoreState
 
 // ----------------------------------------------------------------------------
 std::function<void()> PhysicalObject::getLocalStateRestoreFunction()

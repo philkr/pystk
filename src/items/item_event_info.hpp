@@ -25,8 +25,6 @@
 
 #include <assert.h>
 
-class BareNetworkString;
-
 // ------------------------------------------------------------------------
 /** This class stores a delta, i.e. an item event (either collection of
  *  an item, adding a new item, or an item switch being activated). All
@@ -92,10 +90,6 @@ public:
     {
         m_type = IEI_SWITCH;
     }   // ItemEventInfo(switch)
-
-    // --------------------------------------------------------------------
-         ItemEventInfo(BareNetworkString *buffer, int *count);
-    void saveState(BareNetworkString *buffer);
 
     // --------------------------------------------------------------------
     /** Returns if this event represents a new item. */

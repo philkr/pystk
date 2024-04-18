@@ -453,7 +453,9 @@ void PowerupManager::loadPowerup(PowerupType type, const XMLNode &node)
 
 
     assert(m_all_icons[type] != NULL);
+#ifndef SERVER_ONLY
     assert(m_all_icons[type]->getTexture() != NULL);
+#endif
 
     std::string model("");
     node.get("model", &model);
@@ -597,12 +599,3 @@ PowerupManager::PowerupType PowerupManager::getRandomPowerup(unsigned int pos,
     }
     return (PowerupType)powerup;
 }   // getRandomPowerup
-
-// ============================================================================
-/** Unit testing is based on deterministic item distributions: if all random
- *  numbers from 0 till sum_of_all_weights - 1 are used, the original weight
- *  distribution must be restored.
- */
-void PowerupManager::unitTesting()
-{
-}   // unitTesting

@@ -39,15 +39,13 @@
 #include "karts/controller/controller.hpp"
 #include "karts/explosion_animation.hpp"
 #include "modes/linear_world.hpp"
-#include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
-#include "network/compress_network_body.hpp"
 #include "physics/physics.hpp"
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/vs.hpp"
 #include "utils/objecttype.h"
+#include "utils/mini_glm.hpp"
 
 #include <typeinfo>
 
@@ -100,7 +98,6 @@ Flyable::Flyable(AbstractKart *kart, PowerupManager::PowerupType type,
 #endif
     // Smooth network body for flyable doesn't seem to be needed, most of the
     // time it rewinds almost the same
-    SmoothNetworkBody::setEnable(false);
     m_created_ticks = World::getWorld()->getTicksSinceStart();
 }   // Flyable
 
@@ -420,7 +417,6 @@ void Flyable::setAnimation(AbstractKartAnimation *animation)
  */
 void Flyable::updateGraphics(float dt)
 {
-    Moveable::updateSmoothedGraphics(dt);
     Moveable::updateGraphics();
 }   // updateGraphics
 
@@ -586,8 +582,6 @@ void Flyable::explode(AbstractKart *kart_hit, PhysicalObject *object,
             world->getKartTeam(m_owner->getWorldKartId()))
             continue;
 
-        if (kart->isGhostKart()) continue;
-
         // If no secondary hits should be done, only hit the
         // direct hit kart.
         if(!secondary_hits && kart!=kart_hit)
@@ -617,8 +611,7 @@ void Flyable::explode(AbstractKart *kart_hit, PhysicalObject *object,
  */
 HitEffect* Flyable::getHitEffect() const
 {
-    return m_deleted_once ? NULL :
-        new Explosion(getXYZ(), "explosion", "explosion_cake.xml");
+    return m_deleted_once ? NULL : new Explosion(getXYZ(), "explosion_cake.xml");
 }   // getHitEffect
 
 // ----------------------------------------------------------------------------
@@ -647,114 +640,6 @@ void Flyable::moveToInfinity(bool set_moveable_trans)
     else
         m_motion_state->setWorldTransform(t);
 }   // moveToInfinity
-
-// ----------------------------------------------------------------------------
-BareNetworkString* Flyable::saveState(std::vector<std::string>* ru)
-{
-    if (m_has_hit_something)
-        return NULL;
-
-    ru->push_back(getUniqueIdentity());
-
-    BareNetworkString* buffer = new BareNetworkString();
-    uint16_t ticks_since_thrown_animation = (m_ticks_since_thrown & 32767) |
-        (hasAnimation() ? 32768 : 0);
-    buffer->addUInt16(ticks_since_thrown_animation);
-    if (m_do_terrain_info)
-        buffer->addUInt32(m_compressed_gravity_vector);
-
-    if (hasAnimation())
-        m_animation->saveState(buffer);
-    else
-    {
-        CompressNetworkBody::compress(
-            m_body.get(), m_motion_state.get(), buffer);
-    }
-    return buffer;
-}   // saveState
-
-// ----------------------------------------------------------------------------
-void Flyable::restoreState(BareNetworkString *buffer, int count)
-{
-    uint16_t ticks_since_thrown_animation = buffer->getUInt16();
-    bool has_animation_in_state =
-        (ticks_since_thrown_animation >> 15 & 1) == 1;
-    if (m_do_terrain_info)
-        m_compressed_gravity_vector = buffer->getUInt32();
-
-    if (has_animation_in_state)
-    {
-        // At the moment we only have cannon animation for rubber ball
-        if (!m_animation)
-        {
-            try
-            {
-                CannonAnimation* ca = new CannonAnimation(this, buffer);
-                setAnimation(ca);
-            }
-            catch (const KartAnimationCreationException& kace)
-            {
-                Log::error("Flyable", "Kart animation creation error: %s",
-                    kace.what());
-                buffer->skip(kace.getSkippingOffset());
-            }
-        }
-        else
-            m_animation->restoreState(buffer);
-    }
-    else
-    {
-        if (hasAnimation())
-        {
-            // Delete unconfirmed animation, destructor of cannon animation
-            // will set m_animation to null
-            delete m_animation;
-        }
-        CompressNetworkBody::decompress(
-            buffer, m_body.get(), m_motion_state.get());
-        m_transform = m_body->getWorldTransform();
-    }
-    m_ticks_since_thrown = ticks_since_thrown_animation & 32767;
-    m_has_server_state = true;
-    m_has_hit_something = false;
-}   // restoreState
-
-// ----------------------------------------------------------------------------
-void Flyable::addForRewind(const std::string& uid)
-{
-    Rewinder::setUniqueIdentity(uid);
-    Rewinder::rewinderAdd();
-}   // addForRewind
-
-// ----------------------------------------------------------------------------
-void Flyable::saveTransform()
-{
-    // It will be overwritten in restoreState (so it's confirmed by server) or
-    // onFireFlyable (before the game state all flyables are assumed to be
-    // sucessfully created)
-    moveToInfinity();
-    m_has_server_state = false;
-    m_last_deleted_ticks = -1;
-}   // saveTransform
-
-// ----------------------------------------------------------------------------
-void Flyable::computeError()
-{
-    // Remove the flyable if it doesn't exist or failed to create on server
-    // For each saveTransform it will call moveToInfinity so the invalid
-    // flyables won't affect the current game
-    const int state_ticks = RewindManager::get()->getLatestConfirmedState();
-    if (!m_has_server_state && (m_last_deleted_ticks == -1 ||
-        state_ticks > m_last_deleted_ticks))
-    {
-        const std::string& uid = getUniqueIdentity();
-        Log::debug("Flyable", "Flyable %s by %s created at %d "
-            "doesn't exist on server, remove it.",
-            typeid(*this).name(), StringUtils::wideToUtf8(
-            m_owner->getController()->getName()).c_str(), m_created_ticks);
-        projectile_manager->removeByUID(uid);
-    }
-}   // computeError
 
 // ----------------------------------------------------------------------------
 /** Call when the item is (re-)fired (during rewind if needed) by

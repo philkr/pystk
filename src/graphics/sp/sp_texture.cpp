@@ -125,6 +125,9 @@ SPTexture::~SPTexture()
 std::shared_ptr<video::IImage> SPTexture::getImageFromPath
                                                 (const std::string& path) const
 {
+#ifdef SERVER_ONLY
+    return std::shared_ptr<video::IImage>();
+#else
     video::IImageLoader* img_loader =
         irr_driver->getVideoDriver()->getImageLoaderForFile(path.c_str());
     if (img_loader == NULL)
@@ -152,6 +155,7 @@ std::shared_ptr<video::IImage> SPTexture::getImageFromPath
     file->drop();
     assert(image->getReferenceCount() == 1);
     return std::shared_ptr<video::IImage>(image);
+#endif
 }   // getImagefromPath
 
 // ----------------------------------------------------------------------------
@@ -434,7 +438,7 @@ std::shared_ptr<video::IImage> SPTexture::getTextureCache(const std::string& p,
 }   // getTextureCache
 
 // ----------------------------------------------------------------------------
-bool SPTexture::threadedLoad()
+bool SPTexture::load()
 {
 #ifndef SERVER_ONLY
     std::string cache_loc;
@@ -444,13 +448,7 @@ bool SPTexture::threadedLoad()
         std::shared_ptr<video::IImage> cache = getTextureCache(cache_loc,
             &sizes);
         if (cache)
-        {
-            SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-            SPTextureManager::get()->addGLCommandFunction(
-                [this, cache, sizes]()->bool
-                { return compressedTexImage2d(cache, sizes); });
-            return true;
-        }
+            return compressedTexImage2d(cache, sizes);
     }
 
     std::shared_ptr<video::IImage> image = getTextureImage();
@@ -471,57 +469,16 @@ bool SPTexture::threadedLoad()
         image->getDimension().Width >= 4 && image->getDimension().Height >= 4)
     {
         auto r = compressTexture(image);
-        SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-        SPTextureManager::get()->addGLCommandFunction(
-            [this, image, r]()->bool
-            { return compressedTexImage2d(image, r); });
+        compressedTexImage2d(image, r);
         if (!cache_loc.empty())
-        {
-            SPTextureManager::get()->addThreadedFunction(
-                [this, image, r, cache_loc]()->bool
-                {
-                    return saveCompressedTexture(image, r, cache_loc);
-                });
-        }
-    }
-    else
-    {
-#ifndef MOBILE_STK
-        if (UserConfigParams::m_hq_mipmap && image->getDimension().Width > 1 &&
-            image->getDimension().Height > 1)
-        {
-            std::vector<std::pair<core::dimension2du, unsigned> >
-                mipmap_sizes;
-            unsigned width = image->getDimension().Width;
-            unsigned height = image->getDimension().Height;
-            mipmap_sizes.emplace_back(core::dimension2du(width, height),
-                0);
-            while (true)
-            {
-                width = width < 2 ? 1 : width >> 1;
-                height = height < 2 ? 1 : height >> 1;
-                mipmap_sizes.emplace_back
-                    (core::dimension2du(width, height), 0);
-                if (width == 1 && height == 1)
-                {
-                    break;
-                }
-            }
-            mipmaps.reset(irr_driver->getVideoDriver()->createImage
-                (video::ECF_A8R8G8B8, mipmap_sizes[0].first));
-            generateHQMipmap(image->lock(), mipmap_sizes,
-                (uint8_t*)mipmaps->lock());
-        }
-#endif
-        SPTextureManager::get()->increaseGLCommandFunctionCount(1);
-        SPTextureManager::get()->addGLCommandFunction(
-            [this, image, mipmaps]()->bool
-            { return texImage2d(image, mipmaps); });
+            saveCompressedTexture(image, r, cache_loc);
+    } else {
+        texImage2d(image, mipmaps);
     }
 
 #endif
     return true;
-}   // threadedLoad
+}   // load
 
 // ----------------------------------------------------------------------------
 std::shared_ptr<video::IImage>

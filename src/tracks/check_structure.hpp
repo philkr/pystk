@@ -24,7 +24,6 @@
 #include "utils/aligned_array.hpp"
 #include "utils/vec3.hpp"
 
-class BareNetworkString;
 class CheckManager;
 class Track;
 class XMLNode;
@@ -111,7 +110,6 @@ public:
     virtual    ~CheckStructure() {};
     virtual void update(float dt);
     virtual void resetAfterKartMove(unsigned int kart_index) {}
-    virtual void resetAfterRewind(unsigned int kart_index) {}
     virtual void changeDebugColor(bool is_active) {}
     /** True if going from old_pos to new_pos crosses this checkline. This function
      *  is called from update (of the checkline structure).
@@ -137,14 +135,6 @@ public:
     }   // addSuccessor
     // ------------------------------------------------------------------------
     virtual bool triggeringCheckline() const { return false; }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns);
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b);
-    // ------------------------------------------------------------------------
-    void saveIsActive(int kart_id, BareNetworkString* bns);
-    // ------------------------------------------------------------------------
-    void restoreIsActive(int kart_id, const BareNetworkString& b);
     // ------------------------------------------------------------------------
     int getIndex() const { return m_index; }
 };   // CheckStructure

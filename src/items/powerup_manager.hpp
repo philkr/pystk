@@ -159,8 +159,6 @@ private:
     std::atomic<uint64_t> m_random_seed;
 
 public:
-    static void unitTesting();
-
                   PowerupManager  ();
                  ~PowerupManager  ();
     void          loadPowerupsModels ();

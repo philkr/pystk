@@ -366,6 +366,7 @@ TrackObjectPresentationLOD::~TrackObjectPresentationLOD()
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationLOD::reset()
 {
+    RandomGenerator rg;
     LODNode* ln = dynamic_cast<LODNode*>(m_node);
     if (ln)
     {
@@ -377,7 +378,6 @@ void TrackObjectPresentationLOD::reset()
             {
                 a_node->setLoopMode(true);
                 a_node->setAnimationEndCallback(NULL);
-                RandomGenerator rg;
                 int animation_set = 0;
                 if (a_node->getAnimationSetNum() > 0)
                     animation_set = rg.get(a_node->getAnimationSetNum());
@@ -513,7 +513,9 @@ void TrackObjectPresentationMesh::init(const XMLNode* xml_node,
     animated &= !displacing;
 
     m_mesh->grab();
+#ifndef SERVER_ONLY
     irr_driver->grabAllTextures(m_mesh);
+#endif
 
     if (interaction == "physicsonly")
     {
@@ -546,7 +548,9 @@ void TrackObjectPresentationMesh::init(const XMLNode* xml_node,
         node->grab();
         node->setParent(NULL);
 
+#ifndef SERVER_ONLY
         irr_driver->addBackgroundNode(node);
+#endif
 
         m_node = node;
     }
@@ -605,7 +609,9 @@ TrackObjectPresentationMesh::~TrackObjectPresentationMesh()
 
     if(m_mesh)
     {
+#ifndef SERVER_ONLY
         irr_driver->dropAllTextures(m_mesh);
+#endif
         m_mesh->drop();
         if(m_mesh->getReferenceCount()==1)
             irr_driver->removeMeshFromCache(m_mesh);
@@ -615,6 +621,7 @@ TrackObjectPresentationMesh::~TrackObjectPresentationMesh()
 // ----------------------------------------------------------------------------
 void TrackObjectPresentationMesh::reset()
 {
+    RandomGenerator rg;
     if (m_node->getType()==scene::ESNT_ANIMATED_MESH)
     {
         scene::IAnimatedMeshSceneNode *a_node =
@@ -633,104 +640,12 @@ void TrackObjectPresentationMesh::reset()
 
         // irrlicht's "setFrameLoop" is a misnomer, it just sets the first and
         // last frame, even if looping is disabled
-        RandomGenerator rg;
         int animation_set = 0;
         if (a_node->getAnimationSetNum() > 0)
             animation_set = rg.get(a_node->getAnimationSetNum());
         a_node->useAnimationSet(animation_set);
     }
 }   // reset
-
-// ----------------------------------------------------------------------------
-TrackObjectPresentationSound::TrackObjectPresentationSound(
-                                                     const XMLNode& xml_node,
-                                                     scene::ISceneNode* parent,
-                                                     bool disable_for_multiplayer)
-                            : TrackObjectPresentation(xml_node)
-{
-    // TODO: respect 'parent' if any
-
-    m_enabled = true;
-    m_xyz   = m_init_xyz;
-
-    std::string sound;
-    xml_node.get("sound", &sound);
-
-    float rolloff = 0.5;
-    xml_node.get("rolloff",  &rolloff );
-    float volume = 1.0;
-    xml_node.get("volume",   &volume );
-
-    bool trigger_when_near = false;
-    xml_node.get("play-when-near", &trigger_when_near);
-
-    float trigger_distance = 1.0f;
-    xml_node.get("distance", &trigger_distance);
-
-    xml_node.get("conditions", &m_trigger_condition);
-
-    float max_dist = 390.0f;
-    xml_node.get("max_dist", &max_dist );
-
-    if (trigger_when_near)
-    {
-        CheckManager::get()->add(
-            new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
-            &TrackObjectPresentationSound::onTriggerItemApproached,
-            this)));
-    }
-
-    if (disable_for_multiplayer)
-        return;
-}   // TrackObjectPresentationSound
-
-// ----------------------------------------------------------------------------
-void TrackObjectPresentationSound::updateGraphics(float dt)
-{
-}   // update
-
-// ----------------------------------------------------------------------------
-void TrackObjectPresentationSound::onTriggerItemApproached()
-{
-}   // onTriggerItemApproached
-
-// ----------------------------------------------------------------------------
-void TrackObjectPresentationSound::triggerSound(bool loop)
-{
-}   // triggerSound
-
-// ----------------------------------------------------------------------------
-void TrackObjectPresentationSound::stopSound()
-{
-}   // stopSound
-
-// ----------------------------------------------------------------------------
-TrackObjectPresentationSound::~TrackObjectPresentationSound()
-{
-}   // ~TrackObjectPresentationSound
-
-// ----------------------------------------------------------------------------
-void TrackObjectPresentationSound::move(const core::vector3df& xyz, 
-                                        const core::vector3df& hpr,
-                                        const core::vector3df& scale,
-                                        bool isAbsoluteCoord)
-{
-    m_xyz = xyz;
-}   // move
-
-// ----------------------------------------------------------------------------
-
-void TrackObjectPresentationSound::setEnable(bool enabled)
-{
-    if (enabled != m_enabled)
-    {
-        m_enabled = enabled;
-        if (enabled)
-            triggerSound(true);
-        else
-            stopSound();
-    }
-}
 
 // ----------------------------------------------------------------------------
 TrackObjectPresentationBillboard::TrackObjectPresentationBillboard(
@@ -1042,13 +957,13 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
         CheckManager::get()->add(
             new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
             &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
-            this)));
+            this, std::placeholders::_1)));
     }
     else if (m_type == TRIGGER_TYPE_CYLINDER)
     {
         CheckManager::get()->add(new CheckCylinder(xml_node, std::bind(
             &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
-            this)));
+            this, std::placeholders::_1)));
     }
     else
     {
@@ -1074,11 +989,11 @@ TrackObjectPresentationActionTrigger::TrackObjectPresentationActionTrigger(
     CheckManager::get()->add(
         new CheckTrigger(m_init_xyz, trigger_distance, std::bind(
         &TrackObjectPresentationActionTrigger::onTriggerItemApproached,
-        this)));
+        this, std::placeholders::_1)));
 }   // TrackObjectPresentationActionTrigger
 
 // ----------------------------------------------------------------------------
-void TrackObjectPresentationActionTrigger::onTriggerItemApproached()
+void TrackObjectPresentationActionTrigger::onTriggerItemApproached(int kart_id)
 {
     if (m_reenable_timeout > StkTime::getMonoTimeMs())
     {
@@ -1086,12 +1001,6 @@ void TrackObjectPresentationActionTrigger::onTriggerItemApproached()
     }
     setReenableTimeout(m_xml_reenable_timeout);
 
-    int kart_id = 0;
-    Camera* camera = Camera::getActiveCamera();
-    if (camera != NULL && camera->getKart() != NULL)
-    {
-        kart_id = camera->getKart()->getWorldKartId();
-    }
     if (!m_library_id.empty() && !m_triggered_object.empty() &&
         !m_library_name.empty())
     {

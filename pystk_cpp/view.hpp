@@ -2,10 +2,10 @@
 #include <pybind11/pybind11.h>
 
 namespace pybind11 {
-class ro_view : public pybind11::object {
+class readonly_memoryview : public pybind11::object {
 public:
 	template<typename T>
-    explicit ro_view(const T * v, const std::vector<Py_ssize_t> & shape) {
+    explicit readonly_memoryview(const T * v, const std::vector<Py_ssize_t> & shape) {
 		// Compute the stride
 		static std::vector<Py_ssize_t> stride;
 		stride.resize( shape.size() );
@@ -34,6 +34,7 @@ public:
 			pybind11::pybind11_fail("Unable to create memoryview from buffer descriptor");
     }
 
-    PYBIND11_OBJECT_CVT(ro_view, object, PyMemoryView_Check, PyMemoryView_FromObject)
+    PYBIND11_OBJECT_CVT(readonly_memoryview, object, PyMemoryView_Check, PyMemoryView_FromObject)
 };
+typedef readonly_memoryview ro_view;
 }

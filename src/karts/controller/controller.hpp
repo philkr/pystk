@@ -21,18 +21,14 @@
 #include <irrString.h>
 using namespace irr;
 
-class BareNetworkString;
-
 /**
   * \defgroup controller Karts/controller
   * Contains kart controllers, which are either human players or AIs
   * (this module thus contains the AIs)
   */
 #include "input/input.hpp"
-#include "utils/translation.hpp"
 
 class AbstractKart;
-class BareNetworString;
 class ItemState;
 class KartControl;
 class Material;
@@ -61,7 +57,7 @@ public:
     virtual      ~Controller         () {};
     virtual void  reset              () = 0;
     virtual void  update             (int ticks) = 0;
-    virtual void  handleZipper       (bool play_sound) = 0;
+    virtual void  handleZipper       () = 0;
     virtual void  collectedItem      (const ItemState &item,
                                       float previous_energy=0) = 0;
     virtual void  crashed            (const AbstractKart *k) = 0;
@@ -76,8 +72,6 @@ public:
      *  rubber-banding. */
     virtual bool  isPlayerController () const = 0;
     virtual bool  disableSlipstreamBonus() const = 0;
-    virtual bool  saveState(BareNetworkString *buffer) const = 0;
-    virtual void  rewindTo(BareNetworkString *buffer) = 0;
 
     // ---------------------------------------------------------------------------
     /** Sets the controller name for this controller. */

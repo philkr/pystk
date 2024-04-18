@@ -73,6 +73,7 @@ struct CPUParticle
 
 class STKParticle;
 class Material;
+class RTT;
 
 class CPUParticleManager : public Singleton<CPUParticleManager>, NoCopy
 {
@@ -132,7 +133,7 @@ public:
     // ------------------------------------------------------------------------
     void uploadAll();
     // ------------------------------------------------------------------------
-    void drawAll();
+    void drawAll(const RTT* rtts);
     // ------------------------------------------------------------------------
     void reset()
     {

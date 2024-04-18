@@ -16,7 +16,6 @@
 #include "SMaterial.h"
 #include "IMeshBuffer.h"
 #include "triangle3d.h"
-#include "EDriverTypes.h"
 #include "EDriverFeatures.h"
 #include "SExposedVideoData.h"
 
@@ -327,12 +326,6 @@ namespace video
         //! Non-const version (with a different name to avoid involuntary mistakes). */
         virtual io::IAttributes& getNonConstDriverAttributes() = 0;
 
-		//! Check if the driver was recently reset.
-		/** For d3d devices you will need to recreate the RTTs if the
-		driver was reset. Should be queried right after beginScene().
-		*/
-		virtual bool checkDriverReset() =0;
-
 		//! Sets transformation matrices.
 		/** \param state Transformation type to be set, e.g. view,
 		world, or projection.
@@ -477,43 +470,6 @@ namespace video
 		//! Remove all hardware buffers
 		virtual void removeAllHardwareBuffers() =0;
 
-		//! Create occlusion query.
-		/** Use node for identification and mesh for occlusion test. */
-		virtual void addOcclusionQuery(scene::ISceneNode* node,
-				const scene::IMesh* mesh=0) =0;
-
-		//! Remove occlusion query.
-		virtual void removeOcclusionQuery(scene::ISceneNode* node) =0;
-
-		//! Remove all occlusion queries.
-		virtual void removeAllOcclusionQueries() =0;
-
-		//! Run occlusion query. Draws mesh stored in query.
-		/** If the mesh shall not be rendered visible, use
-		overrideMaterial to disable the color and depth buffer. */
-		virtual void runOcclusionQuery(scene::ISceneNode* node, bool visible=false) =0;
-
-		//! Run all occlusion queries. Draws all meshes stored in queries.
-		/** If the meshes shall not be rendered visible, use
-		overrideMaterial to disable the color and depth buffer. */
-		virtual void runAllOcclusionQueries(bool visible=false) =0;
-
-		//! Update occlusion query. Retrieves results from GPU.
-		/** If the query shall not block, set the flag to false.
-		Update might not occur in this case, though */
-		virtual void updateOcclusionQuery(scene::ISceneNode* node, bool block=true) =0;
-
-		//! Update all occlusion queries. Retrieves results from GPU.
-		/** If the query shall not block, set the flag to false.
-		Update might not occur in this case, though */
-		virtual void updateAllOcclusionQueries(bool block=true) =0;
-
-		//! Return query result.
-		/** Return value is the number of visible pixels/fragments.
-		The value is a safe approximation, i.e. can be larger than the
-		actual value of pixels. */
-		virtual u32 getOcclusionQueryResult(scene::ISceneNode* node) const =0;
-
 		//! Sets a boolean alpha channel on the texture based on a color key.
 		/** This makes the texture fully transparent at the texels where
 		this color key can be found when using for example draw2DImage
@@ -618,16 +574,6 @@ namespace video
 		virtual bool setRenderTarget(const core::array<video::IRenderTarget>& texture,
 			bool clearBackBuffer=true, bool clearZBuffer=true,
 			SColor color=video::SColor(0,0,0,0)) =0;
-
-		//! Sets a new viewport.
-		/** Every rendering operation is done into this new area.
-		\param area: Rectangle defining the new area of rendering
-		operations. */
-		virtual void setViewPort(const core::rect<s32>& area) =0;
-
-		//! Gets the area of the current viewport.
-		/** \return Rectangle of the current viewport. */
-		virtual const core::rect<s32>& getViewPort() const =0;
 
 		//! Draws a vertex primitive list
 		/** Note that, depending on the index type, some vertices might be not
@@ -1063,29 +1009,6 @@ namespace video
 				f32& start, f32& end, f32& density,
 				bool& pixelFog, bool& rangeFog) = 0;
 
-		//! Get the current color format of the color buffer
-		/** \return Color format of the color buffer. */
-		virtual ECOLOR_FORMAT getColorFormat() const =0;
-
-		//! Get the size of the screen or render window.
-		/** \return Size of screen or render window. */
-		virtual const core::dimension2d<u32>& getScreenSize() const =0;
-
-		//! Get the size of the current render target
-		/** This method will return the screen size if the driver
-		doesn't support render to texture, or if the current render
-		target is the screen.
-		\return Size of render target or screen/window */
-		virtual const core::dimension2d<u32>& getCurrentRenderTargetSize() const =0;
-
-		//! Returns current frames per second value.
-		/** This value is updated approximately every 1.5 seconds and
-		is only intended to provide a rough guide to the average frame
-		rate. It is not suitable for use in performing timing
-		calculations or framerate independent movement.
-		\return Approximate amount of frames per second drawn. */
-		virtual s32 getFPS() const =0;
-
 		//! Returns amount of primitives (mostly triangles) which were drawn in the last frame.
 		/** Together with getFPS() very useful method for statistics.
 		\param mode Defines if the primitives drawn are accumulated or
@@ -1273,11 +1196,6 @@ namespace video
 				const core::position2d<s32>& pos,
 				const core::dimension2d<u32>& size) =0;
 
-		//! Event handler for resize events. Only used by the engine internally.
-		/** Used to notify the driver that the window was resized.
-		Usually, there is no need to call this method. */
-		virtual void OnResize(const core::dimension2d<u32>& size) =0;
-
 		//! Adds a new material renderer to the video device.
 		/** Use this method to extend the VideoDriver with new material
 		types. To extend the engine using this method do the following:
@@ -1354,16 +1272,6 @@ namespace video
 		\param attributes The attributes to read from. */
 		virtual void fillMaterialStructureFromAttributes(video::SMaterial& outMaterial, io::IAttributes* attributes) =0;
 
-		//! Returns driver and operating system specific data about the IVideoDriver.
-		/** This method should only be used if the engine should be
-		extended without having to modify the source of the engine.
-		\return Collection of device dependent pointers. */
-		virtual const SExposedVideoData& getExposedVideoData() =0;
-
-		//! Get type of video driver
-		/** \return Type of driver. */
-		virtual E_DRIVER_TYPE getDriverType() const =0;
-
 		//! Gets the IGPUProgrammingServices interface.
 		/** \return Pointer to the IGPUProgrammingServices. Returns 0
 		if the video driver does not support this. For example the
@@ -1381,10 +1289,6 @@ namespace video
 		zbuffer during the rendering process with this method any time.
 		*/
 		virtual void clearZBuffer() =0;
-
-		//! Make a screenshot of the last rendered frame.
-		/** \return An image created from the last rendered frame. */
-		virtual IImage* createScreenShot(video::ECOLOR_FORMAT format=video::ECF_UNKNOWN, video::E_RENDER_TARGET target=video::ERT_FRAME_BUFFER) =0;
 
 		//! Check if the image is already loaded.
 		/** Works similar to getTexture(), but does not load the texture

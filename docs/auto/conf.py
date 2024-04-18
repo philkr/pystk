@@ -15,8 +15,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../..'))
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 
 # -- Project information -----------------------------------------------------
 
@@ -41,7 +41,6 @@ release = '1.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
@@ -49,6 +48,7 @@ extensions = [
     'rst',
 ]
 
+autodoc_docstring_signature = True
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -74,5 +74,8 @@ language = None
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'generated']
 
+autodoc_member_order = 'groupwise'
+
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+

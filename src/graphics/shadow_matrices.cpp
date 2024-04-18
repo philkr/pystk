@@ -19,7 +19,6 @@
 
 #include "graphics/shadow_matrices.hpp"
 
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/frame_buffer.hpp"
 #include "graphics/irr_driver.hpp"
@@ -321,23 +320,6 @@ void ShadowMatrices::renderWireFrameFrustrum(float *tmp, unsigned i)
 void ShadowMatrices::renderShadowsDebug(const FrameBuffer* shadow_framebuffer,
                                         const PostProcessing *post_processing)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, irr_driver->getDefaultFramebuffer());
-    glViewport(0, UserConfigParams::m_height / 2,
-               UserConfigParams::m_width / 2, UserConfigParams::m_height / 2);
-    post_processing->renderTextureLayer(shadow_framebuffer->getDepthTexture(), 0);
-    renderWireFrameFrustrum(m_shadows_cam[0], 0);
-    glViewport(UserConfigParams::m_width / 2, UserConfigParams::m_height / 2,
-               UserConfigParams::m_width / 2, UserConfigParams::m_height / 2);
-    post_processing->renderTextureLayer(shadow_framebuffer->getDepthTexture(), 1);
-    renderWireFrameFrustrum(m_shadows_cam[1], 1);
-    glViewport(0, 0, UserConfigParams::m_width / 2, UserConfigParams::m_height / 2);
-    post_processing->renderTextureLayer(shadow_framebuffer->getDepthTexture(), 2);
-    renderWireFrameFrustrum(m_shadows_cam[2], 2);
-    glViewport(UserConfigParams::m_width / 2, 0, UserConfigParams::m_width / 2,
-               UserConfigParams::m_height / 2);
-    post_processing->renderTextureLayer(shadow_framebuffer->getDepthTexture(), 3);
-    renderWireFrameFrustrum(m_shadows_cam[3], 3);
-    glViewport(0, 0, UserConfigParams::m_width, UserConfigParams::m_height);
 }
 
 #endif   // !SERVER_ONLY

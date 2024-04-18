@@ -119,7 +119,6 @@ public:
     virtual      ~TrackObject();
     virtual void update(float dt);
     virtual void updateGraphics(float dt);
-    virtual void resetAfterRewind();
     void move(const core::vector3df& xyz, const core::vector3df& hpr,
               const core::vector3df& scale, bool updateRigidBody,
               bool isAbsoluteCoord);
@@ -200,10 +199,6 @@ public:
     */
     TrackObjectPresentationParticles* getParticleEmitter() { return getPresentation<TrackObjectPresentationParticles>(); }
     /** Should only be used on sound emitter track objects.
-      * On the script side, the returned object is of type : @ref Scripting_SoundEmitter
-      */
-    TrackObjectPresentationSound* getSoundEmitter(){ return getPresentation<TrackObjectPresentationSound>(); }
-    /** Should only be used on sound emitter track objects.
     * On the script side, the returned object is of type : @ref Scripting_Light
     */
     TrackObjectPresentationLight* getLight() { return getPresentation<TrackObjectPresentationLight>(); }
@@ -230,8 +225,6 @@ public:
     ThreeDAnimation* getAnimator() { return m_animator; }
     // ------------------------------------------------------------------------
     const ThreeDAnimation* getAnimator() const { return m_animator; }
-    // ------------------------------------------------------------------------
-    void setPaused(bool mode){ m_animator->setPaused(mode); }
     // ------------------------------------------------------------------------
     void setInitiallyVisible(bool val)           { m_initially_visible = val; }
     // ------------------------------------------------------------------------

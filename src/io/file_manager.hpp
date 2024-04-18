@@ -25,7 +25,6 @@
  * Contains generic utility classes for file I/O (especially XML handling).
  */
 
-#include <mutex>
 #include <string>
 #include <vector>
 #include <set>
@@ -61,14 +60,11 @@ public:
     enum AssetType {ASSET_MIN,
                     CHALLENGE=ASSET_MIN,
                     GFX, GRANDPRIX, GUI_ICON, GUI_SCREEN, GUI_DIALOG,
-                    LIBRARY, MODEL, MUSIC, REPLAY,
-                    SCRIPT, SFX, SHADER, SKIN, TEXTURE, TTF,
-                    TRANSLATION, ASSET_MAX = TRANSLATION,
-                    ASSET_COUNT};
+                    LIBRARY, MODEL, MUSIC,
+                    SCRIPT, SHADER, SKIN, TEXTURE, TTF,
+                    ASSET_MAX = TTF, ASSET_COUNT};
 
 private:
-    mutable std::mutex m_file_system_lock;
-
     /** The names of the various subdirectories of the asset types. */
     std::vector< std::string > m_subdir_name;
 
@@ -92,9 +88,6 @@ private:
 
     /** Directory to store screenshots in. */
     std::string       m_screenshot_dir;
-
-    /** Directory to store replays in. */
-    std::string       m_replay_dir;
 
     /** Directory where resized textures are cached. */
     std::string       m_cached_textures_dir;
@@ -127,7 +120,6 @@ private:
     void              checkAndCreateConfigDir();
     void              checkAndCreateAddonsDir();
     void              checkAndCreateScreenshotDir();
-    void              checkAndCreateReplayDir();
     void              checkAndCreateCachedTexturesDir();
     void              checkAndCreateGPDir();
     void              discoverPaths();
@@ -140,7 +132,7 @@ private:
 #endif
 
 public:
-                      FileManager();
+                      FileManager(const std::string & data_dir);
                      ~FileManager();
     void              init();
     void              reinitAfterDownloadAssets();
@@ -152,7 +144,6 @@ public:
     XMLNode          *createXMLTreeFromString(const std::string & content);
 
     std::string       getScreenshotDir() const;
-    std::string       getReplayDir() const;
     std::string       getCachedTexturesDir() const;
     std::string       getGPDir() const;
     bool              checkAndCreateDirectory(const std::string &path);
@@ -163,7 +154,6 @@ public:
     bool isDirectory(const std::string &path) const;
     bool removeFile(const std::string &name) const;
     bool removeDirectory(const std::string &name) const;
-    bool copyFile(const std::string &source, const std::string &dest);
     std::vector<std::string>getMusicDirs() const;
     std::string getAssetChecked(AssetType type, const std::string& name,
                                 bool abort_on_error=false) const;

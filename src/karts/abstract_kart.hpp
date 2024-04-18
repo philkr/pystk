@@ -397,8 +397,7 @@ public:
      *  used with a specific material, in which case the zipper parmaters are
      *  taken from this material (parameters that are <0 will be using the
      *  kart-specific values from kart-properties. */
-    virtual void handleZipper(const Material *m=NULL,
-                              bool play_sound=false) = 0;
+    virtual void handleZipper(const Material *m=NULL) = 0;
     // ------------------------------------------------------------------------
     /** Returns true if this kart has finished the race. */
     virtual bool hasFinishedRace() const = 0;
@@ -513,21 +512,18 @@ public:
     /** Returns whether this kart wins or loses. */
     virtual bool getRaceResult() const = 0;
     // ------------------------------------------------------------------------
-    /** Returns whether this kart is a ghost (replay) kart. */
-    virtual bool isGhostKart() const = 0;
-    // ------------------------------------------------------------------------
     /** Returns whether this kart is jumping. */
     virtual bool isJumping() const = 0;
     // ------------------------------------------------------------------------
     virtual bool isVisible() const = 0;
     // ------------------------------------------------------------------------
     virtual void makeKartRest();
-    // ------------------------------------------------------------------------
-    virtual void setStartupBoost(float val) = 0;
-    // ------------------------------------------------------------------------
-    virtual float getStartupBoost() const = 0;
-    // ------------------------------------------------------------------------
-    virtual float getStartupBoostFromStartTicks(int ticks) const = 0;
+//     // ------------------------------------------------------------------------
+//     virtual void setStartupBoost(float val) = 0;
+//     // ------------------------------------------------------------------------
+//     virtual float getStartupBoost() const = 0;
+//     // ------------------------------------------------------------------------
+//     virtual float getStartupBoostFromStartTicks(int ticks) const = 0;
     // ------------------------------------------------------------------------
     virtual Stars* getStarsEffect() const = 0;
     // ------------------------------------------------------------------------

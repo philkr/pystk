@@ -4,37 +4,19 @@
    The SuperTuxKart race instance
 
 
-   .. py:method:: __init__(self: pystk.Race, config: pystk.RaceConfig) -> None
+   .. py:method:: __init__ (self: pystk.Race, config: pystk.RaceConfig)
 
-   .. py:method:: config
-      :property:
-
-      The current race configuration (RaceConfig)
-
-
-   .. py:method:: last_action
-      :property:
-
-      the last action the agent took (List[Action])
-
-
-   .. py:method:: render_data
-      :property:
-
-      rendering data from the last step (List[RenderData])
-
-
-   .. py:method:: restart(self: pystk.Race) -> None
+   .. py:method:: restart (self: pystk.Race) -> None
 
       Restart the current track. Use this function if the race config does not change, instead of creating a new SuperTuxKart object
 
 
-   .. py:method:: start(self: pystk.Race) -> None
+   .. py:method:: start (self: pystk.Race) -> None
 
       start the race
 
 
-   .. py:method:: step(*args, **kwargs)
+   .. py:method:: step (*args, **kwargs)
 
       Overloaded function.
 
@@ -57,7 +39,19 @@
       Take a step without changing the action
 
 
-   .. py:method:: stop(self: pystk.Race) -> None
+   .. py:method:: stop (self: pystk.Race) -> None
 
       Stop the race
+
+
+   .. py:method:: config () -> pystk.RaceConfig
+      :property:
+
+      The current race configuration
+
+
+   .. py:method:: render_data () -> List[pystk.RenderData]
+      :property:
+
+      rendering data from the last step
 

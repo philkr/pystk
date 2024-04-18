@@ -20,6 +20,7 @@
 #define HEADER_SCRIPT_UTILS_HPP
 
 #include <angelscript.h>
+#include "utils/random_generator.hpp"
 
 #include <string>
 
@@ -27,6 +28,7 @@ namespace Scripting
 {
     namespace Utils
     {
+        extern RandomGenerator scripting_random;
         void registerScriptFunctions(asIScriptEngine *engine);
     }
 

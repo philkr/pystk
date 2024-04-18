@@ -21,6 +21,7 @@
 
 #include "karts/controller/controller.hpp"
 #include "utils/cpp2011.hpp"
+#include "utils/random_generator.hpp"
 
 class AIProperties;
 class Track;
@@ -43,7 +44,8 @@ private:
     bool m_stuck;
 
 protected:
-    bool m_enabled_network_ai;
+    /** A random number generator for all AI decisions. */
+    RandomGenerator m_random;
 
     /** Length of the kart, storing it here saves many function calls. */
     float m_kart_length;
@@ -56,15 +58,6 @@ protected:
 
     /** A pointer to the AI properties for this kart. */
     const AIProperties *m_ai_properties;
-
-    static bool m_ai_debug;
-
-    /** Stores the '--test-ai=n' command line parameter:
-     *  It indicates which fraction of the AIs are going to
-     *  be the test AI: 1 means only to use the TestAI,
-     *  2 means every second AI will be test etc. Used
-     *  for AI testing only. */
-    static int m_test_ai;
 
     void         setControllerName(const std::string &name) OVERRIDE;
     float        steerToPoint(const Vec3 &point);
@@ -87,11 +80,8 @@ public:
     virtual void reset() OVERRIDE;
     virtual bool disableSlipstreamBonus() const OVERRIDE;
     virtual void crashed(const Material *m) OVERRIDE;
-    static  void enableDebug() {m_ai_debug = true; }
-    static  void setTestAI(int n) {m_test_ai = n; }
-    static  int  getTestAI() { return m_test_ai; }
     virtual void crashed(const AbstractKart *k) OVERRIDE {};
-    virtual void handleZipper(bool play_sound) OVERRIDE {};
+    virtual void handleZipper() OVERRIDE {};
     virtual void finishedRace(float time) OVERRIDE {};
     virtual void collectedItem(const ItemState &item,
                                float previous_energy=0) OVERRIDE {};
@@ -103,10 +93,6 @@ public:
         return true;
     };
     virtual void skidBonusTriggered() OVERRIDE {}
-    // ------------------------------------------------------------------------
-    virtual bool saveState(BareNetworkString *buffer) const OVERRIDE;
-    virtual void rewindTo(BareNetworkString *buffer) OVERRIDE;
-    void setNetworkAI(bool val)                 { m_enabled_network_ai = val; }
     // ------------------------------------------------------------------------
     virtual void update(int ticks) OVERRIDE;
 

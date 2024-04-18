@@ -5,18 +5,30 @@
 
 
    .. py:attribute:: debug
+      :annotation: = 0
 
    .. py:attribute:: error
+      :annotation: = 4
 
    .. py:attribute:: fatal
+      :annotation: = 5
 
    .. py:attribute:: info
+      :annotation: = 2
+
+   .. py:method:: name () -> str
+      :property:
+
+   .. py:method:: value () -> int
+      :property:
 
    .. py:attribute:: verbose
+      :annotation: = 1
 
    .. py:attribute:: warn
+      :annotation: = 3
 
-.. py:function:: pystk.set_log_level(arg0: int) -> None
+.. py:function:: pystk.set_log_level (arg0: int) -> None
 
    Set the global log level
 

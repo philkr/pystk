@@ -270,41 +270,6 @@ public:
 
 // ============================================================================
 /** \ingroup tracks
- *  A track object representation that consists of a sound emitter
- */
-class TrackObjectPresentationSound : public TrackObjectPresentation
-{
-private:
-
-    /** Currently used for sound effects only, in cutscenes only atm */
-    std::string  m_trigger_condition;
-
-    core::vector3df m_xyz;
-
-    bool m_enabled;
-
-public:
-
-    TrackObjectPresentationSound(const XMLNode& xml_node,
-                                 scene::ISceneNode* parent,
-                                 bool disable_for_multiplayer);
-    virtual ~TrackObjectPresentationSound();
-    void onTriggerItemApproached();
-    virtual void updateGraphics(float dt) OVERRIDE;
-    virtual void move(const core::vector3df& xyz, const core::vector3df& hpr,
-        const core::vector3df& scale, bool isAbsoluteCoord) OVERRIDE;
-    void triggerSound(bool loop);
-    void stopSound();
-
-    virtual void setEnable(bool enabled) OVERRIDE;
-
-    // ------------------------------------------------------------------------
-    /** Currently used for sound effects only, in cutscenes only atm */
-    const std::string& getTriggerCondition() const { return m_trigger_condition; }
-};   // TrackObjectPresentationSound
-
-// ============================================================================
-/** \ingroup tracks
  *  A track object representation that consists of a billboard scene node.
  */
 class TrackObjectPresentationBillboard : public TrackObjectPresentationSceneNode
@@ -403,7 +368,7 @@ public:
 
     virtual ~TrackObjectPresentationActionTrigger() {}
 
-    void onTriggerItemApproached();
+    void onTriggerItemApproached(int kart_id);
     // ------------------------------------------------------------------------
     /** Reset the trigger (i.e. sets it to active again). */
     virtual void reset() OVERRIDE 

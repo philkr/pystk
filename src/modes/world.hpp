@@ -33,13 +33,12 @@
 
 #include "graphics/weather.hpp"
 #include "modes/world_status.hpp"
-#include "race/highscores.hpp"
+#include "race/race_manager.hpp"
 #include "utils/random_generator.hpp"
 
 #include "LinearMath/btTransform.h"
 
 class AbstractKart;
-class BareNetworkString;
 class btRigidBody;
 class Controller;
 class ItemState;
@@ -109,7 +108,6 @@ protected:
 
     /** The list of all karts. */
     KartList                  m_karts;
-    RandomGenerator           m_random;
 
     AbstractKart* m_fastest_kart;
     /** Number of eliminated karts. */
@@ -128,9 +126,6 @@ protected:
     /** Whether highscores should be used for this kind of race.
      *  True by default, change to false in a child class to disable.
     */
-    bool        m_use_highscores;
-
-    void  updateHighscores  (int* best_highscore_rank);
     void  resetAllKarts     ();
 
     virtual std::shared_ptr<AbstractKart> createKart
@@ -138,25 +133,9 @@ protected:
         int global_player_id, RaceManager::KartType type,
         PerPlayerDifficulty difficulty);
 
-    /** Pausing/unpausing are not done immediately, but at next udpdate. The
-     *  use of this is when switching between screens : if we leave a screen
-     *  that paused the game, only to go to another screen that pauses back
-     *  the game, this mechanism prevents the game from moving on between
-     *  the switch. */
-    bool m_schedule_pause;
-
-    /** Pausing/unpausing are not done immediately, but at next udpdate. The
-     *  use of this is when switching between screens : if we leave a screen
-     *  that paused the game, only to go to another screen that pauses back
-     *  the game, this mechanism prevents the game from moving on between the
-     *  switch. */
-    bool m_schedule_unpause;
-
     bool m_schedule_exit_race;
 
     bool m_schedule_tutorial;
-
-    Phase m_scheduled_pause_phase;
 
     /** Set when the world needs to be deleted but you can't do it immediately
      * because you are e.g. within World::update()
@@ -181,8 +160,6 @@ protected:
      */
     virtual float estimateFinishTimeForKart(AbstractKart* kart)
                                         {return getTime(); }
-    void updateAchievementDataEndRace();
-    void updateAchievementModeCounters(bool start);
 
 public:
                     World();
@@ -237,11 +214,10 @@ public:
     // Virtual functions
     // =================
     virtual void    init();
+    virtual void    updateGraphicsMinimal(float dt);
     virtual void    updateGraphics(float dt);
     virtual void    terminateRace() OVERRIDE;
     virtual void    reset(bool restart=false) OVERRIDE;
-    virtual void    pause(Phase phase) OVERRIDE;
-    virtual void    unpause() OVERRIDE;
     virtual void    getDefaultCollectibles(int *collectible_type,
                                            int *amount );
     // ------------------------------------------------------------------------
@@ -273,9 +249,6 @@ public:
 
     // Other functions
     // ===============
-    Highscores     *getHighscores() const;
-    void            schedulePause(Phase phase);
-    void            scheduleUnpause();
     void            scheduleExitRace() { m_schedule_exit_race = true; }
     void            scheduleTutorial();
     void            updateWorld(int ticks);
@@ -316,18 +289,6 @@ public:
         if (m_eliminated_karts > 0)
             m_eliminated_karts--;
     }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns, STKPeer* peer) {}
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& buffer) {}
-    // ------------------------------------------------------------------------
-    /** The code that draws the timer should call this first to know
-     *  whether the game mode wants a timer drawn. */
-    virtual bool shouldDrawTimer() const
-                    { return isActiveRacePhase() && getClockMode() != CLOCK_NONE; }
-    // ------------------------------------------------------------------------
-    /** \return whether this world can generate/have highscores */
-    bool useHighScores() const { return m_use_highscores; }
     // ------------------------------------------------------------------------
     /** Override if you want to know when a kart presses fire */
     virtual void onFirePressed(Controller* who) {}

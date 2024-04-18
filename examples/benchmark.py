@@ -22,7 +22,7 @@ if __name__ == "__main__":
         pystk.init(config)
         init_time, t0 = time() - t0, time()
 
-        config = pystk.RaceConfig(render=render)
+        config = pystk.RaceConfig()
         if args.kart != '':
             config.players[0].kart = args.kart
         if args.track is not None:
@@ -36,10 +36,15 @@ if __name__ == "__main__":
         race_time, t0 = time() - t0, time()
 
         race.start()
+        race.step()
         start_time, t0 = time() - t0, time()
 
         for it in range(500):
             race.step()
+            if len(race.render_data):
+                race.render_data[0].image
+                race.render_data[0].depth
+                race.render_data[0].instance
         step_time, t0 = time() - t0, time()
         for it in range(5):
             race.restart()

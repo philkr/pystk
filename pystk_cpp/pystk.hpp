@@ -2,23 +2,25 @@
 
 #include <memory>
 #include <vector>
+#include "buffer.hpp"
 
 struct PySTKGraphicsConfig {
-	int screen_width=600, screen_height=400;
+    int screen_width=600, screen_height=400, display_adapter=0;
 	bool glow = false, bloom = true, light_shaft = true, dynamic_lights = true, dof = true;
 	int particles_effects = 2;
-	bool animated_characters = true;
+    bool animated_characters = true;
 	bool motionblur = true;
 	bool mlaa = true;
 	bool texture_compression = true;
 	bool ssao = true;
 	bool degraded_IBL = false;
 	int high_definition_textures = 2 | 1;
-	bool render_window = false; // Render the main game window
+	bool render = true;
 	
 	static const PySTKGraphicsConfig & hd();
 	static const PySTKGraphicsConfig & sd();
 	static const PySTKGraphicsConfig & ld();
+	static const PySTKGraphicsConfig & none();
 };
 struct PySTKPlayerConfig {
 	enum Controller: uint8_t {
@@ -49,17 +51,15 @@ struct PySTKRaceConfig {
 	int seed = 0;
 	int num_kart = 1;
 	float step_size = 0.1;
-	bool render = true;
 };
 
 class PySTKRenderTarget;
 
+#ifndef SERVER_ONLY
 struct PySTKRenderData {
-	int width, height;
-	std::vector<uint8_t> color_buf_;
-	std::vector<float> depth_buf_;
-	std::vector<uint32_t> instance_buf_;
+    std::shared_ptr<NumpyPBO> color_buf_, depth_buf_, instance_buf_;
 };
+#endif  // SERVER_ONLY
 
 class KartControl;
 class Controller;
@@ -77,16 +77,16 @@ struct PySTKAction {
 
 class PySTKRace {
 protected: // Static methods
-	static bool render_window;
 	static void initRest();
-	static void initUserConfig();
+    static void initUserConfig(const std::string & data_dir);
 	static void initGraphicsConfig(const PySTKGraphicsConfig & config);
 	static void cleanSuperTuxKart();
 	static void cleanUserConfig();
+	static PySTKGraphicsConfig graphics_config_;
 
 public: // Static methods
 	static PySTKRace * running_kart;
-	static void init(const PySTKGraphicsConfig & config);
+	static void init(const PySTKGraphicsConfig & config, const std::string & data_dir);
 	static void load();
 	static void clean();
 	static bool isRunning();
@@ -97,11 +97,12 @@ protected:
 	void setupConfig(const PySTKRaceConfig & config);
 	void setupRaceStart();
 	void render(float dt);
+#ifndef SERVER_ONLY
 	std::vector<std::unique_ptr<PySTKRenderTarget> > render_targets_;
 	std::vector<std::shared_ptr<PySTKRenderData> > render_data_;
+#endif  // SERVER_ONLY
 	PySTKRaceConfig config_;
 	float time_leftover_ = 0;
-	std::vector<PySTKAction> last_action_;
 
 public:
 	PySTKRace(const PySTKRace &) = delete;
@@ -114,7 +115,8 @@ public:
 	bool step(const PySTKAction &);
 	bool step();
 	void stop();
+#ifndef SERVER_ONLY
 	const std::vector<std::shared_ptr<PySTKRenderData> > & render_data() const { return render_data_; }
-	const std::vector<PySTKAction> & last_action() const { return last_action_; }
+#endif  // SERVER_ONLY
 	const PySTKRaceConfig & config() const { return config_; }
 };

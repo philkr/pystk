@@ -1,61 +1,16 @@
-# CMakeLists.txt for Irrlicht in STK
-if(NOT SERVER_ONLY)
+if(NOT IRR_NO_GRAPHICS)
+    find_package(OpenGL)
+    if(NOT OPENGL_FOUND)
+        set(IRR_NO_GRAPHICS TRUE)
+    endif()
+endif()
+set(IRR_NO_GRAPHICS ${IRR_NO_GRAPHICS} PARENT_SCOPE)
+if(IRR_NO_GRAPHICS)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
-                        "${JPEG_INCLUDE_DIR}"
-                        "${PNG_INCLUDE_DIR}"
-                        "${ZLIB_INCLUDE_DIR}"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
-    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
-
-    if(NOT USE_GLES2)
-        find_package(OpenGL REQUIRED)
-        include_directories(${OPENGL_INCLUDE_DIR})
-    endif()
-        
-    if(UNIX AND NOT APPLE)
-        find_package(X11 REQUIRED)
-        include_directories(${X11_INCLUDE_DIR})
-        
-        if(NOT X11_FOUND)
-            message(FATAL_ERROR "X11 not found.")
-        endif()
-        add_definitions(-DNO_IRR_LINUX_X11_RANDR_)
-    endif()
-    
-    find_package(EGL)
-	if(EGL_FOUND)
-		include_directories(${EGL_INCLUDE_DIR})
-	else()
-		add_definitions(-DNO_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
-	endif()
-
-
-    if((USE_GLES2 OR ENABLE_WAYLAND_DEVICE) AND NOT EGL_FOUND)
-		if(USE_GLES2)
-			message(FATAL_ERROR "EGL not found.")
-		elseif(ENABLE_WAYLAND_DEVICE)
-			message(WARNING "EGL not found. Disable wayland support.")
-			set(ENABLE_WAYLAND_DEVICE OFF)
-		endif()
-    endif()
-
-    if(ENABLE_WAYLAND_DEVICE)
-        find_package(Wayland)
-        
-        if(WAYLAND_FOUND AND NOT (WAYLAND_VERSION VERSION_LESS "1.14"))
-            include_directories(${WAYLAND_INCLUDE_DIR})
-            add_definitions(-D_IRR_COMPILE_WITH_WAYLAND_DEVICE_)
-        else()
-            message(WARNING "Wayland not found. Disable wayland support.")
-            set(ENABLE_WAYLAND_DEVICE OFF)
-        endif()        
-    endif()
-else()
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/../../src"
-                        "${CMAKE_CURRENT_BINARY_DIR}/../zlib/")
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../src"
+            "${CMAKE_CURRENT_BINARY_DIR}/../zlib/")
     include_directories("${ZLIB_INCLUDE_DIR}")
+    add_definitions(-DSERVER_ONLY)
     add_definitions(-DNO_IRR_COMPILE_WITH_LIBPNG_)
     add_definitions(-DNO_IRR_COMPILE_WITH_LIBJPEG_)
     add_definitions(-DNO_IRR_COMPILE_WITH_BMP_LOADER_)
@@ -64,24 +19,34 @@ else()
     add_definitions(-DNO_IRR_COMPILE_WITH_BMP_WRITER_)
     add_definitions(-DNO_IRR_COMPILE_WITH_PNG_WRITER_)
     add_definitions(-DNO_IRR_COMPILE_WITH_JPG_WRITER_)
-    add_definitions(-DNO_IRR_COMPILE_WITH_OPENGL_)
-    add_definitions(-DNO_IRR_COMPILE_WITH_X11_)
-    add_definitions(-DNO_IRR_COMPILE_WITH_WAYLAND_DEVICE_)
-endif()
-
-if(APPLE)
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source/Irrlicht/MacOSX" "${CMAKE_CURRENT_SOURCE_DIR}/source/Irrlicht")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64 -F/Library/Frameworks")
-endif()
-
-add_definitions(-DNDEBUG=1 -DIRRLICHT_EXPORTS=1 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES)
-
-
-if(WIN32)
-    add_definitions(-D_IRR_STATIC_LIB_)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS) # Shut up about unsafe stuff
 else()
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include/"
+            "${JPEG_INCLUDE_DIR}"
+            "${PNG_INCLUDE_DIR}"
+            "${ZLIB_INCLUDE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../../src")
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../zlib/") # For zconf.h on WIN32
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}/../libpng/")
+
+    find_package(OpenGL REQUIRED)
+    include_directories(${OPENGL_INCLUDE_DIR})
+
+    if(APPLE)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -F/Library/Frameworks")
+        add_definitions(-D_IRR_COMPILE_WITH_OFF_SCREEN_OSX_DEVICE_)
+    elseif(UNIX)
+        add_definitions(-D_IRR_COMPILE_WITH_OFF_SCREEN_DEVICE_)
+    elseif(WIN32)
+        add_definitions(-D_IRR_STATIC_LIB_)
+        add_definitions(-D_CRT_SECURE_NO_WARNINGS)  # Suppress unsafe warnings
+        add_definitions(-D_IRR_COMPILE_WITH_WINDOWS_DEVICE_)
+    else()
+        message(FATAL_ERROR "Platform not supported")
+    endif()
+endif()
+
+if(NOT WIN32)
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -Wall -pipe -O3 -fstrict-aliasing")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pipe -O3 -fstrict-aliasing")
     if(CMAKE_COMPILER_IS_GNUCC)
@@ -92,12 +57,8 @@ else()
     endif()
 endif()
 
-if(USE_GLES2)
-    add_definitions(-D_IRR_COMPILE_WITH_OGLES2_ -DNO_IRR_COMPILE_WITH_OPENGL_)
-endif()
 
-add_definitions(-DNO_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-
+add_definitions(-DNDEBUG=1 -DIRRLICHT_EXPORTS=1 -DPNG_THREAD_UNSAFE_OK -DPNG_NO_MMX_CODE -DPNG_NO_MNG_FEATURES)
 
 set(IRRLICHT_SOURCES
 source/Irrlicht/CAnimatedMeshSceneNode.cpp
@@ -105,10 +66,10 @@ source/Irrlicht/CAttributes.cpp
 source/Irrlicht/CBillboardSceneNode.cpp
 source/Irrlicht/CBoneSceneNode.cpp
 source/Irrlicht/CCameraSceneNode.cpp
+source/Irrlicht/CContext.cpp
 source/Irrlicht/CContextEGL.cpp
 source/Irrlicht/CColorConverter.cpp
 source/Irrlicht/CCubeSceneNode.cpp
-source/Irrlicht/CDefaultGUIElementFactory.cpp
 source/Irrlicht/CDefaultSceneNodeAnimatorFactory.cpp
 source/Irrlicht/CDefaultSceneNodeFactory.cpp
 source/Irrlicht/CDummyTransformationSceneNode.cpp
@@ -117,33 +78,6 @@ source/Irrlicht/CFileList.cpp
 source/Irrlicht/CFileSystem.cpp
 source/Irrlicht/CFPSCounter.cpp
 source/Irrlicht/CGeometryCreator.cpp
-source/Irrlicht/CGUIButton.cpp
-source/Irrlicht/CGUICheckBox.cpp
-source/Irrlicht/CGUIColorSelectDialog.cpp
-source/Irrlicht/CGUIComboBox.cpp
-source/Irrlicht/CGUIContextMenu.cpp
-source/Irrlicht/CGUIEditBox.cpp
-source/Irrlicht/CGUIEnvironment.cpp
-source/Irrlicht/CGUIFileOpenDialog.cpp
-source/Irrlicht/CGUIFont.cpp
-source/Irrlicht/CGUIImage.cpp
-source/Irrlicht/CGUIImageList.cpp
-source/Irrlicht/CGUIInOutFader.cpp
-source/Irrlicht/CGUIListBox.cpp
-source/Irrlicht/CGUIMenu.cpp
-source/Irrlicht/CGUIMeshViewer.cpp
-source/Irrlicht/CGUIMessageBox.cpp
-source/Irrlicht/CGUIModalScreen.cpp
-source/Irrlicht/CGUIScrollBar.cpp
-source/Irrlicht/CGUISkin.cpp
-source/Irrlicht/CGUISpinBox.cpp
-source/Irrlicht/CGUISpriteBank.cpp
-source/Irrlicht/CGUIStaticText.cpp
-source/Irrlicht/CGUITabControl.cpp
-source/Irrlicht/CGUITable.cpp
-source/Irrlicht/CGUIToolBar.cpp
-source/Irrlicht/CGUITreeView.cpp
-source/Irrlicht/CGUIWindow.cpp
 source/Irrlicht/CImage.cpp
 source/Irrlicht/CImageLoaderBMP.cpp
 source/Irrlicht/CImageLoaderJPG.cpp
@@ -151,12 +85,10 @@ source/Irrlicht/CImageLoaderPNG.cpp
 source/Irrlicht/CImageWriterBMP.cpp
 source/Irrlicht/CImageWriterJPG.cpp
 source/Irrlicht/CImageWriterPNG.cpp
-source/Irrlicht/CIrrDeviceAndroid.cpp
-source/Irrlicht/CIrrDeviceLinux.cpp
+source/Irrlicht/CIrrDeviceNull.cpp
 source/Irrlicht/CIrrDeviceOffScreen.cpp
-source/Irrlicht/CIrrDeviceSDL.cpp
+source/Irrlicht/CIrrDeviceOffScreenMacOSX.cpp
 source/Irrlicht/CIrrDeviceStub.cpp
-source/Irrlicht/CIrrDeviceWayland.cpp
 source/Irrlicht/CIrrDeviceWin32.cpp
 source/Irrlicht/CLightSceneNode.cpp
 source/Irrlicht/CLimitReadFile.cpp
@@ -170,21 +102,12 @@ source/Irrlicht/CMountPointReader.cpp
 source/Irrlicht/CNullDriver.cpp
 source/Irrlicht/COctreeSceneNode.cpp
 source/Irrlicht/COctreeTriangleSelector.cpp
-source/Irrlicht/COGLES2Driver.cpp
-source/Irrlicht/COGLES2ExtensionHandler.cpp
-source/Irrlicht/COGLES2FixedPipelineRenderer.cpp
-source/Irrlicht/COGLES2MaterialRenderer.cpp
-source/Irrlicht/COGLES2NormalMapRenderer.cpp
-source/Irrlicht/COGLES2ParallaxMapRenderer.cpp
-source/Irrlicht/COGLES2Renderer2D.cpp
-source/Irrlicht/COGLES2Texture.cpp
 source/Irrlicht/COpenGLDriver.cpp
 source/Irrlicht/COpenGLExtensionHandler.cpp
 source/Irrlicht/COpenGLParallaxMapRenderer.cpp
 source/Irrlicht/COpenGLShaderMaterialRenderer.cpp
 source/Irrlicht/COpenGLSLMaterialRenderer.cpp
 source/Irrlicht/COpenGLTexture.cpp
-source/Irrlicht/COSOperator.cpp
 source/Irrlicht/CParticleAnimatedMeshSceneNodeEmitter.cpp
 source/Irrlicht/CParticleAttractionAffector.cpp
 source/Irrlicht/CParticleBoxEmitter.cpp
@@ -202,7 +125,6 @@ source/Irrlicht/CReadFile.cpp
 source/Irrlicht/CSceneCollisionManager.cpp
 source/Irrlicht/CSceneManager.cpp
 source/Irrlicht/CSceneNodeAnimatorCameraFPS.cpp
-source/Irrlicht/CSceneNodeAnimatorCameraMaya.cpp
 source/Irrlicht/CSceneNodeAnimatorCollisionResponse.cpp
 source/Irrlicht/CSceneNodeAnimatorDelete.cpp
 source/Irrlicht/CSceneNodeAnimatorFlyCircle.cpp
@@ -217,7 +139,6 @@ source/Irrlicht/CSphereSceneNode.cpp
 source/Irrlicht/CTarReader.cpp
 source/Irrlicht/CTerrainSceneNode.cpp
 source/Irrlicht/CTerrainTriangleSelector.cpp
-source/Irrlicht/CTextSceneNode.cpp
 source/Irrlicht/CTriangleBBSelector.cpp
 source/Irrlicht/CTriangleSelector.cpp
 source/Irrlicht/CVideoModeList.cpp
@@ -238,10 +159,10 @@ source/Irrlicht/CBillboardSceneNode.h
 source/Irrlicht/CBlit.h
 source/Irrlicht/CBoneSceneNode.h
 source/Irrlicht/CCameraSceneNode.h
+source/Irrlicht/CContext.h
 source/Irrlicht/CContextEGL.h
 source/Irrlicht/CColorConverter.h
 source/Irrlicht/CCubeSceneNode.h
-source/Irrlicht/CDefaultGUIElementFactory.h
 source/Irrlicht/CDefaultSceneNodeAnimatorFactory.h
 source/Irrlicht/CDefaultSceneNodeFactory.h
 source/Irrlicht/CDummyTransformationSceneNode.h
@@ -250,33 +171,6 @@ source/Irrlicht/CFileList.h
 source/Irrlicht/CFileSystem.h
 source/Irrlicht/CFPSCounter.h
 source/Irrlicht/CGeometryCreator.h
-source/Irrlicht/CGUIButton.h
-source/Irrlicht/CGUICheckBox.h
-source/Irrlicht/CGUIColorSelectDialog.h
-source/Irrlicht/CGUIComboBox.h
-source/Irrlicht/CGUIContextMenu.h
-source/Irrlicht/CGUIEditBox.h
-source/Irrlicht/CGUIEnvironment.h
-source/Irrlicht/CGUIFileOpenDialog.h
-source/Irrlicht/CGUIFont.h
-source/Irrlicht/CGUIImage.h
-source/Irrlicht/CGUIImageList.h
-source/Irrlicht/CGUIInOutFader.h
-source/Irrlicht/CGUIListBox.h
-source/Irrlicht/CGUIMenu.h
-source/Irrlicht/CGUIMeshViewer.h
-source/Irrlicht/CGUIMessageBox.h
-source/Irrlicht/CGUIModalScreen.h
-source/Irrlicht/CGUIScrollBar.h
-source/Irrlicht/CGUISkin.h
-source/Irrlicht/CGUISpinBox.h
-source/Irrlicht/CGUISpriteBank.h
-source/Irrlicht/CGUIStaticText.h
-source/Irrlicht/CGUITabControl.h
-source/Irrlicht/CGUITable.h
-source/Irrlicht/CGUIToolBar.h
-source/Irrlicht/CGUITreeView.h
-source/Irrlicht/CGUIWindow.h
 source/Irrlicht/CImage.h
 source/Irrlicht/CImageLoaderBMP.h
 source/Irrlicht/CImageLoaderJPG.h
@@ -284,12 +178,8 @@ source/Irrlicht/CImageLoaderPNG.h
 source/Irrlicht/CImageWriterBMP.h
 source/Irrlicht/CImageWriterJPG.h
 source/Irrlicht/CImageWriterPNG.h
-source/Irrlicht/CIrrDeviceAndroid.h
-source/Irrlicht/CIrrDeviceLinux.h
 source/Irrlicht/CIrrDeviceOffScreen.h
-source/Irrlicht/CIrrDeviceSDL.h
 source/Irrlicht/CIrrDeviceStub.h
-source/Irrlicht/CIrrDeviceWayland.h
 source/Irrlicht/CIrrDeviceWin32.h
 source/Irrlicht/CLightSceneNode.h
 source/Irrlicht/CLimitReadFile.h
@@ -303,14 +193,6 @@ source/Irrlicht/CMountPointReader.h
 source/Irrlicht/CNullDriver.h
 source/Irrlicht/COctreeSceneNode.h
 source/Irrlicht/COctreeTriangleSelector.h
-source/Irrlicht/COGLES2Driver.h
-source/Irrlicht/COGLES2ExtensionHandler.h
-source/Irrlicht/COGLES2FixedPipelineRenderer.h
-source/Irrlicht/COGLES2MaterialRenderer.h
-source/Irrlicht/COGLES2NormalMapRenderer.h
-source/Irrlicht/COGLES2ParallaxMapRenderer.h
-source/Irrlicht/COGLES2Renderer2D.h
-source/Irrlicht/COGLES2Texture.h
 source/Irrlicht/COpenGLDriver.h
 source/Irrlicht/COpenGLExtensionHandler.h
 source/Irrlicht/COpenGLMaterialRenderer.h
@@ -318,7 +200,6 @@ source/Irrlicht/COpenGLParallaxMapRenderer.h
 source/Irrlicht/COpenGLShaderMaterialRenderer.h
 source/Irrlicht/COpenGLSLMaterialRenderer.h
 source/Irrlicht/COpenGLTexture.h
-source/Irrlicht/COSOperator.h
 source/Irrlicht/CParticleAnimatedMeshSceneNodeEmitter.h
 source/Irrlicht/CParticleAttractionAffector.h
 source/Irrlicht/CParticleBoxEmitter.h
@@ -336,7 +217,6 @@ source/Irrlicht/CReadFile.h
 source/Irrlicht/CSceneCollisionManager.h
 source/Irrlicht/CSceneManager.h
 source/Irrlicht/CSceneNodeAnimatorCameraFPS.h
-source/Irrlicht/CSceneNodeAnimatorCameraMaya.h
 source/Irrlicht/CSceneNodeAnimatorCollisionResponse.h
 source/Irrlicht/CSceneNodeAnimatorDelete.h
 source/Irrlicht/CSceneNodeAnimatorFlyCircle.h
@@ -351,7 +231,6 @@ source/Irrlicht/CSphereSceneNode.h
 source/Irrlicht/CTarReader.h
 source/Irrlicht/CTerrainSceneNode.h
 source/Irrlicht/CTerrainTriangleSelector.h
-source/Irrlicht/CTextSceneNode.h
 source/Irrlicht/CTimer.h
 source/Irrlicht/CTriangleBBSelector.h
 source/Irrlicht/CTriangleSelector.h
@@ -368,13 +247,9 @@ source/Irrlicht/gles2-ext.h
 source/Irrlicht/glext.h
 source/Irrlicht/glxext.h
 source/Irrlicht/IAttribute.h
-source/Irrlicht/IImagePresenter.h
 source/Irrlicht/ISceneNodeAnimatorFinishing.h
 source/Irrlicht/ITriangleRenderer.h
 source/Irrlicht/IZBuffer.h
-source/Irrlicht/MacOSX/AppDelegate.h
-source/Irrlicht/MacOSX/CIrrDeviceMacOSX.h
-source/Irrlicht/MacOSX/OSXClipboard.h
 source/Irrlicht/Octree.h
 source/Irrlicht/os.h
 source/Irrlicht/resource.h
@@ -392,7 +267,6 @@ include/CMeshBuffer.h
 include/coreutil.h
 include/CVertexBuffer.h
 include/dimension2d.h
-include/driverChoice.h
 include/EAttributes.h
 include/ECullingTypes.h
 include/EDebugSceneTypes.h
@@ -422,7 +296,6 @@ include/IBillboardSceneNode.h
 include/IBillboardTextSceneNode.h
 include/IBoneSceneNode.h
 include/ICameraSceneNode.h
-include/ICursorControl.h
 include/IDummyTransformationSceneNode.h
 include/IDynamicMeshBuffer.h
 include/IEventReceiver.h
@@ -430,34 +303,6 @@ include/IFileArchive.h
 include/IFileList.h
 include/IFileSystem.h
 include/IGeometryCreator.h
-include/IGPUProgrammingServices.h
-include/IGUIButton.h
-include/IGUICheckBox.h
-include/IGUIColorSelectDialog.h
-include/IGUIComboBox.h
-include/IGUIContextMenu.h
-include/IGUIEditBox.h
-include/IGUIElementFactory.h
-include/IGUIElement.h
-include/IGUIEnvironment.h
-include/IGUIFileOpenDialog.h
-include/IGUIFontBitmap.h
-include/IGUIFont.h
-include/IGUIImage.h
-include/IGUIImageList.h
-include/IGUIInOutFader.h
-include/IGUIListBox.h
-include/IGUIMeshViewer.h
-include/IGUIScrollBar.h
-include/IGUISkin.h
-include/IGUISpinBox.h
-include/IGUISpriteBank.h
-include/IGUIStaticText.h
-include/IGUITabControl.h
-include/IGUITable.h
-include/IGUIToolbar.h
-include/IGUITreeView.h
-include/IGUIWindow.h
 include/IImage.h
 include/IImageLoader.h
 include/IImageWriter.h
@@ -475,7 +320,6 @@ include/IMeshManipulator.h
 include/IMeshSceneNode.h
 include/IMeshWriter.h
 include/IMetaTriangleSelector.h
-include/IOSOperator.h
 include/IParticleAffector.h
 include/IParticleAnimatedMeshSceneNodeEmitter.h
 include/IParticleAttractionAffector.h
@@ -563,60 +407,11 @@ include/vector2d.h
 include/vector3d.h
 )
 
-if(NOT SERVER_ONLY AND ENABLE_WAYLAND_DEVICE)
-    set(IRRLICHT_SOURCES 
-        ${IRRLICHT_SOURCES}
-        source/Irrlicht/xdg_decoration_unstable_v1_protocol.c
-        source/Irrlicht/xdg_shell_protocol.c)
-endif()
-
-
-if(APPLE)
-    set(IRRLICHT_SOURCES
-        ${IRRLICHT_SOURCES}
-        source/Irrlicht/MacOSX/AppDelegate.mm
-        source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm
-        source/Irrlicht/MacOSX/CIrrDeviceOffScreenMacOSX.cpp
-        source/Irrlicht/MacOSX/OSXClipboard.mm)
-
-    #list(APPEND CMAKE_C_SOURCE_FILE_EXTENSIONS mm)
-    #set(CMAKE_CXX_SOURCE_FILE_EXTENSIONS cpp)
-
-    set_source_files_properties(source/Irrlicht/MacOSX/AppDelegate.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
-    set_source_files_properties(source/Irrlicht/MacOSX/AppDelegate.mm PROPERTIES LANGUAGE C)
-
-    set_source_files_properties(source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3  -fno-rtti")
-    set_source_files_properties(source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm PROPERTIES LANGUAGE C)
-
-    set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES COMPILE_FLAGS "-x objective-c++ -O3 -fno-rtti")
-    set_source_files_properties(source/Irrlicht/MacOSX/OSXClipboard.mm PROPERTIES LANGUAGE C)
-    
-endif()
-
 
 add_library(stkirrlicht STATIC ${IRRLICHT_SOURCES})
 
-target_link_libraries(stkirrlicht ${ZLIB_LIBRARY} ${OPENGL_LIBRARIES})
+target_link_libraries(stkirrlicht ${ZLIB_LIBRARY} ${OPENGL_LIBRARIES} ${PNG_LIBRARY} ${JPEG_LIBRARY})
 
 if(APPLE)
     target_link_libraries(stkirrlicht "-framework CoreFoundation")
-endif()
-
-if(NOT SERVER_ONLY)
-    target_link_libraries(stkirrlicht ${PNG_LIBRARY} ${JPEG_LIBRARY})
-    if(UNIX AND NOT APPLE)
-        target_link_libraries(stkirrlicht ${X11_X11_LIB})
-    endif()
-        
-    if(EGL_FOUND)
-        target_link_libraries(stkirrlicht ${EGL_LIBRARY})
-    endif()
-    
-    if(ENABLE_WAYLAND_DEVICE)
-        target_link_libraries(stkirrlicht ${WAYLAND_LIBRARIES})
-    endif()
-endif()
-
-if(WIN32)
-    target_link_libraries(stkirrlicht imm32 xinput9_1_0)
 endif()

@@ -74,8 +74,7 @@ LODNode* ModelDefinitionLoader::instanciateAsLOD(const XMLNode* node, scene::ISc
         for (unsigned int m=0; m<group.size(); m++)
         {
 #ifndef SERVER_ONLY
-            if (group[m].m_skeletal_animation &&
-                UserConfigParams::m_animated_characters)
+            if (group[m].m_skeletal_animation && UserConfigParams::m_animated_characters)
             {
                 scene::IAnimatedMesh* a_mesh = irr_driver->getAnimatedMesh(group[m].m_model_file);
                 if (!a_mesh)
@@ -130,7 +129,9 @@ LODNode* ModelDefinitionLoader::instanciateAsLOD(const XMLNode* node, scene::ISc
 
                 a_mesh->grab();
                 //cache.push_back(a_mesh);
+#ifndef SERVER_ONLY
                 irr_driver->grabAllTextures(a_mesh);
+#endif
                 m_track->addCachedMesh(a_mesh);
                 scene::ISceneNode* scene_node = irr_driver
                     ->addMesh(a_mesh, group[m].m_model_file, NULL, ri);

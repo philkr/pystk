@@ -24,7 +24,7 @@
 
 #include "items/powerup_manager.hpp"
 #include "karts/moveable.hpp"
-#include "network/rewinder.hpp"
+
 #include "tracks/terrain_info.hpp"
 #include "utils/cpp2011.hpp"
 
@@ -45,8 +45,7 @@ class RenderInfo;
 /**
   * \ingroup items
   */
-class Flyable : public Moveable, public TerrainInfo,
-                public Rewinder
+class Flyable : public Moveable, public TerrainInfo
 {
 private:
     bool              m_has_hit_something;
@@ -247,26 +246,6 @@ public:
     // ------------------------------------------------------------------------
     /** Returns the size (extend) of the mesh. */
     const Vec3 &getExtend() const { return m_extend;  }
-    // ------------------------------------------------------------------------
-    void addForRewind(const std::string& uid);
-    // ------------------------------------------------------------------------
-    virtual void undoEvent(BareNetworkString *buffer) OVERRIDE {}
-    // ------------------------------------------------------------------------
-    virtual void rewindToEvent(BareNetworkString *buffer) OVERRIDE {}
-    // ------------------------------------------------------------------------
-    virtual void undoState(BareNetworkString *buffer) OVERRIDE {}
-    // ------------------------------------------------------------------------
-    virtual void saveTransform() OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void computeError() OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual BareNetworkString* saveState(std::vector<std::string>* ru)
-        OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString *buffer, int count) OVERRIDE;
-    // ------------------------------------------------------------------------
-    /* Return true if still in game state, or otherwise can be deleted. */
-    bool hasServerState() const                  { return m_has_server_state; }
     // ------------------------------------------------------------------------
     /** Call when the item is (re-)fired (during rewind if needed) by
      *  projectile_manager. */

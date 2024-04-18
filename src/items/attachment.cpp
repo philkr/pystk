@@ -33,8 +33,7 @@
 #include "karts/explosion_animation.hpp"
 #include "karts/kart_properties.hpp"
 #include "modes/world.hpp"
-#include "network/network_string.hpp"
-#include "network/rewind_manager.hpp"
+
 #include "physics/triangle_mesh.hpp"
 #include "tracks/track.hpp"
 #include "physics/triangle_mesh.hpp"
@@ -56,16 +55,9 @@ Attachment::Attachment(AbstractKart* kart)
     m_previous_owner       = NULL;
     m_initial_speed        = 0.0f;
 
-    // If we attach a NULL mesh, we get a NULL scene node back. So we
-    // have to attach some kind of mesh, but make it invisible.
-    if (kart->isGhostKart())
-        m_node = irr_driver->addAnimatedMesh(
-            attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
-            NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
-    else
-        m_node = irr_driver->addAnimatedMesh(
-            attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
-            NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
+    m_node = irr_driver->addAnimatedMesh(
+        attachment_manager->getMesh(Attachment::ATTACH_BOMB), "bomb",
+        NULL, std::make_shared<RenderInfo>(0.0f, true, newObjectId(OT_BOMB)));
 #ifdef DEBUG
     std::string debug_name = kart->getIdent()+" (attachment)";
     m_node->setName(debug_name.c_str());
@@ -171,79 +163,6 @@ void Attachment::clear()
 }   // clear
 
 // -----------------------------------------------------------------------------
-/** Saves the attachment state. Called as part of the kart saving its state.
- *  \param buffer The kart rewinder's state buffer.
- */
-void Attachment::saveState(BareNetworkString *buffer) const
-{
-    // We use bit 6 to indicate if a previous owner is defined for a bomb,
-    // bit 7 to indicate if the attachment is a plugin
-    assert(ATTACH_MAX < 64);
-    uint8_t bit_7 = 0;
-    if (m_plugin)
-    {
-        bit_7 = 1 << 7;
-    }
-    uint8_t type = m_type | (( (m_type==ATTACH_BOMB) && (m_previous_owner!=NULL) )
-                             ? (1 << 6) : 0 ) | bit_7;
-    buffer->addUInt8(type);
-    buffer->addUInt16(m_ticks_left);
-    if (m_type==ATTACH_BOMB && m_previous_owner)
-        buffer->addUInt8(m_previous_owner->getWorldKartId());
-    if (m_type == ATTACH_PARACHUTE)
-        buffer->addUInt16(m_initial_speed);
-    if (m_plugin)
-        m_plugin->saveState(buffer);
-}   // saveState
-
-// -----------------------------------------------------------------------------
-/** Called from the kart rewinder when resetting to a certain state.
- *  \param buffer The kart rewinder's buffer with the attachment state next.
- */
-void Attachment::rewindTo(BareNetworkString *buffer)
-{
-    uint8_t type = buffer->getUInt8();
-    bool is_plugin = (type >> 7 & 1) == 1;
-
-    // mask out bit 6 and 7
-    AttachmentType new_type = AttachmentType(type & 63);
-    type &= 127;
-
-    int16_t ticks_left = buffer->getUInt16();
-    // Now it is a new attachment:
-    if (type == (ATTACH_BOMB | 64))   // we have previous owner information
-    {
-        uint8_t kart_id = buffer->getUInt8();
-        m_previous_owner = World::getWorld()->getKart(kart_id);
-    }
-    else
-    {
-        m_previous_owner = NULL;
-    }
-
-    if (new_type == ATTACH_PARACHUTE)
-        m_initial_speed = buffer->getUInt16();
-    else
-        m_initial_speed = 0;
-
-    if (is_plugin)
-    {
-        if (!m_plugin)
-            m_plugin = new Swatter(m_kart, -1, 0, this);
-        m_plugin->restoreState(buffer);
-    }
-    else
-    {
-        // Remove unconfirmed plugin
-        delete m_plugin;
-        m_plugin = NULL;
-    }
-
-    m_type = new_type;
-    m_ticks_left = ticks_left;
-}   // rewindTo
-
-// -----------------------------------------------------------------------------
 /** Selects the new attachment. In order to simplify synchronisation with the
  *  server, the new item is based on the current world time. 
  *  \param item The item that was collected.
@@ -281,12 +200,8 @@ void Attachment::hitBanana(ItemState *item_state)
     case ATTACH_BOMB:
         {
         add_a_new_item = false;
-        if (!RewindManager::get()->isRewinding())
         {
-            HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion",
-                "explosion_bomb.xml");
-            if (m_kart->getController()->isLocalPlayerController())
-                he->setLocalPlayerKartHit();
+            HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion_bomb.xml");
             projectile_manager->addHitEffect(he);
         }
         if (m_kart->getKartAnimation() == NULL)
@@ -480,12 +395,8 @@ void Attachment::update(int ticks)
         m_initial_speed = 0;
         if (m_ticks_left <= 0)
         {
-            if (!RewindManager::get()->isRewinding())
             {
-                HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion",
-                    "explosion_bomb.xml");
-                if (m_kart->getController()->isLocalPlayerController())
-                    he->setLocalPlayerKartHit();
+                HitEffect* he = new Explosion(m_kart->getXYZ(), "explosion_bomb.xml");
                 projectile_manager->addHitEffect(he);
             }
             if (m_kart->getKartAnimation() == NULL)
@@ -498,8 +409,7 @@ void Attachment::update(int ticks)
         m_initial_speed = 0;
         if (m_ticks_left <= 0)
         {
-            if (!m_kart->isGhostKart())
-                ItemManager::get()->dropNewItem(Item::ITEM_BUBBLEGUM, m_kart);
+            ItemManager::get()->dropNewItem(Item::ITEM_BUBBLEGUM, m_kart);
         }
         break;
     }   // switch

@@ -27,7 +27,6 @@
 #include <set>
 
 class AbstractKart;
-class BareNetworkString;
 class ItemState;
 
 /**
@@ -45,8 +44,6 @@ private:
     /** The owner (kart) of this powerup. */
     AbstractKart*               m_kart;
 
-    std::set<int>               m_played_sound_ticks;
-
 public:
                     Powerup      (AbstractKart* kart_);
                    ~Powerup      ();
@@ -55,8 +52,6 @@ public:
     Material*       getIcon      () const;
     void            use          ();
     void            hitBonusBox (const ItemState &item);
-    void            saveState(BareNetworkString *buffer) const;
-    void            rewindTo(BareNetworkString *buffer);
     void            update(int ticks);
 
     /** Returns the number of powerups. */

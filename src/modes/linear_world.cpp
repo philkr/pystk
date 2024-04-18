@@ -18,16 +18,12 @@
 #include "modes/linear_world.hpp"
 
 #include "config/stk_config.hpp"
-#include "config/user_config.hpp"
 #include "karts/abstract_kart.hpp"
 #include "karts/cannon_animation.hpp"
 #include "karts/controller/controller.hpp"
-#include "karts/ghost_kart.hpp"
 #include "karts/kart_properties.hpp"
 #include "graphics/material.hpp"
 #include "physics/physics.hpp"
-#include "network/network_string.hpp"
-#include "race/history.hpp"
 #include "tracks/check_manager.hpp"
 #include "tracks/check_structure.hpp"
 #include "tracks/drive_graph.hpp"
@@ -36,7 +32,6 @@
 #include "tracks/track.hpp"
 #include "utils/constants.hpp"
 #include "utils/string_utils.hpp"
-#include "utils/translation.hpp"
 
 #include <climits>
 #include <iostream>
@@ -48,8 +43,6 @@
 LinearWorld::LinearWorld() : WorldWithRank()
 {
     m_fastest_lap_ticks    = INT_MAX;
-    m_valid_reference_time = false;
-    m_live_time_difference = 0.0f;
     m_fastest_lap_kart_name = "";
 }   // LinearWorld
 
@@ -188,10 +181,6 @@ void LinearWorld::update(int ticks)
         m_kart_info[i].m_estimated_finish =
                 estimateFinishTimeForKart(m_karts[i].get());
     }
-    // If one player and a ghost, or two compared ghosts,
-    // compute the live time difference
-    if(race_manager->hasGhostKarts() && race_manager->getNumberOfKarts() == 2)
-        updateLiveDifference();
 
 #ifdef DEBUG
     // Debug output in case that the double position error occurs again.
@@ -240,8 +229,7 @@ void LinearWorld::updateTrackSectors()
         // jump to position one, then on reset fall back to last)
         if ((!getTrackSector(n)->isOnRoad() &&
             (!kart->getMaterial() ||
-              kart->getMaterial()->isDriveReset()))  &&
-             !kart->isGhostKart())
+              kart->getMaterial()->isDriveReset())))
             continue;
         getTrackSector(n)->update(kart->getFrontXYZ());
         kart_info.m_overall_distance = kart_info.m_finished_laps
@@ -259,45 +247,6 @@ void LinearWorld::updateGraphics(float dt)
 {
     WorldWithRank::updateGraphics(dt);
 }   // updateGraphics
-
-// ----------------------------------------------------------------------------
-/** This calculate the time difference between the second kart in the
- *  race and the first kart in the race (who must be a ghost)
- */
-void LinearWorld::updateLiveDifference()
-{
-    // First check that the call requirements are verified
-    assert (race_manager->hasGhostKarts() && race_manager->getNumberOfKarts() >= 2);
-
-    AbstractKart* ghost_kart = getKart(0);
-
-    // Get the distance at which the second kart is
-    float second_kart_distance = getOverallDistance(1);
-
-    // Check when the ghost what at this position
-    float ghost_time;
-
-    // If there are two ghost karts, the view is set to kart 0,
-    // so switch roles in the comparison. Note that
-    // we can't simply multiply the time by -1, as they are assymetrical.
-    // When one kart don't increase its distance (rescue, etc),
-    // the difference increases linearly for one and jump for the other.
-    if (getKart(1)->isGhostKart())
-    {
-        ghost_kart = getKart(1);
-        second_kart_distance = getOverallDistance(0);
-    }
-    ghost_time = ghost_kart->getTimeForDistance(second_kart_distance);
-
-    if (ghost_time >= 0.0f)
-        m_valid_reference_time = true;
-    else
-        m_valid_reference_time = false;
-
-    float current_time = World::getWorld()->getTime();
-
-    m_live_time_difference = current_time - ghost_time;
-}
 
 //-----------------------------------------------------------------------------
 /** Is called by check structures if a kart starts a new lap.
@@ -360,18 +309,6 @@ void LinearWorld::newLap(unsigned int kart_index)
     // This way, even with poor framerate, we get a time significant to the ms
     if(kart_info.m_finished_laps >= race_manager->getNumLaps() && raceHasLaps())
     {
-        if (kart->isGhostKart())
-        {
-            GhostKart* gk = dynamic_cast<GhostKart*>(kart);
-            // Old replays don't store distance, so don't use the ghost method
-            // Ghosts also don't store the previous positions, so the method
-            // for normal karts can't be used.
-            if (gk->getGhostFinishTime() > 0.0f)
-                kart->finishedRace(gk->getGhostFinishTime());
-            else
-                kart->finishedRace(getTime());
-        }
-        else
         {
             float curr_distance_after_line = getDistanceDownTrackForKart(kart->getWorldKartId(),false);
 
@@ -401,7 +338,7 @@ void LinearWorld::newLap(unsigned int kart_index)
 
     // if new fastest lap
     if(ticks_per_lap < m_fastest_lap_ticks && raceHasLaps() &&
-        kart_info.m_finished_laps>0 && !isLiveJoinWorld())
+        kart_info.m_finished_laps>0)
     {
         m_fastest_lap_ticks = ticks_per_lap;
 
@@ -411,10 +348,6 @@ void LinearWorld::newLap(unsigned int kart_index)
         // (remove the stringw before the wchar_t* is used).
         const core::stringw &kart_name = kart->getController()->getName();
         m_fastest_lap_kart_name = kart_name;
-
-        //I18N: as in "fastest lap: 60 seconds by Wilber"
-        irr::core::stringw m_fastest_lap_message =
-            _C("fastest_lap", "%s by %s", s.c_str(), kart_name);
     } // end if new fastest lap
 
     kart_info.m_lap_start_ticks = getTimeTicks();
@@ -428,7 +361,7 @@ void LinearWorld::newLap(unsigned int kart_index)
  */
 float LinearWorld::getDistanceDownTrackForKart(const int kart_id, bool account_for_checklines) const
 {
-    return getTrackSector(kart_id)->getDistanceFromStart(account_for_checklines);
+    return getTrackSector(kart_id)->getDistanceFromStart(account_for_checklines, true);
 }   // getDistanceDownTrackForKart
 
 //-----------------------------------------------------------------------------
@@ -498,16 +431,6 @@ float LinearWorld::estimateFinishTimeForKart(AbstractKart* kart)
 
     float full_distance = race_manager->getNumLaps()
                         * Track::getCurrentTrack()->getTrackLength();
-
-    // For ghost karts, use the replay data rather than estimating
-    if (kart->isGhostKart())
-    {
-        GhostKart* gk = dynamic_cast<GhostKart*>(kart);
-        // Old replays don't store distance, so don't use the ghost method
-        // They'll return a negative time here
-        if (gk->getGhostFinishTime() > 0.0f)
-            return gk->getGhostFinishTime();
-    }
 
     if(full_distance == 0)
         full_distance = 1.0f;   // For 0 lap races avoid warning below
@@ -670,40 +593,7 @@ void LinearWorld::updateRacePosition()
             }
 
         } //next kart
-
-#ifndef DEBUG
         setKartPosition(i, p);
-#else
-        rank_changed |= kart->getPosition()!=p;
-        if (!setKartPosition(i,p))
-        {
-            Log::error("[LinearWorld]", "Same rank used twice!!");
-
-            Log::debug("[LinearWorld]", "Info used to decide ranking :");
-            for (unsigned int d=0; d<kart_amount; d++)
-            {
-                Log::debug("[LinearWorld]", "Kart %s has finished (%d), is at lap (%u),"
-                            "is at distance (%u), is eliminated(%d)",
-                            m_karts[d]->getIdent().c_str(),
-                            m_karts[d]->hasFinishedRace(),
-                            getLapForKart(d),
-                            m_kart_info[d].m_overall_distance,
-                            m_karts[d]->isEliminated());
-            }
-
-            Log::debug("[LinearWorld]", "Who has each ranking so far :");
-            for (unsigned int d=0; d<i; d++)
-            {
-                Log::debug("[LinearWorld]", "%s has rank %d", m_karts[d]->getIdent().c_str(),
-                            m_karts[d]->getPosition());
-            }
-
-            Log::debug("[LinearWorld]", "    --> And %s is being set at rank %d",
-                        kart->getIdent().c_str(), p);
-            history->Save();
-            assert(false);
-        }
-#endif
 
         // Switch on faster music if not already done so, if the
         // first kart is doing its last lap.
@@ -715,75 +605,6 @@ void LinearWorld::updateRacePosition()
             m_faster_music_active=true;
         }
     }   // for i<kart_amount
-
-    // Define this to get a detailled analyses each time a race position
-    // changes.
-#ifdef DEBUG
-#undef DEBUG_KART_RANK
-#ifdef DEBUG_KART_RANK
-    if(rank_changed)
-    {
-        Log::debug("[LinearWorld]", "Counting laps at %u seconds.", getTime());
-        for (unsigned int i=0; i<kart_amount; i++)
-        {
-            AbstractKart* kart = m_karts[i].get();
-            Log::debug("[LinearWorld]", "counting karts ahead of %s (laps %u,"
-                        " progress %u, finished %d, eliminated %d, initial position %u.",
-                        kart->getIdent().c_str(),
-                        m_kart_info[i].m_race_lap,
-                        m_kart_info[i].m_overall_distance,
-                        kart->hasFinishedRace(),
-                        kart->isEliminated(),
-                        kart->getInitialPosition());
-            // Karts that are either eliminated or have finished the
-            // race already have their (final) position assigned. If
-            // these karts would get their rank updated, it could happen
-            // that a kart that finished first will be overtaken after
-            // crossing the finishing line and become second!
-            if(kart->isEliminated() || kart->hasFinishedRace()) continue;
-            KartInfo& kart_info = m_kart_info[i];
-            int p = 1 ;
-            const int my_id         = kart->getWorldKartId();
-            const float my_distance = m_kart_info[my_id].m_overall_distance;
-
-            for (unsigned int j = 0 ; j < kart_amount ; j++)
-            {
-                if(j == my_id) continue;
-                if(m_karts[j]->isEliminated())
-                {
-                    Log::debug("[LinearWorld]", " %u: %s because it is eliminated.",
-                                p, m_karts[j]->getIdent().c_str());
-                    continue;
-                }
-                if(!kart->hasFinishedRace() && m_karts[j]->hasFinishedRace())
-                {
-                    p++;
-                    Log::debug("[LinearWorld]", " %u: %s because it has finished the race.",
-                                p, m_karts[j]->getIdent().c_str());
-                    continue;
-                }
-                if(m_kart_info[j].m_overall_distance > my_distance)
-                {
-                    p++;
-                    Log::debug("[LinearWorld]", " %u: %s because it is ahead %u.",
-                                p, m_karts[j]->getIdent().c_str(),
-                                m_kart_info[j].m_overall_distance);
-                    continue;
-                }
-                if(m_kart_info[j].m_overall_distance == my_distance &&
-                   m_karts[j]->getInitialPosition()<kart->getInitialPosition())
-                {
-                    p++;
-                    Log::debug("[LinearWorld]"," %u: %s has same distance, but started ahead %d",
-                                p, m_karts[j]->getIdent().c_str(),
-                                m_karts[j]->getInitialPosition());
-                }
-            }   // next kart j
-        }   // for i<kart_amount
-        Log::debug("LinearWorld]", "-------------------------------------------");
-    }   // if rank_changed
-#endif
-#endif
 
     endSetKartPositions();
 }   // updateRacePosition
@@ -875,118 +696,6 @@ std::pair<uint32_t, uint32_t> LinearWorld::getGameStartedProgress() const
     }
     return progress;
 }   // getGameStartedProgress
-
-// ----------------------------------------------------------------------------
-void LinearWorld::KartInfo::saveCompleteState(BareNetworkString* bns)
-{
-    bns->addUInt32(m_finished_laps);
-    bns->addUInt32(m_ticks_at_last_lap);
-    bns->addUInt32(m_lap_start_ticks);
-    bns->addFloat(m_estimated_finish);
-    bns->addFloat(m_overall_distance);
-    bns->addFloat(m_wrong_way_timer);
-}   // saveCompleteState
-
-// ----------------------------------------------------------------------------
-void LinearWorld::KartInfo::restoreCompleteState(const BareNetworkString& b)
-{
-    m_finished_laps = b.getUInt32();
-    m_ticks_at_last_lap = b.getUInt32();
-    m_lap_start_ticks = b.getUInt32();
-    m_estimated_finish = b.getFloat();
-    m_overall_distance = b.getFloat();
-    m_wrong_way_timer = b.getFloat();
-}   // restoreCompleteState
-
-// ----------------------------------------------------------------------------
-void LinearWorld::saveCompleteState(BareNetworkString* bns, STKPeer* peer)
-{
-    bns->addUInt32(m_fastest_lap_ticks);
-    bns->addFloat(m_distance_increase);
-    for (auto& kart : m_karts)
-    {
-        bns->add(kart->getXYZ());
-        bns->add(kart->getRotation());
-    }
-    for (KartInfo& ki : m_kart_info)
-        ki.saveCompleteState(bns);
-    for (TrackSector* ts : m_kart_track_sector)
-        ts->saveCompleteState(bns);
-
-    const uint8_t cc = (uint8_t)CheckManager::get()->getCheckStructureCount();
-    bns->addUInt8(cc);
-    for (unsigned i = 0; i < cc; i++)
-        CheckManager::get()->getCheckStructure(i)->saveCompleteState(bns);
-}   // saveCompleteState
-
-// ----------------------------------------------------------------------------
-void LinearWorld::restoreCompleteState(const BareNetworkString& b)
-{
-    m_fastest_lap_ticks = b.getUInt32();
-    m_distance_increase = b.getFloat();
-    for (auto& kart : m_karts)
-    {
-        btTransform t;
-        Vec3 xyz = b.getVec3();
-        t.setOrigin(xyz);
-        t.setRotation(b.getQuat());
-        kart->setTrans(t);
-        kart->setXYZ(xyz);
-    }
-    for (KartInfo& ki : m_kart_info)
-        ki.restoreCompleteState(b);
-    for (TrackSector* ts : m_kart_track_sector)
-        ts->restoreCompleteState(b);
-
-    updateRacePosition();
-    const unsigned cc = b.getUInt8();
-    if (cc != CheckManager::get()->getCheckStructureCount())
-    {
-        Log::warn("LinearWorld",
-            "Server has different check structures size.");
-        return;
-    }
-    for (unsigned i = 0; i < cc; i++)
-        CheckManager::get()->getCheckStructure(i)->restoreCompleteState(b);
-}   // restoreCompleteState
-
-// ----------------------------------------------------------------------------
-/** Called in server whenever a kart cross a check line, it send server
- *  current kart lap count, last triggered checkline and check structure status
- *  to all players in game (including spectators so that the lap count is
- *  correct)
- *  \param check_id The check structure it it triggered.
- *  \param kart_id The kart which triggered a checkline.
- */
-void LinearWorld::updateCheckLinesServer(int check_id, int kart_id)
-{
-}   // updateCheckLinesServer
-
-// ----------------------------------------------------------------------------
-/* Synchronize with server from the above data. */
-void LinearWorld::updateCheckLinesClient(const BareNetworkString& b)
-{
-    // Reserve for future auto checkline correction
-    //int check_id = b.getUInt8();
-    b.getUInt8();
-    int kart_id = b.getUInt8();
-
-    int8_t finished_laps = b.getUInt8();
-    m_kart_info.at(kart_id).m_finished_laps = finished_laps;
-
-    int8_t ltcl = b.getUInt8();
-    m_kart_track_sector.at(kart_id)->setLastTriggeredCheckline(ltcl);
-
-    m_fastest_lap_ticks = b.getUInt32();
-    b.decodeStringW(&m_fastest_lap_kart_name);
-
-    const unsigned cc = b.getUInt8();
-    if (cc != CheckManager::get()->getCheckStructureCount())
-        return;
-    for (unsigned i = 0; i < cc; i++)
-        CheckManager::get()->getCheckStructure(i)->restoreIsActive(kart_id, b);
-
-}   // updateCheckLinesClient
 
 // ----------------------------------------------------------------------------
 void LinearWorld::handleServerCheckStructureCount(unsigned count)

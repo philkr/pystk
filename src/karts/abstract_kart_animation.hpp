@@ -30,7 +30,6 @@
 #include <string>
 
 class AbstractKart;
-class BareNetworkString;
 
 enum KartAnimationType : uint8_t
 {
@@ -81,8 +80,6 @@ protected:
 
     void resetPowerUp();
     // ------------------------------------------------------------------------
-    void restoreBasicState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
     float getMaximumHeight(const Vec3& up_vector, float height_remove);
 
 public:
@@ -103,14 +100,7 @@ public:
     // ------------------------------------------------------------------------
     /* Used to ignore adding karts back to physics when destroying world. */
     void handleResetRace()   { m_end_ticks = std::numeric_limits<int>::max(); }
-    // ------------------------------------------------------------------------
-    /* Used to recreate animation in \ref KartRewinder. */
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    /* Called when kart animation is the same in kart state, which make sure
-     * for example the end or created ticks are the same. */
-    virtual void restoreState(BareNetworkString* buffer)
-                                                 { restoreBasicState(buffer); }
+
 };   // AbstractKartAnimation
 
 #endif

@@ -30,7 +30,6 @@
 
 class AbstractKart;
 class Controller;
-class NetworkString;
 class TrackObject;
 class TrackSector;
 
@@ -174,8 +173,8 @@ private:
             // As the line always intercept in (0,0) which is the ball location,
             // so y(z)/x is the slope , it is used for determine aiming position
             // of ball later
-            m_red_goal_slope = m_red_goal_2.z() / m_red_goal_2.x();
-            m_blue_goal_slope = m_blue_goal_2.z() / m_blue_goal_2.x();
+            m_red_goal_slope = m_red_goal_2.z() / (abs(m_red_goal_2.x())+1e-3) * (2*float(m_red_goal_2.x() > 0)-1);
+            m_blue_goal_slope = m_blue_goal_2.z() / (abs(m_blue_goal_2.x())+1e-3) * (2*float(m_blue_goal_2.x() > 0)-1);
         }   // updateBallAndGoal
 
         bool isApproachingGoal(KartTeam team) const
@@ -329,7 +328,6 @@ public:
 
     virtual void update(int ticks) OVERRIDE;
 
-    bool shouldDrawTimer() const OVERRIDE { return !isStartPhase(); }
     // ------------------------------------------------------------------------
     void onCheckGoalTriggered(bool first_goal);
     // ------------------------------------------------------------------------
@@ -351,6 +349,9 @@ public:
     // ------------------------------------------------------------------------
     const Vec3& getBallPosition() const
         { return (Vec3&)m_ball_body->getCenterOfMassTransform().getOrigin(); }
+    // ------------------------------------------------------------------------
+    void setBallPosition(const Vec3 & p, const Vec3 & v = Vec3(0, 0, 0),
+                         const Vec3 & a = Vec3(0, 0, 0));
     // ------------------------------------------------------------------------
     bool ballNotMoving() const
     {
@@ -383,10 +384,6 @@ public:
     /** Get the AI who will attack the other team ball chaser. */
     int getAttacker(KartTeam team) const;
     // ------------------------------------------------------------------------
-    void handlePlayerGoalFromServer(const NetworkString& ns);
-    // ------------------------------------------------------------------------
-    void handleResetBallFromServer(const NetworkString& ns);
-    // ------------------------------------------------------------------------
     virtual bool hasTeam() const OVERRIDE                      { return true; }
     // ------------------------------------------------------------------------
     virtual std::pair<uint32_t, uint32_t> getGameStartedProgress() const
@@ -411,11 +408,6 @@ public:
         }
         return progress;
     }
-    // ------------------------------------------------------------------------
-    virtual void saveCompleteState(BareNetworkString* bns,
-                                   STKPeer* peer) OVERRIDE;
-    // ------------------------------------------------------------------------
-    virtual void restoreCompleteState(const BareNetworkString& b) OVERRIDE;
     // ------------------------------------------------------------------------
     virtual bool isGoalPhase() const OVERRIDE
     {

@@ -92,6 +92,7 @@ class BaseUI:
         self.current_action.steer = int('d' in self._ks or 'right' in self._ks) - int('a' in self._ks or 'left' in self._ks)
         self.current_action.fire = ' ' in self._ks
         self.current_action.drift = 'm' in self._ks
+        self.current_action.rescue = 'r' in self._ks
         if 'p' in self._ks:
             self.pause = not self.pause
         # TODO: Complete

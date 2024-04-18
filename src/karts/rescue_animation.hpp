@@ -31,7 +31,6 @@ class Referee;
 class RescueAnimation: public AbstractKartAnimation
 {
 protected:
-friend class KartRewinder;
     /** The velocity with which the kart is moved. */
     float m_velocity;
 
@@ -44,6 +43,9 @@ friend class KartRewinder;
 
     /* Final transformation to place kart. */
     btTransform m_rescue_transform;
+
+    /* Compressed values for server to send to avoid compressing everytime. */
+    int m_rescue_transform_compressed[4];
 
     // ------------------------------------------------------------------------
     RescueAnimation(AbstractKart* kart, bool is_auto_rescue);
@@ -61,9 +63,5 @@ public:
     virtual void updateGraphics(float dt);
     // ------------------------------------------------------------------------
     virtual KartAnimationType getAnimationType() const   { return KAT_RESCUE; }
-    // ------------------------------------------------------------------------
-    virtual void saveState(BareNetworkString* buffer);
-    // ------------------------------------------------------------------------
-    virtual void restoreState(BareNetworkString* buffer);
 };   // RescueAnimation
 #endif

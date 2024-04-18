@@ -43,8 +43,6 @@ private:
     /** Number of eggs found so far by players. */
     int   m_eggs_found;
 
-    bool  m_only_ghosts;
-
     float m_finish_time;
 public:
              EasterEggHunt();
@@ -64,7 +62,6 @@ public:
     virtual void update(int ticks) OVERRIDE;
     virtual void collectedItem(const AbstractKart *kart,
                                const ItemState *item     ) OVERRIDE;
-    void collectedEasterEggGhost(int world_id);
 
     const int  numberOfEggsFound() { return m_eggs_found; }
     const int  numberOfEggsToFind() { return m_number_of_eggs; }

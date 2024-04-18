@@ -4,123 +4,138 @@
    SuperTuxKart graphics configuration.
 
 
-   .. py:method:: animated_characters
-      :property:
-
-      Animate characters (bool)
-
-
-   .. py:method:: bloom
-      :property:
-
-      Enable the bloom effect (bool)
-
-
-   .. py:method:: degraded_IBL
-      :property:
-
-      Disable specular IBL (bool)
-
-
-   .. py:method:: dof
-      :property:
-
-      Depth of field effect (bool)
-
-
-   .. py:method:: dynamic_lights
-      :property:
-
-      Enable dynamic lighting (bool)
-
-
-   .. py:method:: glow
-      :property:
-
-      Enable glow around pickup objects (bool)
-
-
-   .. py:method:: hd() -> pystk.GraphicsConfig
+   .. py:method:: hd () -> pystk.GraphicsConfig
+      :staticmethod:
 
       High-definitaiton graphics settings
 
 
-   .. py:method:: high_definition_textures
+   .. py:method:: ld () -> pystk.GraphicsConfig
+      :staticmethod:
+
+      Low-definition graphics settings
+
+
+   .. py:method:: none () -> pystk.GraphicsConfig
+      :staticmethod:
+
+      Disable graphics and rendering
+
+
+   .. py:method:: sd () -> pystk.GraphicsConfig
+      :staticmethod:
+
+      Standard-definition graphics settings
+
+
+   .. py:method:: animated_characters () -> bool
+      :property:
+
+      Animate characters
+
+
+   .. py:method:: bloom () -> bool
+      :property:
+
+      Enable the bloom effect
+
+
+   .. py:method:: degraded_IBL () -> bool
+      :property:
+
+      Disable specular IBL
+
+
+   .. py:method:: display_adapter () -> int
+      :property:
+
+      GPU to use (Linux only)
+
+
+   .. py:method:: dof () -> bool
+      :property:
+
+      Depth of field effect
+
+
+   .. py:method:: dynamic_lights () -> bool
+      :property:
+
+      Enable dynamic lighting
+
+
+   .. py:method:: glow () -> bool
+      :property:
+
+      Enable glow around pickup objects
+
+
+   .. py:method:: high_definition_textures () -> int
       :property:
 
       Enable high definition textures 0 / 2
 
 
-   .. py:method:: ld() -> pystk.GraphicsConfig
-
-      Low-definition graphics settings
-
-
-   .. py:method:: light_shaft
+   .. py:method:: light_shaft () -> bool
       :property:
 
-      Enable light shafts (bool)
+      Enable light shafts
 
 
-   .. py:method:: mlaa
+   .. py:method:: mlaa () -> bool
       :property:
 
-      Enable anti-aliasing (bool)
+      Enable anti-aliasing
 
 
-   .. py:method:: motionblur
+   .. py:method:: motionblur () -> bool
       :property:
 
-      Enable motion blur (bool)
+      Enable motion blur
 
 
-   .. py:method:: particles_effects
+   .. py:method:: particles_effects () -> int
       :property:
 
       Particle effect 0 (none) to 2 (full)
 
 
-   .. py:method:: render_window
+   .. py:method:: render () -> bool
       :property:
 
-      Show the rendering window (bool)
+      Is rendering enabled?
 
 
-   .. py:method:: screen_height
+   .. py:method:: screen_height () -> int
       :property:
 
-      Height of the rendering surface (int)
+      Height of the rendering surface
 
 
-   .. py:method:: screen_width
+   .. py:method:: screen_width () -> int
       :property:
 
-      Width of the rendering surface (int)
+      Width of the rendering surface
 
 
-   .. py:method:: sd() -> pystk.GraphicsConfig
-
-      Standard-definition graphics settings
-
-
-   .. py:method:: ssao
+   .. py:method:: ssao () -> bool
       :property:
 
-      Enable screen space ambient occlusion (bool)
+      Enable screen space ambient occlusion
 
 
-   .. py:method:: texture_compression
+   .. py:method:: texture_compression () -> bool
       :property:
 
-      Use texture compression (bool)
+      Use texture compression
 
 
-.. py:function:: pystk.init(config: pystk.GraphicsConfig) -> None
+.. py:function:: pystk.init (config: pystk.GraphicsConfig) -> None
 
    Initialize Python SuperTuxKart. Only call this function once per process. Calling it twice will cause a crash.
 
 
-.. py:function:: pystk.clean() -> None
+.. py:function:: pystk.clean () -> None
 
    Free Python SuperTuxKart, call this once at exit (optional). Will be called atexit otherwise.
 

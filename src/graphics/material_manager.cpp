@@ -22,7 +22,6 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "config/user_config.hpp"
 #include "graphics/central_settings.hpp"
 #include "graphics/material.hpp"
 #include "graphics/particle_kind_manager.hpp"
@@ -56,11 +55,6 @@ MaterialManager::MaterialManager()
  */
 MaterialManager::~MaterialManager()
 {
-#ifndef SERVER_ONLY
-    if (CVS->isGLSL())
-        SP::SPTextureManager::get()->stopThreads();
-#endif
-
     for(unsigned int i=0; i<m_materials.size(); i++)
     {
         delete m_materials[i];
