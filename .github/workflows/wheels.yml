@@ -32,5 +32,3 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
-
-# for more info see https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml

@@ -15,10 +15,10 @@ if __name__ == "__main__":
         t0 = time()
         render = True
         if config is None:
-            config = pystk.GraphicsConfig.ld()
-            render = False
-        config.screen_width = 320
-        config.screen_height = 240
+            config = pystk.GraphicsConfig.none()
+        else:
+            config.screen_width = 320
+            config.screen_height = 240
         pystk.init(config)
         init_time, t0 = time() - t0, time()
 

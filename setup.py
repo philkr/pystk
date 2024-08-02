@@ -7,7 +7,6 @@ import sys
 from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
 
-ASSET_URL = "http://www.cs.utexas.edu/~bzhou/stk-assets.zip"
 ASSET_URL = "http://www.cs.utexas.edu/~philkr/stk-assets20191122.zip"
 this_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,7 +17,6 @@ PLAT_TO_CMAKE = {
     "win-arm32": "ARM",
     "win-arm64": "ARM64",
 }
-
 
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
