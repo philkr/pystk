@@ -122,7 +122,7 @@ def ignore(base, entries):
 
 setup(
     name='PySuperTuxKart',
-    version='1.1.2',
+    version='1.1.3',
     author='Philipp Krähenbühl',
     author_email='philkr@utexas.edu',
     description='Python SuperTuxKart inferface',
@@ -141,7 +141,7 @@ setup(
         'Topic :: Scientific/Engineering',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
     ],
- 
+
     # tell setuptools that all packages will be under the 'src' directory
     # and nowhere else
     install_requires=['PySuperTuxKartData'],
