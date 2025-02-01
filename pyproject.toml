@@ -6,3 +6,7 @@ requires = [
     "cmake>=3.12",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+# Only build on CPython 3.10+
+build = ["cp310-*", "cp311-*", "cp312-*"]
