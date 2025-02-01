@@ -21,6 +21,7 @@
 #include "graphics/gl_headers.hpp"
 #include "utils/no_copy.hpp"
 
+#include <cstdint>
 #include <string>
 #include <ITexture.h>
 

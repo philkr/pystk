@@ -21,6 +21,7 @@
 
 #if defined(_IRR_POSIX_API_)
 
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -393,7 +394,7 @@ bool ContextManagerEGL::initExtensions()
     {
         QueryDevices = (QueryDevices_t)EGL::GetProcAddress("eglQueryDevicesEXT");
     }
-    
+
     return true;
 }
 
@@ -402,7 +403,7 @@ bool ContextManagerEGL::initDisplay()
 {
     EGL::NativeDisplayType display = EGL::DEFAULT_DISPLAY;
     EGL::ENUM platform = EGL::PLATFORM_DEVICE;
-    
+
     if (QueryDevices != NULL) {
         EGL::INT num_devices = 0;
         QueryDevices(0, NULL, &num_devices);
@@ -481,7 +482,7 @@ bool ContextManagerEGL::chooseConfig()
         config_attribs[5] = 5; //EGL::BLUE_SIZE
         config_attribs[7] = 0; //EGL::ALPHA_SIZE
         config_attribs[9] = 1; //EGL::DEPTH_SIZE
-        
+
         success = EGL::ChooseConfig(m_egl_display, &config_attribs[0], &m_egl_config, 1, &num_configs);
     }
 
@@ -498,7 +499,7 @@ bool ContextManagerEGL::createSurface()
 {
     unsigned int colorspace_attr_pos = 0;
     unsigned int largest_pbuffer_attr_pos = 0;
-    
+
     std::vector<EGL::INT> attribs;
 
     {
@@ -510,21 +511,21 @@ bool ContextManagerEGL::createSurface()
         attribs.push_back(EGL::FALSE);
         largest_pbuffer_attr_pos = attribs.size() - 1;
     }
-    
+
     attribs.push_back(EGL::NONE);
     attribs.push_back(0);
-    
+
     if (m_egl_surface == EGL::NO_SURFACE)
     {
         m_egl_surface = EGL::CreatePbufferSurface(m_egl_display, m_egl_config, &attribs[0]);
     }
-        
+
     if (m_egl_surface == EGL::NO_SURFACE && colorspace_attr_pos > 0)
     {
         attribs[colorspace_attr_pos] = EGL::GL_COLORSPACE_LINEAR;
         m_egl_surface = EGL::CreatePbufferSurface(m_egl_display, m_egl_config, &attribs[0]);
     }
-    
+
     if (m_egl_surface == EGL::NO_SURFACE && largest_pbuffer_attr_pos > 0)
     {
         attribs[largest_pbuffer_attr_pos] = EGL::TRUE;
@@ -584,7 +585,7 @@ void ContextManagerEGL::close()
         EGL::Terminate(m_egl_display);
         m_egl_display = EGL::NO_DISPLAY;
     }
-    
+
     EGL::ReleaseThread();
 }
 

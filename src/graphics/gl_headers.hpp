@@ -31,6 +31,7 @@ extern "C" {
 #endif
 }
 #include <cinttypes>
+#include <cstdint>
 
 #if defined(USE_GLES2)
 #    define __gl2_h_

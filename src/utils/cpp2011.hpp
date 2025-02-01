@@ -18,6 +18,7 @@
 #ifndef CPP2011_HPP
 #define CPP2011_HPP
 #include <vector>
+#include <cstdint>
 #if __cplusplus >= 201103 || _MSC_VER >=1800
 
     #define OVERRIDE override

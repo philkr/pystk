@@ -1,6 +1,7 @@
 #ifndef OBJECTTYPE_H
 #define OBJECTTYPE_H
 #include <string>
+#include <cstdint>
 
 enum ObjectType {
 	OT_NONE=0,

@@ -33,6 +33,7 @@
 #include "utils/string_utils.hpp"
 
 #include <cstdlib>
+#include <cstdint>
 
 PlayerController::PlayerController(AbstractKart *kart)
                 : Controller(kart)
