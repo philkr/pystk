@@ -27,6 +27,7 @@
 #include "utils/log.hpp"
 #include "utils/no_copy.hpp"
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include <typeindex>

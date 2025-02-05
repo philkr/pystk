@@ -236,9 +236,14 @@ bool EGL::init() {
 
     void* handle = dlopen("libEGL.so", RTLD_LAZY);
     if (!handle) {
+        handle = dlopen("libEGL.so.1", RTLD_LAZY);
+        if (!handle) {
+            handle = dlopen("libEGL.so.1.1.0", RTLD_LAZY);
+        }
         // TODO: try fallback locations
     }
     if (!handle) {
+        os::Printer::log("Error: Could not find EGL library.\n");
         return false;
     }
     GetProcAddress = (GetProcAddress_t)dlsym(handle, "eglGetProcAddress");
